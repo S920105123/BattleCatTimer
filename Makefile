@@ -24,8 +24,8 @@ log.o:  $(LOGGER_SRC)
 file_reader.o: $(FILE_READER_SRC) log.o
 	$(GCCFLAG) -c $(FILE_READER_SRC) -o file_reader.o
 
-main: log.o
-	$(GCCFLAG) log.o test_main.cpp  -o main
+main: log.o file_reader.o
+	$(GCCFLAG) log.o file_reader.o test_main.cpp  -o main
 	main.exe
 
 clean:

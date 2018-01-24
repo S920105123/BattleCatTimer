@@ -2,7 +2,6 @@
 #define FILE_READER_H
 
 #include "header.h"
-#include "global.h"
 #include "logger.h"
 
 class File_Reader

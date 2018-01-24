@@ -1,45 +1,58 @@
 #include "logger.h"
 
-Logger::Logger() {
-	const std::string fnames[] = {
-		"normal.log",
-		"warning.log",
-		"error.log"
-	};
-	on = true;
-	fnorm.open(fnames[0]);
-	fwarn.open(fnames[1]);
-	ferr.open(fnames[2]);
-	cur_stream = &fnorm;
+Logger* Logger::logger_instance = NULL;
+
+Logger* Logger::create() {
+	if(logger_instance == NULL){
+		logger_instance = new Logger();
+
+		const std::string fnames[] = {
+			"log_normal.log",
+			"log_warning.log",
+			"log_error.log"
+		};
+		logger_instance->on = true;
+		logger_instance->fnorm.open(fnames[0]);
+		logger_instance->fwarn.open(fnames[1]);
+		logger_instance->ferr.open(fnames[2]);
+		logger_instance->cur_stream = &logger_instance->fnorm;
+	}
+	return logger_instance;
 }
 
 Logger::~Logger() {
+	fnorm << "[Log] close log files\n";
 	fnorm.close();
 	fwarn.close();
 	ferr.close();
 }
 
-Logger& Logger::log(Log_type type) {
+Logger& Logger::Log(Log_type type) {
 
-	if (type == NORMAL)       cur_stream = &fnorm;
-	else if (type == WARNING) cur_stream = &fwarn;
-	else if (type == ERROR)   cur_stream = &ferr;
-	else                      cur_stream = &std::cerr;
-	if (type != CERR && on) {
+	if(logger_instance == NULL) logger_instance = create();
+
+	if (type == NORMAL)       logger_instance->cur_stream = &logger_instance->fnorm;
+	else if (type == WARNING) logger_instance->cur_stream = &logger_instance->fwarn;
+	else if (type == ERROR)   logger_instance->cur_stream = &logger_instance->ferr;
+	else                      logger_instance->cur_stream = &std::cerr;
+
+	if (type != CERR && logger_instance->on) {
 		time_t now = time(NULL);
 		char *tstr = ctime(&now);
-		(*cur_stream) << "\n\n"<<tstr<<"- ";
+		*(logger_instance->cur_stream) << "\n\n"<<tstr<<"- ";
 	}
 
-	return *this;
+	return *logger_instance;
 }
 
 void Logger::turn_off() {
-	on = false;
+	if(logger_instance)
+		logger_instance->on = false;
 }
 
 void Logger::turn_on() {
-	on = true;
+	if(logger_instance)
+		logger_instance->on = true;
 }
 
 // template <class T> Logger& Logger::operator<<(const T &to_log) {
@@ -54,16 +67,19 @@ void Logger::turn_on() {
 #ifdef TEST_LOGGER
 
 int main() {
-	logger.log(CERR)    << "A message from the universe is printed." << endl;
-	logger.log(NORMAL)  << "This is a log example." << endl;
-	logger.log(ERROR)   << "This is an error." << endl;
-	logger.log(WARNING) << "This is a warning." << endl;
-	logger.log()        << "Is it normal?" << endl;
+	Logger* logger = Logger::create();
+	LOG(CERR)    << "A message from the universe is printed." << endl;
+	LOG(NORMAL)  << "This is a log example." << endl;
+	LOG(ERROR)   << "This is an error." << endl;
+	LOG(WARNING) << "This is a warning." << endl;
+	LOG()        << "Is it normal?" << endl;
 
-	logger.turn_off();
-	logger.log(ERROR) << "(This should not be printed) Life is like you just want to log something trivial but it still fails..." << endl;
-	logger.turn_on();
-	logger.log(ERROR) << "(After turn on) Hello everyone~" << endl;
+	Logger::turn_off();
+	LOG(ERROR) << "(This should not be printed) Life is like you just want to log something trivial but it still fails..." << endl;
+
+	Logger::turn_on();
+	LOG(ERROR) << "(After turn on) Hello everyone~" << endl;
+	// logger->~Logger();
 }
 
 #endif

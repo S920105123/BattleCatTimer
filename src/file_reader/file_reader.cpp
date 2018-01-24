@@ -3,7 +3,7 @@
 void File_Reader::open(string filename){
     ifstream in(filename, std::ios::in);
 
-    if(!in.good()) logger.log(ERROR) << "[File_Reader] Fail to open " << filename << "\n";
+    if(!in.good()) LOG(ERROR) << "[File_Reader] Fail to open " << filename << "\n";
 
     in.seekg(0, in.end);
     length = in.tellg();
@@ -11,7 +11,7 @@ void File_Reader::open(string filename){
 
     buffer = new char[length+10];
 
-    logger.log(NORMAL) << "[File_Reader] open " << filename << " length = " << length << '\n';
+    LOG(NORMAL) << "[File_Reader] open " << filename << " length = " << length << '\n';
     position = 0;
     in.read(buffer, length);
     in.close();
@@ -59,7 +59,7 @@ string File_Reader::next_token(){
             position++;
             while(position<length && s[position]!='\"'){
                 if(s[position]!='\n') res += s[position++];
-                else logger.log(WARNING) << "[*][File_Reader] there is a newline between \" \n", position++;
+                else LOG(WARNING) << "[*][File_Reader] there is a newline between \" \n", position++;
             }
             position++;
             return res;
