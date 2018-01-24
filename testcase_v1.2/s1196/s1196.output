@@ -1,0 +1,1656 @@
+report_worst_paths 3
+Path 1: RAT -813.024 44 L
+G550 R
+TAUGATE_1:Z R
+TAUGATE_1:A R
+inst_127:ZN R
+inst_127:A1 F
+inst_327:ZN F
+inst_327:A2 R
+inst_564:ZN R
+inst_564:A4 R
+inst_44:ZN R
+inst_44:A2 F
+inst_131:ZN F
+inst_131:A1 R
+inst_124:ZN R
+inst_124:A2 F
+inst_9:ZN F
+inst_9:A1 F
+inst_548:QN F
+inst_548:CK R
+inst_636:Z R
+inst_636:A R
+inst_635:Z R
+inst_635:A R
+inst_634:Z R
+inst_634:A R
+inst_630:Z R
+inst_630:A R
+inst_629:Z R
+inst_629:A R
+inst_628:Z R
+inst_628:A R
+inst_627:Z R
+inst_627:A R
+inst_614:Z R
+inst_614:A R
+inst_600:Z R
+inst_600:A R
+inst_599:Z R
+inst_599:A R
+inst_598:Z R
+inst_598:A R
+inst_597:Z R
+inst_597:A R
+blif_clk_net R
+Path 2: RAT -800.178 48 L
+G550 R
+TAUGATE_1:Z R
+TAUGATE_1:A R
+inst_127:ZN R
+inst_127:A3 F
+inst_171:ZN F
+inst_171:A1 R
+inst_577:ZN R
+inst_577:A2 R
+inst_114:ZN R
+inst_114:A2 F
+inst_19:ZN F
+inst_19:A1 F
+inst_495:ZN F
+inst_495:A R
+inst_129:ZN R
+inst_129:A3 F
+inst_493:ZN F
+inst_493:A R
+inst_101:ZN R
+inst_101:A1 F
+inst_549:QN F
+inst_549:CK R
+inst_633:Z R
+inst_633:A R
+inst_632:Z R
+inst_632:A R
+inst_609:Z R
+inst_609:A R
+inst_608:Z R
+inst_608:A R
+inst_607:Z R
+inst_607:A R
+inst_606:Z R
+inst_606:A R
+inst_605:Z R
+inst_605:A R
+inst_590:Z R
+inst_590:A R
+inst_589:Z R
+inst_589:A R
+inst_588:Z R
+inst_588:A R
+inst_587:Z R
+inst_587:A R
+inst_584:Z R
+inst_584:A R
+blif_clk_net R
+Path 3: RAT -782.455 44 L
+G550 R
+TAUGATE_1:Z R
+TAUGATE_1:A R
+inst_127:ZN R
+inst_127:A1 F
+inst_327:ZN F
+inst_327:A2 R
+inst_564:ZN R
+inst_564:A4 R
+inst_44:ZN R
+inst_44:A1 F
+inst_130:ZN F
+inst_130:A2 R
+inst_299:ZN R
+inst_299:A2 F
+inst_572:ZN F
+inst_572:A2 F
+inst_549:QN F
+inst_549:CK R
+inst_633:Z R
+inst_633:A R
+inst_632:Z R
+inst_632:A R
+inst_609:Z R
+inst_609:A R
+inst_608:Z R
+inst_608:A R
+inst_607:Z R
+inst_607:A R
+inst_606:Z R
+inst_606:A R
+inst_605:Z R
+inst_605:A R
+inst_590:Z R
+inst_590:A R
+inst_589:Z R
+inst_589:A R
+inst_588:Z R
+inst_588:A R
+inst_587:Z R
+inst_587:A R
+inst_584:Z R
+inst_584:A R
+blif_clk_net R
+report_worst_paths 3
+Path 1: RAT -813.024 44 L
+G550 R
+TAUGATE_1:Z R
+TAUGATE_1:A R
+inst_127:ZN R
+inst_127:A1 F
+inst_327:ZN F
+inst_327:A2 R
+inst_564:ZN R
+inst_564:A4 R
+inst_44:ZN R
+inst_44:A2 F
+inst_131:ZN F
+inst_131:A1 R
+inst_124:ZN R
+inst_124:A2 F
+inst_9:ZN F
+inst_9:A1 F
+inst_548:QN F
+inst_548:CK R
+inst_636:Z R
+inst_636:A R
+inst_635:Z R
+inst_635:A R
+inst_634:Z R
+inst_634:A R
+inst_630:Z R
+inst_630:A R
+inst_629:Z R
+inst_629:A R
+inst_628:Z R
+inst_628:A R
+inst_627:Z R
+inst_627:A R
+inst_614:Z R
+inst_614:A R
+inst_600:Z R
+inst_600:A R
+inst_599:Z R
+inst_599:A R
+inst_598:Z R
+inst_598:A R
+inst_597:Z R
+inst_597:A R
+blif_clk_net R
+Path 2: RAT -804.553 48 L
+G550 R
+TAUGATE_1:Z R
+TAUGATE_1:A R
+inst_127:ZN R
+inst_127:A3 F
+inst_171:ZN F
+inst_171:A1 R
+inst_577:ZN R
+inst_577:A2 R
+inst_114:ZN R
+inst_114:A2 F
+inst_19:ZN F
+inst_19:A1 F
+inst_495:ZN F
+inst_495:A R
+inst_129:ZN R
+inst_129:A3 F
+inst_493:ZN F
+inst_493:A R
+inst_101:ZN R
+inst_101:A1 F
+inst_549:QN F
+inst_549:CK R
+inst_633:Z R
+inst_633:A R
+inst_632:Z R
+inst_632:A R
+inst_609:Z R
+inst_609:A R
+inst_608:Z R
+inst_608:A R
+inst_607:Z R
+inst_607:A R
+inst_606:Z R
+inst_606:A R
+inst_605:Z R
+inst_605:A R
+inst_590:Z R
+inst_590:A R
+inst_589:Z R
+inst_589:A R
+inst_588:Z R
+inst_588:A R
+inst_587:Z R
+inst_587:A R
+inst_584:Z R
+inst_584:A R
+blif_clk_net R
+Path 3: RAT -786.829 44 L
+G550 R
+TAUGATE_1:Z R
+TAUGATE_1:A R
+inst_127:ZN R
+inst_127:A1 F
+inst_327:ZN F
+inst_327:A2 R
+inst_564:ZN R
+inst_564:A4 R
+inst_44:ZN R
+inst_44:A1 F
+inst_130:ZN F
+inst_130:A2 R
+inst_299:ZN R
+inst_299:A2 F
+inst_572:ZN F
+inst_572:A2 F
+inst_549:QN F
+inst_549:CK R
+inst_633:Z R
+inst_633:A R
+inst_632:Z R
+inst_632:A R
+inst_609:Z R
+inst_609:A R
+inst_608:Z R
+inst_608:A R
+inst_607:Z R
+inst_607:A R
+inst_606:Z R
+inst_606:A R
+inst_605:Z R
+inst_605:A R
+inst_590:Z R
+inst_590:A R
+inst_589:Z R
+inst_589:A R
+inst_588:Z R
+inst_588:A R
+inst_587:Z R
+inst_587:A R
+inst_584:Z R
+inst_584:A R
+blif_clk_net R
+report_worst_paths 3
+Path 1: RAT -932.180 50 L
+G550 R
+TAUGATE_1:Z R
+TAUGATE_1:A R
+inst_127:ZN R
+inst_127:A1 F
+inst_327:ZN F
+inst_327:A2 R
+inst_564:ZN R
+inst_564:A4 R
+inst_44:ZN R
+inst_44:A2 F
+inst_131:ZN F
+inst_131:A2 R
+TAUGATE_8:Z R
+TAUGATE_8:A R
+inst_158:ZN R
+inst_158:A1 F
+inst_297:ZN F
+inst_297:A2 R
+TAUGATE_7:Z R
+TAUGATE_7:A R
+inst_153:ZN R
+inst_153:A1 F
+inst_548:QN F
+inst_548:CK R
+inst_636:Z R
+inst_636:A R
+inst_635:Z R
+inst_635:A R
+inst_634:Z R
+inst_634:A R
+inst_630:Z R
+inst_630:A R
+inst_629:Z R
+inst_629:A R
+inst_628:Z R
+inst_628:A R
+inst_627:Z R
+inst_627:A R
+inst_614:Z R
+inst_614:A R
+inst_600:Z R
+inst_600:A R
+inst_599:Z R
+inst_599:A R
+inst_598:Z R
+inst_598:A R
+inst_597:Z R
+inst_597:A R
+blif_clk_net R
+Path 2: RAT -914.505 50 L
+G550 F
+TAUGATE_1:Z F
+TAUGATE_1:A F
+inst_127:ZN F
+inst_127:A1 R
+inst_327:ZN R
+inst_327:A2 F
+inst_564:ZN F
+inst_564:A4 F
+inst_44:ZN F
+inst_44:A2 R
+inst_131:ZN R
+inst_131:A2 F
+TAUGATE_8:Z F
+TAUGATE_8:A F
+inst_158:ZN F
+inst_158:A1 R
+inst_297:ZN R
+inst_297:A2 F
+TAUGATE_7:Z F
+TAUGATE_7:A F
+inst_153:ZN F
+inst_153:A1 R
+inst_548:QN R
+inst_548:CK R
+inst_636:Z R
+inst_636:A R
+inst_635:Z R
+inst_635:A R
+inst_634:Z R
+inst_634:A R
+inst_630:Z R
+inst_630:A R
+inst_629:Z R
+inst_629:A R
+inst_628:Z R
+inst_628:A R
+inst_627:Z R
+inst_627:A R
+inst_614:Z R
+inst_614:A R
+inst_600:Z R
+inst_600:A R
+inst_599:Z R
+inst_599:A R
+inst_598:Z R
+inst_598:A R
+inst_597:Z R
+inst_597:A R
+blif_clk_net R
+Path 3: RAT -894.946 58 L
+G537 F
+inst_342:ZN F
+inst_342:A2 R
+inst_341:ZN R
+inst_341:A2 F
+inst_338:ZN F
+inst_338:A1 R
+inst_337:ZN R
+inst_337:A2 F
+inst_45:ZN F
+inst_45:A1 R
+inst_217:ZN R
+inst_217:A1 F
+inst_567:ZN F
+inst_567:A1 F
+inst_317:ZN F
+inst_317:A2 R
+inst_44:ZN R
+inst_44:A2 F
+inst_131:ZN F
+inst_131:A2 R
+TAUGATE_8:Z R
+TAUGATE_8:A R
+inst_158:ZN R
+inst_158:A1 F
+inst_297:ZN F
+inst_297:A2 R
+TAUGATE_7:Z R
+TAUGATE_7:A R
+inst_153:ZN R
+inst_153:A1 F
+inst_548:QN F
+inst_548:CK R
+inst_636:Z R
+inst_636:A R
+inst_635:Z R
+inst_635:A R
+inst_634:Z R
+inst_634:A R
+inst_630:Z R
+inst_630:A R
+inst_629:Z R
+inst_629:A R
+inst_628:Z R
+inst_628:A R
+inst_627:Z R
+inst_627:A R
+inst_614:Z R
+inst_614:A R
+inst_600:Z R
+inst_600:A R
+inst_599:Z R
+inst_599:A R
+inst_598:Z R
+inst_598:A R
+inst_597:Z R
+inst_597:A R
+blif_clk_net R
+report_worst_paths 3
+Path 1: RAT -1055.419 56 L
+G552 R
+TAUGATE_20:Z R
+TAUGATE_20:A R
+inst_180:ZN R
+inst_180:A3 F
+inst_323:ZN F
+inst_323:A2 R
+inst_564:ZN R
+inst_564:A4 R
+inst_44:ZN R
+inst_44:A2 F
+inst_131:ZN F
+inst_131:A2 R
+TAUGATE_36:Z R
+TAUGATE_36:A R
+TAUGATE_8:Z R
+TAUGATE_8:A R
+inst_158:ZN R
+inst_158:A1 F
+inst_297:ZN F
+inst_297:A2 R
+TAUGATE_45:Z R
+TAUGATE_45:A R
+TAUGATE_7:Z R
+TAUGATE_7:A R
+TAUGATE_32:Z R
+TAUGATE_32:A R
+inst_153:ZN R
+inst_153:A1 F
+inst_548:QN F
+inst_548:CK R
+inst_636:Z R
+inst_636:A R
+inst_635:Z R
+inst_635:A R
+inst_634:Z R
+inst_634:A R
+inst_630:Z R
+inst_630:A R
+inst_629:Z R
+inst_629:A R
+inst_628:Z R
+inst_628:A R
+inst_627:Z R
+inst_627:A R
+inst_614:Z R
+inst_614:A R
+inst_600:Z R
+inst_600:A R
+inst_599:Z R
+inst_599:A R
+inst_598:Z R
+inst_598:A R
+inst_597:Z R
+inst_597:A R
+blif_clk_net R
+Path 2: RAT -1055.356 66 L
+G537 R
+inst_342:ZN R
+inst_342:A2 F
+inst_341:ZN F
+inst_341:A2 R
+inst_338:ZN R
+inst_338:A1 F
+TAUGATE_11:Z F
+TAUGATE_11:A F
+inst_337:ZN F
+inst_337:A2 R
+inst_45:ZN R
+inst_45:A1 F
+inst_217:ZN F
+inst_217:A1 R
+inst_567:ZN R
+inst_567:A1 R
+inst_317:ZN R
+inst_317:A2 F
+inst_44:ZN F
+inst_44:A2 R
+inst_131:ZN R
+inst_131:A2 F
+TAUGATE_36:Z F
+TAUGATE_36:A F
+TAUGATE_8:Z F
+TAUGATE_8:A F
+inst_158:ZN F
+inst_158:A1 R
+inst_297:ZN R
+inst_297:A2 F
+TAUGATE_45:Z F
+TAUGATE_45:A F
+TAUGATE_7:Z F
+TAUGATE_7:A F
+TAUGATE_32:Z F
+TAUGATE_32:A F
+inst_153:ZN F
+inst_153:A1 R
+inst_548:QN R
+inst_548:CK R
+inst_636:Z R
+inst_636:A R
+inst_635:Z R
+inst_635:A R
+inst_634:Z R
+inst_634:A R
+inst_630:Z R
+inst_630:A R
+inst_629:Z R
+inst_629:A R
+inst_628:Z R
+inst_628:A R
+inst_627:Z R
+inst_627:A R
+inst_614:Z R
+inst_614:A R
+inst_600:Z R
+inst_600:A R
+inst_599:Z R
+inst_599:A R
+inst_598:Z R
+inst_598:A R
+inst_597:Z R
+inst_597:A R
+blif_clk_net R
+Path 3: RAT -1053.942 60 L
+G542 R
+inst_186:ZN R
+inst_186:A3 F
+TAUGATE_43:Z F
+TAUGATE_43:A F
+inst_218:ZN F
+inst_218:A1 R
+inst_216:ZN R
+inst_216:A1 F
+inst_215:ZN F
+inst_215:A1 R
+inst_564:ZN R
+inst_564:A4 R
+inst_44:ZN R
+inst_44:A2 F
+inst_131:ZN F
+inst_131:A2 R
+TAUGATE_36:Z R
+TAUGATE_36:A R
+TAUGATE_8:Z R
+TAUGATE_8:A R
+inst_158:ZN R
+inst_158:A1 F
+inst_297:ZN F
+inst_297:A2 R
+TAUGATE_45:Z R
+TAUGATE_45:A R
+TAUGATE_7:Z R
+TAUGATE_7:A R
+TAUGATE_32:Z R
+TAUGATE_32:A R
+inst_153:ZN R
+inst_153:A1 F
+inst_548:QN F
+inst_548:CK R
+inst_636:Z R
+inst_636:A R
+inst_635:Z R
+inst_635:A R
+inst_634:Z R
+inst_634:A R
+inst_630:Z R
+inst_630:A R
+inst_629:Z R
+inst_629:A R
+inst_628:Z R
+inst_628:A R
+inst_627:Z R
+inst_627:A R
+inst_614:Z R
+inst_614:A R
+inst_600:Z R
+inst_600:A R
+inst_599:Z R
+inst_599:A R
+inst_598:Z R
+inst_598:A R
+inst_597:Z R
+inst_597:A R
+blif_clk_net R
+report_worst_paths 3
+Path 1: RAT -2016.098 106 L
+G537 R
+TAUGATE_596:Z R
+TAUGATE_596:A R
+inst_342:ZN R
+inst_342:A2 F
+TAUGATE_611:Z F
+TAUGATE_611:A F
+inst_341:ZN F
+inst_341:A2 R
+TAUGATE_313:Z R
+TAUGATE_313:A R
+inst_338:ZN R
+inst_338:A1 F
+TAUGATE_395:Z F
+TAUGATE_395:A F
+TAUGATE_11:Z F
+TAUGATE_11:A F
+TAUGATE_533:Z F
+TAUGATE_533:A F
+inst_337:ZN F
+inst_337:A2 R
+TAUGATE_671:Z R
+TAUGATE_671:A R
+inst_45:ZN R
+inst_45:A1 F
+TAUGATE_192:Z F
+TAUGATE_192:A F
+inst_217:ZN F
+inst_217:A1 R
+TAUGATE_315:Z R
+TAUGATE_315:A R
+inst_567:ZN R
+inst_567:A1 R
+TAUGATE_470:Z R
+TAUGATE_470:A R
+inst_317:ZN R
+inst_317:A2 F
+TAUGATE_270:Z F
+TAUGATE_270:A F
+inst_44:ZN F
+inst_44:A2 R
+TAUGATE_296:Z R
+TAUGATE_296:A R
+inst_131:ZN R
+inst_131:A2 F
+TAUGATE_214:Z F
+TAUGATE_214:A F
+TAUGATE_36:Z F
+TAUGATE_36:A F
+TAUGATE_181:Z F
+TAUGATE_181:A F
+TAUGATE_8:Z F
+TAUGATE_8:A F
+TAUGATE_119:Z F
+TAUGATE_119:A F
+inst_158:ZN F
+inst_158:A1 R
+TAUGATE_431:Z R
+TAUGATE_431:A R
+inst_297:ZN R
+inst_297:A2 F
+TAUGATE_321:Z F
+TAUGATE_321:A F
+TAUGATE_45:Z F
+TAUGATE_45:A F
+TAUGATE_572:Z F
+TAUGATE_572:A F
+TAUGATE_7:Z F
+TAUGATE_7:A F
+TAUGATE_184:Z F
+TAUGATE_184:A F
+TAUGATE_32:Z F
+TAUGATE_32:A F
+TAUGATE_194:Z F
+TAUGATE_194:A F
+inst_153:ZN F
+inst_153:A1 R
+TAUGATE_367:Z R
+TAUGATE_367:A R
+inst_548:QN R
+inst_548:CK R
+inst_636:Z R
+inst_636:A R
+inst_635:Z R
+inst_635:A R
+inst_634:Z R
+inst_634:A R
+inst_630:Z R
+inst_630:A R
+inst_629:Z R
+inst_629:A R
+inst_628:Z R
+inst_628:A R
+inst_627:Z R
+inst_627:A R
+inst_614:Z R
+inst_614:A R
+inst_600:Z R
+inst_600:A R
+inst_599:Z R
+inst_599:A R
+inst_598:Z R
+inst_598:A R
+inst_597:Z R
+inst_597:A R
+blif_clk_net R
+Path 2: RAT -1951.229 106 L
+G537 F
+TAUGATE_596:Z F
+TAUGATE_596:A F
+inst_342:ZN F
+inst_342:A2 R
+TAUGATE_611:Z R
+TAUGATE_611:A R
+inst_341:ZN R
+inst_341:A2 F
+TAUGATE_313:Z F
+TAUGATE_313:A F
+inst_338:ZN F
+inst_338:A1 R
+TAUGATE_395:Z R
+TAUGATE_395:A R
+TAUGATE_11:Z R
+TAUGATE_11:A R
+TAUGATE_533:Z R
+TAUGATE_533:A R
+inst_337:ZN R
+inst_337:A2 F
+TAUGATE_671:Z F
+TAUGATE_671:A F
+inst_45:ZN F
+inst_45:A1 R
+TAUGATE_192:Z R
+TAUGATE_192:A R
+inst_217:ZN R
+inst_217:A1 F
+TAUGATE_315:Z F
+TAUGATE_315:A F
+inst_567:ZN F
+inst_567:A1 F
+TAUGATE_470:Z F
+TAUGATE_470:A F
+inst_317:ZN F
+inst_317:A2 R
+TAUGATE_270:Z R
+TAUGATE_270:A R
+inst_44:ZN R
+inst_44:A2 F
+TAUGATE_296:Z F
+TAUGATE_296:A F
+inst_131:ZN F
+inst_131:A2 R
+TAUGATE_214:Z R
+TAUGATE_214:A R
+TAUGATE_36:Z R
+TAUGATE_36:A R
+TAUGATE_181:Z R
+TAUGATE_181:A R
+TAUGATE_8:Z R
+TAUGATE_8:A R
+TAUGATE_119:Z R
+TAUGATE_119:A R
+inst_158:ZN R
+inst_158:A1 F
+TAUGATE_431:Z F
+TAUGATE_431:A F
+inst_297:ZN F
+inst_297:A2 R
+TAUGATE_321:Z R
+TAUGATE_321:A R
+TAUGATE_45:Z R
+TAUGATE_45:A R
+TAUGATE_572:Z R
+TAUGATE_572:A R
+TAUGATE_7:Z R
+TAUGATE_7:A R
+TAUGATE_184:Z R
+TAUGATE_184:A R
+TAUGATE_32:Z R
+TAUGATE_32:A R
+TAUGATE_194:Z R
+TAUGATE_194:A R
+inst_153:ZN R
+inst_153:A1 F
+TAUGATE_367:Z F
+TAUGATE_367:A F
+inst_548:QN F
+inst_548:CK R
+inst_636:Z R
+inst_636:A R
+inst_635:Z R
+inst_635:A R
+inst_634:Z R
+inst_634:A R
+inst_630:Z R
+inst_630:A R
+inst_629:Z R
+inst_629:A R
+inst_628:Z R
+inst_628:A R
+inst_627:Z R
+inst_627:A R
+inst_614:Z R
+inst_614:A R
+inst_600:Z R
+inst_600:A R
+inst_599:Z R
+inst_599:A R
+inst_598:Z R
+inst_598:A R
+inst_597:Z R
+inst_597:A R
+blif_clk_net R
+Path 3: RAT -1867.384 94 L
+G542 F
+TAUGATE_545:Z F
+TAUGATE_545:A F
+inst_186:ZN F
+inst_186:A3 R
+TAUGATE_679:Z R
+TAUGATE_679:A R
+TAUGATE_43:Z R
+TAUGATE_43:A R
+TAUGATE_599:Z R
+TAUGATE_599:A R
+inst_218:ZN R
+inst_218:A1 F
+TAUGATE_640:Z F
+TAUGATE_640:A F
+inst_216:ZN F
+inst_216:A1 R
+TAUGATE_340:Z R
+TAUGATE_340:A R
+inst_215:ZN R
+inst_215:A1 F
+TAUGATE_75:Z F
+TAUGATE_75:A F
+inst_564:ZN F
+inst_564:A4 F
+TAUGATE_270:Z F
+TAUGATE_270:A F
+inst_44:ZN F
+inst_44:A2 R
+TAUGATE_296:Z R
+TAUGATE_296:A R
+inst_131:ZN R
+inst_131:A2 F
+TAUGATE_214:Z F
+TAUGATE_214:A F
+TAUGATE_36:Z F
+TAUGATE_36:A F
+TAUGATE_181:Z F
+TAUGATE_181:A F
+TAUGATE_8:Z F
+TAUGATE_8:A F
+TAUGATE_119:Z F
+TAUGATE_119:A F
+inst_158:ZN F
+inst_158:A1 R
+TAUGATE_431:Z R
+TAUGATE_431:A R
+inst_297:ZN R
+inst_297:A2 F
+TAUGATE_321:Z F
+TAUGATE_321:A F
+TAUGATE_45:Z F
+TAUGATE_45:A F
+TAUGATE_572:Z F
+TAUGATE_572:A F
+TAUGATE_7:Z F
+TAUGATE_7:A F
+TAUGATE_184:Z F
+TAUGATE_184:A F
+TAUGATE_32:Z F
+TAUGATE_32:A F
+TAUGATE_194:Z F
+TAUGATE_194:A F
+inst_153:ZN F
+inst_153:A1 R
+TAUGATE_367:Z R
+TAUGATE_367:A R
+inst_548:QN R
+inst_548:CK R
+inst_636:Z R
+inst_636:A R
+inst_635:Z R
+inst_635:A R
+inst_634:Z R
+inst_634:A R
+inst_630:Z R
+inst_630:A R
+inst_629:Z R
+inst_629:A R
+inst_628:Z R
+inst_628:A R
+inst_627:Z R
+inst_627:A R
+inst_614:Z R
+inst_614:A R
+inst_600:Z R
+inst_600:A R
+inst_599:Z R
+inst_599:A R
+inst_598:Z R
+inst_598:A R
+inst_597:Z R
+inst_597:A R
+blif_clk_net R
+report_worst_paths 3
+Path 1: RAT -2016.098 106 L
+G537 R
+TAUGATE_596:Z R
+TAUGATE_596:A R
+inst_342:ZN R
+inst_342:A2 F
+TAUGATE_611:Z F
+TAUGATE_611:A F
+inst_341:ZN F
+inst_341:A2 R
+TAUGATE_313:Z R
+TAUGATE_313:A R
+inst_338:ZN R
+inst_338:A1 F
+TAUGATE_395:Z F
+TAUGATE_395:A F
+TAUGATE_11:Z F
+TAUGATE_11:A F
+TAUGATE_533:Z F
+TAUGATE_533:A F
+inst_337:ZN F
+inst_337:A2 R
+TAUGATE_671:Z R
+TAUGATE_671:A R
+inst_45:ZN R
+inst_45:A1 F
+TAUGATE_192:Z F
+TAUGATE_192:A F
+inst_217:ZN F
+inst_217:A1 R
+TAUGATE_315:Z R
+TAUGATE_315:A R
+inst_567:ZN R
+inst_567:A1 R
+TAUGATE_470:Z R
+TAUGATE_470:A R
+inst_317:ZN R
+inst_317:A2 F
+TAUGATE_270:Z F
+TAUGATE_270:A F
+inst_44:ZN F
+inst_44:A2 R
+TAUGATE_296:Z R
+TAUGATE_296:A R
+inst_131:ZN R
+inst_131:A2 F
+TAUGATE_214:Z F
+TAUGATE_214:A F
+TAUGATE_36:Z F
+TAUGATE_36:A F
+TAUGATE_181:Z F
+TAUGATE_181:A F
+TAUGATE_8:Z F
+TAUGATE_8:A F
+TAUGATE_119:Z F
+TAUGATE_119:A F
+inst_158:ZN F
+inst_158:A1 R
+TAUGATE_431:Z R
+TAUGATE_431:A R
+inst_297:ZN R
+inst_297:A2 F
+TAUGATE_321:Z F
+TAUGATE_321:A F
+TAUGATE_45:Z F
+TAUGATE_45:A F
+TAUGATE_572:Z F
+TAUGATE_572:A F
+TAUGATE_7:Z F
+TAUGATE_7:A F
+TAUGATE_184:Z F
+TAUGATE_184:A F
+TAUGATE_32:Z F
+TAUGATE_32:A F
+TAUGATE_194:Z F
+TAUGATE_194:A F
+inst_153:ZN F
+inst_153:A1 R
+TAUGATE_367:Z R
+TAUGATE_367:A R
+inst_548:QN R
+inst_548:CK R
+inst_636:Z R
+inst_636:A R
+inst_635:Z R
+inst_635:A R
+inst_634:Z R
+inst_634:A R
+inst_630:Z R
+inst_630:A R
+inst_629:Z R
+inst_629:A R
+inst_628:Z R
+inst_628:A R
+inst_627:Z R
+inst_627:A R
+inst_614:Z R
+inst_614:A R
+inst_600:Z R
+inst_600:A R
+inst_599:Z R
+inst_599:A R
+inst_598:Z R
+inst_598:A R
+inst_597:Z R
+inst_597:A R
+blif_clk_net R
+Path 2: RAT -1951.229 106 L
+G537 F
+TAUGATE_596:Z F
+TAUGATE_596:A F
+inst_342:ZN F
+inst_342:A2 R
+TAUGATE_611:Z R
+TAUGATE_611:A R
+inst_341:ZN R
+inst_341:A2 F
+TAUGATE_313:Z F
+TAUGATE_313:A F
+inst_338:ZN F
+inst_338:A1 R
+TAUGATE_395:Z R
+TAUGATE_395:A R
+TAUGATE_11:Z R
+TAUGATE_11:A R
+TAUGATE_533:Z R
+TAUGATE_533:A R
+inst_337:ZN R
+inst_337:A2 F
+TAUGATE_671:Z F
+TAUGATE_671:A F
+inst_45:ZN F
+inst_45:A1 R
+TAUGATE_192:Z R
+TAUGATE_192:A R
+inst_217:ZN R
+inst_217:A1 F
+TAUGATE_315:Z F
+TAUGATE_315:A F
+inst_567:ZN F
+inst_567:A1 F
+TAUGATE_470:Z F
+TAUGATE_470:A F
+inst_317:ZN F
+inst_317:A2 R
+TAUGATE_270:Z R
+TAUGATE_270:A R
+inst_44:ZN R
+inst_44:A2 F
+TAUGATE_296:Z F
+TAUGATE_296:A F
+inst_131:ZN F
+inst_131:A2 R
+TAUGATE_214:Z R
+TAUGATE_214:A R
+TAUGATE_36:Z R
+TAUGATE_36:A R
+TAUGATE_181:Z R
+TAUGATE_181:A R
+TAUGATE_8:Z R
+TAUGATE_8:A R
+TAUGATE_119:Z R
+TAUGATE_119:A R
+inst_158:ZN R
+inst_158:A1 F
+TAUGATE_431:Z F
+TAUGATE_431:A F
+inst_297:ZN F
+inst_297:A2 R
+TAUGATE_321:Z R
+TAUGATE_321:A R
+TAUGATE_45:Z R
+TAUGATE_45:A R
+TAUGATE_572:Z R
+TAUGATE_572:A R
+TAUGATE_7:Z R
+TAUGATE_7:A R
+TAUGATE_184:Z R
+TAUGATE_184:A R
+TAUGATE_32:Z R
+TAUGATE_32:A R
+TAUGATE_194:Z R
+TAUGATE_194:A R
+inst_153:ZN R
+inst_153:A1 F
+TAUGATE_367:Z F
+TAUGATE_367:A F
+inst_548:QN F
+inst_548:CK R
+inst_636:Z R
+inst_636:A R
+inst_635:Z R
+inst_635:A R
+inst_634:Z R
+inst_634:A R
+inst_630:Z R
+inst_630:A R
+inst_629:Z R
+inst_629:A R
+inst_628:Z R
+inst_628:A R
+inst_627:Z R
+inst_627:A R
+inst_614:Z R
+inst_614:A R
+inst_600:Z R
+inst_600:A R
+inst_599:Z R
+inst_599:A R
+inst_598:Z R
+inst_598:A R
+inst_597:Z R
+inst_597:A R
+blif_clk_net R
+Path 3: RAT -1867.384 94 L
+G542 F
+TAUGATE_545:Z F
+TAUGATE_545:A F
+inst_186:ZN F
+inst_186:A3 R
+TAUGATE_679:Z R
+TAUGATE_679:A R
+TAUGATE_43:Z R
+TAUGATE_43:A R
+TAUGATE_599:Z R
+TAUGATE_599:A R
+inst_218:ZN R
+inst_218:A1 F
+TAUGATE_640:Z F
+TAUGATE_640:A F
+inst_216:ZN F
+inst_216:A1 R
+TAUGATE_340:Z R
+TAUGATE_340:A R
+inst_215:ZN R
+inst_215:A1 F
+TAUGATE_75:Z F
+TAUGATE_75:A F
+inst_564:ZN F
+inst_564:A4 F
+TAUGATE_270:Z F
+TAUGATE_270:A F
+inst_44:ZN F
+inst_44:A2 R
+TAUGATE_296:Z R
+TAUGATE_296:A R
+inst_131:ZN R
+inst_131:A2 F
+TAUGATE_214:Z F
+TAUGATE_214:A F
+TAUGATE_36:Z F
+TAUGATE_36:A F
+TAUGATE_181:Z F
+TAUGATE_181:A F
+TAUGATE_8:Z F
+TAUGATE_8:A F
+TAUGATE_119:Z F
+TAUGATE_119:A F
+inst_158:ZN F
+inst_158:A1 R
+TAUGATE_431:Z R
+TAUGATE_431:A R
+inst_297:ZN R
+inst_297:A2 F
+TAUGATE_321:Z F
+TAUGATE_321:A F
+TAUGATE_45:Z F
+TAUGATE_45:A F
+TAUGATE_572:Z F
+TAUGATE_572:A F
+TAUGATE_7:Z F
+TAUGATE_7:A F
+TAUGATE_184:Z F
+TAUGATE_184:A F
+TAUGATE_32:Z F
+TAUGATE_32:A F
+TAUGATE_194:Z F
+TAUGATE_194:A F
+inst_153:ZN F
+inst_153:A1 R
+TAUGATE_367:Z R
+TAUGATE_367:A R
+inst_548:QN R
+inst_548:CK R
+inst_636:Z R
+inst_636:A R
+inst_635:Z R
+inst_635:A R
+inst_634:Z R
+inst_634:A R
+inst_630:Z R
+inst_630:A R
+inst_629:Z R
+inst_629:A R
+inst_628:Z R
+inst_628:A R
+inst_627:Z R
+inst_627:A R
+inst_614:Z R
+inst_614:A R
+inst_600:Z R
+inst_600:A R
+inst_599:Z R
+inst_599:A R
+inst_598:Z R
+inst_598:A R
+inst_597:Z R
+inst_597:A R
+blif_clk_net R
+report_worst_paths 3
+Path 1: RAT -1489.758 82 L
+G537 R
+TAUGATE_596:Z R
+TAUGATE_596:A R
+inst_342:ZN R
+inst_342:A2 F
+inst_341:ZN F
+inst_341:A2 R
+inst_338:ZN R
+inst_338:A1 F
+TAUGATE_395:Z F
+TAUGATE_395:A F
+TAUGATE_533:Z F
+TAUGATE_533:A F
+inst_337:ZN F
+inst_337:A2 R
+TAUGATE_671:Z R
+TAUGATE_671:A R
+inst_45:ZN R
+inst_45:A1 F
+TAUGATE_192:Z F
+TAUGATE_192:A F
+inst_217:ZN F
+inst_217:A1 R
+inst_567:ZN R
+inst_567:A1 R
+TAUGATE_470:Z R
+TAUGATE_470:A R
+inst_317:ZN R
+inst_317:A2 F
+TAUGATE_270:Z F
+TAUGATE_270:A F
+inst_44:ZN F
+inst_44:A2 R
+inst_131:ZN R
+inst_131:A2 F
+TAUGATE_181:Z F
+TAUGATE_181:A F
+TAUGATE_8:Z F
+TAUGATE_8:A F
+inst_158:ZN F
+inst_158:A1 R
+TAUGATE_431:Z R
+TAUGATE_431:A R
+inst_297:ZN R
+inst_297:A2 F
+TAUGATE_45:Z F
+TAUGATE_45:A F
+TAUGATE_572:Z F
+TAUGATE_572:A F
+TAUGATE_32:Z F
+TAUGATE_32:A F
+inst_153:ZN F
+inst_153:A1 R
+TAUGATE_367:Z R
+TAUGATE_367:A R
+inst_548:QN R
+inst_548:CK R
+inst_636:Z R
+inst_636:A R
+inst_635:Z R
+inst_635:A R
+inst_634:Z R
+inst_634:A R
+inst_630:Z R
+inst_630:A R
+inst_629:Z R
+inst_629:A R
+inst_628:Z R
+inst_628:A R
+inst_627:Z R
+inst_627:A R
+inst_614:Z R
+inst_614:A R
+inst_600:Z R
+inst_600:A R
+inst_599:Z R
+inst_599:A R
+inst_598:Z R
+inst_598:A R
+inst_597:Z R
+inst_597:A R
+blif_clk_net R
+Path 2: RAT -1460.368 82 L
+G537 F
+TAUGATE_596:Z F
+TAUGATE_596:A F
+inst_342:ZN F
+inst_342:A2 R
+inst_341:ZN R
+inst_341:A2 F
+inst_338:ZN F
+inst_338:A1 R
+TAUGATE_395:Z R
+TAUGATE_395:A R
+TAUGATE_533:Z R
+TAUGATE_533:A R
+inst_337:ZN R
+inst_337:A2 F
+TAUGATE_671:Z F
+TAUGATE_671:A F
+inst_45:ZN F
+inst_45:A1 R
+TAUGATE_192:Z R
+TAUGATE_192:A R
+inst_217:ZN R
+inst_217:A1 F
+inst_567:ZN F
+inst_567:A1 F
+TAUGATE_470:Z F
+TAUGATE_470:A F
+inst_317:ZN F
+inst_317:A2 R
+TAUGATE_270:Z R
+TAUGATE_270:A R
+inst_44:ZN R
+inst_44:A2 F
+inst_131:ZN F
+inst_131:A2 R
+TAUGATE_181:Z R
+TAUGATE_181:A R
+TAUGATE_8:Z R
+TAUGATE_8:A R
+inst_158:ZN R
+inst_158:A1 F
+TAUGATE_431:Z F
+TAUGATE_431:A F
+inst_297:ZN F
+inst_297:A2 R
+TAUGATE_45:Z R
+TAUGATE_45:A R
+TAUGATE_572:Z R
+TAUGATE_572:A R
+TAUGATE_32:Z R
+TAUGATE_32:A R
+inst_153:ZN R
+inst_153:A1 F
+TAUGATE_367:Z F
+TAUGATE_367:A F
+inst_548:QN F
+inst_548:CK R
+inst_636:Z R
+inst_636:A R
+inst_635:Z R
+inst_635:A R
+inst_634:Z R
+inst_634:A R
+inst_630:Z R
+inst_630:A R
+inst_629:Z R
+inst_629:A R
+inst_628:Z R
+inst_628:A R
+inst_627:Z R
+inst_627:A R
+inst_614:Z R
+inst_614:A R
+inst_600:Z R
+inst_600:A R
+inst_599:Z R
+inst_599:A R
+inst_598:Z R
+inst_598:A R
+inst_597:Z R
+inst_597:A R
+blif_clk_net R
+Path 3: RAT -1430.248 72 L
+G542 R
+inst_186:ZN R
+inst_186:A3 F
+TAUGATE_679:Z F
+TAUGATE_679:A F
+TAUGATE_43:Z F
+TAUGATE_43:A F
+TAUGATE_599:Z F
+TAUGATE_599:A F
+inst_218:ZN F
+inst_218:A1 R
+inst_216:ZN R
+inst_216:A1 F
+inst_215:ZN F
+inst_215:A1 R
+TAUGATE_75:Z R
+TAUGATE_75:A R
+inst_564:ZN R
+inst_564:A4 R
+TAUGATE_270:Z R
+TAUGATE_270:A R
+inst_44:ZN R
+inst_44:A2 F
+inst_131:ZN F
+inst_131:A2 R
+TAUGATE_181:Z R
+TAUGATE_181:A R
+TAUGATE_8:Z R
+TAUGATE_8:A R
+inst_158:ZN R
+inst_158:A1 F
+TAUGATE_431:Z F
+TAUGATE_431:A F
+inst_297:ZN F
+inst_297:A2 R
+TAUGATE_45:Z R
+TAUGATE_45:A R
+TAUGATE_572:Z R
+TAUGATE_572:A R
+TAUGATE_32:Z R
+TAUGATE_32:A R
+inst_153:ZN R
+inst_153:A1 F
+TAUGATE_367:Z F
+TAUGATE_367:A F
+inst_548:QN F
+inst_548:CK R
+inst_636:Z R
+inst_636:A R
+inst_635:Z R
+inst_635:A R
+inst_634:Z R
+inst_634:A R
+inst_630:Z R
+inst_630:A R
+inst_629:Z R
+inst_629:A R
+inst_628:Z R
+inst_628:A R
+inst_627:Z R
+inst_627:A R
+inst_614:Z R
+inst_614:A R
+inst_600:Z R
+inst_600:A R
+inst_599:Z R
+inst_599:A R
+inst_598:Z R
+inst_598:A R
+inst_597:Z R
+inst_597:A R
+blif_clk_net R
+57.149
+62.698
+1214.855
+1214.825
+2.100
+2.100
+2.200
+2.200
+55.049
+60.598
+-1212.655
+-1212.625
+229.794
+261.629
+1432.448
+1412.909
+2.100
+2.100
+2.200
+2.200
+227.694
+259.529
+-1430.248
+-1410.709
+204.292
+185.380
+1201.631
+1194.824
+2.100
+2.100
+2.200
+2.200
+202.192
+183.280
+-1199.432
+-1192.624
+95.112
+88.938
+1222.354
+1222.635
+2.100
+2.100
+2.200
+2.200
+93.012
+86.838
+-1220.154
+-1220.435
+366.458
+341.743
+402.926
+375.609
+2.100
+2.100
+2.200
+2.200
+364.358
+339.643
+-400.726
+-373.409
+220.934
+212.175
+1218.109
+1214.900
+2.100
+2.100
+2.200
+2.200
+218.834
+210.075
+-1215.909
+-1212.700
+204.411
+196.095
+1201.435
+1198.715
+2.100
+2.100
+2.200
+2.200
+202.311
+193.995
+-1199.235
+-1196.515
+193.739
+199.981
+1491.958
+1462.568
+2.100
+2.100
+2.200
+2.200
+191.639
+197.881
+-1489.758
+-1460.368
+130.382
+121.765
+1205.000
+1201.005
+2.100
+2.100
+2.200
+2.200
+128.282
+119.665
+-1202.800
+-1198.805
+81.722
+91.089
+1209.257
+1201.927
+2.100
+2.100
+2.200
+2.200
+79.622
+88.989
+-1207.057
+-1199.727
+206.731
+208.352
+1305.586
+1301.749
+2.100
+2.100
+2.200
+2.200
+204.631
+206.251
+-1303.386
+-1299.549
+478.047
+499.594
+524.916
+548.730
+2.100
+2.100
+2.200
+2.200
+475.947
+497.494
+-522.716
+-546.530
+180.692
+195.638
+1417.738
+1395.696
+2.100
+2.100
+2.200
+2.200
+178.592
+193.538
+-1415.538
+-1393.496
+63.837
+71.181
+1240.502
+1237.482
+2.100
+2.100
+2.200
+2.200
+61.737
+69.081
+-1238.302
+-1235.282
