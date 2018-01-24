@@ -3,8 +3,6 @@
 
 #include "header.h"
 
-#define BUFFER_SIZE 100
-
 class File_Reader
 {
 public:
@@ -13,7 +11,9 @@ public:
     void open(string filename);
 
 private:
-    bool is_special(char c);
+    bool is_normal(char c);
+    bool is_specail(char c);
+    bool is_useful(char c);
 
     char* buffer;
     int position;     // now position
