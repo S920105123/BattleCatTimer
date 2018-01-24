@@ -1,3 +1,5 @@
 *.exe
 *.o
 *.test
+*.gch
+*.log
