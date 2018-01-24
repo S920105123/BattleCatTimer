@@ -2,10 +2,16 @@
 #define FILE_READER_H
 
 #include "header.h"
+#include "global.h"
+#include "logger.h"
 
 class File_Reader
 {
 public:
+    File_Reader(){ buffer = NULL; }
+    ~File_Reader(){
+        if(buffer) delete buffer;
+    }
     string next_token();
 
     void open(string filename);
