@@ -9,6 +9,7 @@ GCCFLAG = g++ $(INCLUDEPATH) $(GCCINCLUDE) -std=c++14 -Wall
 
 FILE_READER_SRC = src/file_reader/file_reader.cpp
 LOGGER_SRC = src/debug/logger.cpp
+DEBUG_SRC = src/debug/debug.cpp
 
 TEST_FILE_READER : log.o
 	$(GCCFLAG) $(FILE_READER_SRC) log.o -DTEST_FILE_READER -o file_reader
@@ -17,7 +18,11 @@ TEST_FILE_READER : log.o
 TEST_LOGGER :
 	$(GCCFLAG) $(LOGGER_SRC) -DTEST_LOGGER -o logger
 	logger.exe
-
+	
+TEST_DEBUG : log.o
+	$(GCCFLAG) $(DEBUG_SRC) log.o -DTEST_DEBUG -o debug
+	debug.exe
+	
 log.o:  $(LOGGER_SRC)
 	$(GCCFLAG) -c $(LOGGER_SRC) -o log.o
 
