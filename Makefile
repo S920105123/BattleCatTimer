@@ -12,6 +12,7 @@ HEADER_SRC      = src/header/func.cpp
 FILE_READER_SRC = src/file_reader/file_reader.cpp
 LOGGER_SRC      = src/debug/logger.cpp
 SPEF_SRC        = src/spef/spef.cpp
+DEBUG_SRC       = src/debug/debug.cpp
 
 HEADER_OBJECT   = log.o header.o
 
@@ -29,6 +30,10 @@ TEST_SPEF:  file_reader.o $(HEADER_OBJECT)
 
 header.o: $(HEADER_SRC)
 	$(GCCFLAG) -c $(HEADER_SRC) -o header.o
+
+TEST_DEBUG : log.o
+	$(GCCFLAG) $(DEBUG_SRC) log.o -DTEST_DEBUG -o debug
+	debug.exe
 
 log.o:  $(LOGGER_SRC)
 	$(GCCFLAG) -c $(LOGGER_SRC) -o log.o

@@ -1,21 +1,27 @@
 #ifndef HEADER_H
 #define HEADER_H
 
-#include <unordered_set>
-#include <unordered_map>
 #include <algorithm>
-#include <iostream>
 #include <utility>
+
+#include <iostream>
 #include <fstream>
-#include <cstring>
+
 #include <string>
 #include <vector>
-#include <ctime>
 #include <queue>
+#include <unordered_set>
+#include <unordered_map>
 #include <set>
 #include <map>
 
 #include "func.h"
+#include <ctime>
+#include <cstdlib>
+#include <cstring>
+#include <cassert>
+#include <cctype>
+
 /* I/O */
 using std::cin;
 using std::cout;

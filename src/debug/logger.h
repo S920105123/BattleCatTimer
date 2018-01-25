@@ -29,7 +29,7 @@ private:
 
 	static Logger* logger_instance;
 	bool on;
-	std::ofstream ferr, fwarn, fnorm;
+	std::ofstream flog;
 	std::ostream *cur_stream;
 
 };
