@@ -5,3 +5,9 @@
 2018/1/25: Change log added
 感覺有個change log挺不錯的，所以加了一個
 感覺有個change log真的不錯，所以直接當成一個新版本
+
+
+201/1/25: Spef done, func added, fix file_reader, merge ok, write change log
+spef test: input net names and check the result by using TEST_SPEF
+Func: string_to_float, `func.h` is included by header.h, so just include `header.h`
+file_reader: add ascii 10 and 13 to unusefull set for windows

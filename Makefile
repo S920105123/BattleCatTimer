@@ -28,12 +28,12 @@ TEST_SPEF:  file_reader.o $(HEADER_OBJECT)
 	$(GCCFLAG) $(HEADER_OBJECT) file_reader.o $(SPEF_SRC) -DTEST_SPEF -o spef
 	spef.exe
 
-header.o: $(HEADER_SRC)
-	$(GCCFLAG) -c $(HEADER_SRC) -o header.o
-
 TEST_DEBUG : log.o
 	$(GCCFLAG) $(DEBUG_SRC) log.o -DTEST_DEBUG -o debug
 	debug.exe
+
+header.o: $(HEADER_SRC)
+	$(GCCFLAG) -c $(HEADER_SRC) -o header.o
 
 log.o:  $(LOGGER_SRC)
 	$(GCCFLAG) -c $(LOGGER_SRC) -o log.o
@@ -50,3 +50,5 @@ main: file_reader.o $(HEADER_OBJECT) spef.o
 
 clean:
 	del *.o
+	del *.exe
+	del *.log
