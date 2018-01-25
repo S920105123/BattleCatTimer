@@ -1,7 +1,7 @@
 #include "file_reader.h"
 
 void File_Reader::open(string filename){
-    ifstream in(filename, std::ios::in);
+    ifstream in(filename, std::ios::binary);
 
     if(!in.good()) LOG(ERROR) << "[File_Reader] Fail to open " << filename << "\n";
 
@@ -32,7 +32,8 @@ bool File_Reader::is_specail(char c){
 }
 
 bool File_Reader::is_useful(char c){
-    return c!=',' and c!=';' and c!=' ' and c!='\n';
+    return c!=',' and c!=';' and c!=' ' and c!='\n'
+            and (int)c!=10 and (int)c!=13;
 }
 
 string File_Reader::next_token(){
@@ -104,8 +105,8 @@ int main()
 {
     File_Reader reader;
     // reader.open("testcase_v1.2\\s1196\\s1196_Early.lib");
-    reader.open("testcase_v1.2\\s1196\\s1196.v");
-    // reader.open("src\\parser\\file_reader\\testcase.test");
+    // reader.open("testcase_v1.2\\s1196\\s1196.v");
+    reader.open("src\\file_reader\\testcase.test");
     // reader.open("testcase_v1.2\\s1196\\s1196.spef");
     freopen("test_out.test","w",stdout);
     while(true){

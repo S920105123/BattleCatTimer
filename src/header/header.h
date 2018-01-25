@@ -15,6 +15,7 @@
 #include <set>
 #include <map>
 
+#include "func.h"
 /* I/O */
 using std::cin;
 using std::cout;
