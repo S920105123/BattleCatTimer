@@ -1,0 +1,7 @@
+2018/1/25: Debug done (Hoping no bug in debug)
+新增debug.cpp，提供ASSERT和ASSERT_NOT_REACHED兩個巨集
+
+
+2018/1/25: Change log added
+感覺有個change log挺不錯的，所以加了一個
+感覺有個change log真的不錯，所以直接當成一個新版本
