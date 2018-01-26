@@ -16,3 +16,7 @@
 - Some small changes in log format. Now you can pass a additional bool to not printing date.
 - A todo list is created.
 - Add a rm-based clean command to makefile.
+
+2018/1/26: Create liberty
+- Create many work opportunities
+- add simple testcase

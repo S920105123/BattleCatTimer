@@ -15,12 +15,14 @@
 #include <set>
 #include <map>
 
-#include "func.h"
 #include <ctime>
 #include <cstdlib>
 #include <cstring>
 #include <cassert>
 #include <cctype>
+
+#include "func.h"
+#include "enum.h"
 
 /* I/O */
 using std::cin;
@@ -34,6 +36,7 @@ using std::ofstream;
 using std::string;
 using std::vector;
 using std::map;
+using std::unordered_map;
 using std::queue;
 using std::priority_queue;
 using std::pair;
