@@ -5,8 +5,9 @@ void assert_handler(int expr, const char *fname, const char *func, int line) {
         LOG(ERROR) << "Assertion fail at function \"" << func << "\"\n"
                    << "- At file \"" << fname << "\", line number "<< line << endl;
         LOG(CERR) << "\n\n[Fatal] Assertion fail at function \"" << func << "\"\n"
-                  << "- At file \"" << fname << "\", line number "<< line << endl;
+                  << "- At file \"" << fname << "\", line number "<< line << "\n\n\n";
 		if (DEBUG_ON) {
+			Logger::create()->~Logger();
 			exit(EXIT_FAILURE);
 		}
 	}

@@ -10,11 +10,13 @@ typedef enum { NORMAL, WARNING, ERROR, CERR } Log_type;
 class Logger {
 
 public:
-	~Logger();                      		 	 // Including close log files.
-	static Logger* create();        		 	 // Creat Logger by this function
-	static void turn_off();          	 	     // Turn off logger (Logger is on by default)
-	static void turn_on();               	   	 // Turn on logger (Logger is on by default)
-	static Logger& Log(Log_type type = NORMAL);  // Type may be NORMAL, WARNING, ERROR or CERR
+	~Logger();                 // Including close log files.
+	static Logger* create();   // Creat Logger by this function
+	static void turn_off();    // Turn off logger (Logger is on by default)
+	static void turn_on();     // Turn on logger (Logger is on by default)
+	
+	// Type may be NORMAL, WARNING, ERROR or CERR, print date if "prefix" is true.
+	static Logger& Log(Log_type type = NORMAL, bool prefix = true);
 
 	template <class T>
 	Logger& operator<<(const T &to_log) {

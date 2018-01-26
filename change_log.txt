@@ -1,13 +1,18 @@
 2018/1/25: Debug done (Hoping no bug in debug)
-新增debug.cpp，提供ASSERT和ASSERT_NOT_REACHED兩個巨集
+- Add debug.cpp, provide two macro ASSERT and ASSERT_NOT_REACHED as assertion interface.
 
 
 2018/1/25: Change log added
-感覺有個change log挺不錯的，所以加了一個
-感覺有個change log真的不錯，所以直接當成一個新版本
+- It seems that to keep a change log is good, so I add it.
 
+2018/1/25: Spef done, func added, fix file_reader, merge ok, write change log
+- spef test: input net names and check the result by using TEST_SPEF
+- Func: string_to_float, `func.h` is included by header.h, so just include `header.h`
+- file_reader: add ascii 10 and 13 to unusefull set for windows
 
-201/1/25: Spef done, func added, fix file_reader, merge ok, write change log
-spef test: input net names and check the result by using TEST_SPEF
-Func: string_to_float, `func.h` is included by header.h, so just include `header.h`
-file_reader: add ascii 10 and 13 to unusefull set for windows
+2018/1/26: Verilog parser done
+- Create an unit_test folder to put those file for unit tests
+- Verilog parser is done, including unit test, makefile.
+- Some small changes in log format. Now you can pass a additional bool to not printing date.
+- A todo list is created.
+- Add a rm-based clean command to makefile.

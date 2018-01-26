@@ -7,19 +7,25 @@ Logger* Logger::create() {
 		logger_instance = new Logger();
 
 		const std::string fname = "message.log";
-		logger_instance->on = true;
 		logger_instance->flog.open(fname);
+		if (!logger_instance->flog.is_open()) {
+			std::cerr << "[Error] - Cannot open log file, logger turned off." << endl;
+		}
+		logger_instance->on = logger_instance->flog.is_open();
 		logger_instance->cur_stream = &logger_instance->flog;
 	}
 	return logger_instance;
 }
 
 Logger::~Logger() {
-	flog << "[Log] close log files\n";
+	time_t now = time(NULL);
+	char *tstr = ctime(&now);
+	flog << "\n\n[Log] - "<<tstr<<"- ";
+	flog << "close log files\n";
 	flog.close();
 }
 
-Logger& Logger::Log(Log_type type) {
+Logger& Logger::Log(Log_type type, bool prefix) {
 
 	if (logger_instance == NULL) logger_instance = create();
 
@@ -27,12 +33,16 @@ Logger& Logger::Log(Log_type type) {
 
 	if (type != CERR) {
 		logger_instance->cur_stream = &logger_instance->flog;
-		time_t now = time(NULL);
-		char *tstr = ctime(&now);
-		*(logger_instance->cur_stream) << "\n\n"<<tstr<<"- ";
-		if (type == NORMAL)       logger_instance->flog << "[Log] ";
-		else if (type == WARNING) logger_instance->flog << "[Warning] ";
-		else                      logger_instance->flog << "[Error] ";
+		if (prefix) {
+			time_t now = time(NULL);
+			char *tstr = ctime(&now);
+			*(logger_instance->cur_stream) << "\n\n";
+			if (type == NORMAL)       logger_instance->flog << "[Log] - ";
+			else if (type == WARNING) logger_instance->flog << "[Warning] - ";
+			else                      logger_instance->flog << "[Error] - ";
+			*(logger_instance->cur_stream) << tstr;
+		}
+		*(logger_instance->cur_stream) << "- ";
 	} else {
 		logger_instance->cur_stream = &std::cerr;
 	}
@@ -65,7 +75,7 @@ int main() {
 
 	Logger::turn_on();
 	LOG(ERROR) << "(After turn on) Hello everyone~" << endl;
-	 logger->~Logger();
+	Logger::create()->~Logger();
 }
 
 #endif

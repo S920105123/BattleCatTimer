@@ -3,6 +3,7 @@
 
 #include "header.h"
 #include "logger.h"
+#include "file_reader.h"
 
 class File_Reader
 {
@@ -13,7 +14,7 @@ public:
     }
     string next_token();
 
-    void open(string filename);
+    void open(const string &filename);
 
 private:
     bool is_normal(char c);

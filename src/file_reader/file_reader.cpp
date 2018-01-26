@@ -1,6 +1,6 @@
 #include "file_reader.h"
 
-void File_Reader::open(string filename){
+void File_Reader::open(const string &filename){
     ifstream in(filename, std::ios::binary);
 
     if(!in.good()) LOG(ERROR) << "[File_Reader] Fail to open " << filename << "\n";
