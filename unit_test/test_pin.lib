@@ -1,6 +1,11 @@
 {
       direction : output ;
       capacitance : 0.0 ;
+	  Cuteness of pets: {
+		Cat: 9999999999.99999999,
+		Dog: 1000,
+		Snake: -1
+	  }
       max_capacitance : 512.00 ;
 	  girlfriend : NULL;
       min_capacitance : 0.00 ;
