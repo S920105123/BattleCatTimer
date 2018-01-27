@@ -20,3 +20,7 @@
 2018/1/26: Create liberty
 - Create many work opportunities
 - add simple testcase
+
+2018/1/27: Expectation debug structure
+- Add a EXPECT macro
+- EXPECT(A,B) will trigger assertion fail if A != B, and print error message, nothing happen if A == B.

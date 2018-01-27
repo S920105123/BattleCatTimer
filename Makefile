@@ -72,7 +72,7 @@ clean:
 	del *.exe
 	del *.log
 
-clean_linux:
+rm_clean:
 	rm *.o
 	rm *.exe
 	rm *.log

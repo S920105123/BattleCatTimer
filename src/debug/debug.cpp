@@ -19,6 +19,11 @@ void assert_handler(int expr, const char *fname, const char *func, int line) {
 int main() {
 	LOG(ERROR) << "NO~~~~" << endl;
 	LOG(CERR)  << "You shall not pass" << endl;
+	UNEXPECTED("I hate you.", "I love you.");
+	
+	EXPECT(1,1);
+	string reply = "Your calculus is failed.";
+	EXPECT(reply, "You got an A+ in calculus.");
 	ASSERT_NOT_REACHED();
 }
 

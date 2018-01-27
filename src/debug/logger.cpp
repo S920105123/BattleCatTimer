@@ -37,9 +37,9 @@ Logger& Logger::Log(Log_type type, bool prefix) {
 			time_t now = time(NULL);
 			char *tstr = ctime(&now);
 			*(logger_instance->cur_stream) << "\n\n";
-			if (type == NORMAL)       logger_instance->flog << "[Log] - ";
-			else if (type == WARNING) logger_instance->flog << "[Warning] - ";
-			else                      logger_instance->flog << "[Error] - ";
+			if (type == NORMAL)       logger_instance->flog << "[Log] ";
+			else if (type == WARNING) logger_instance->flog << "[Warning] ";
+			else                      logger_instance->flog << "[Error] ";
 			*(logger_instance->cur_stream) << tstr;
 		}
 		*(logger_instance->cur_stream) << "- ";

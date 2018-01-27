@@ -1,0 +1,1 @@
+- In a Liberty (.lib) file, unknown keyword should be ignored (No assertion).
