@@ -10,8 +10,8 @@ GCCINCLUDE += -Isrc/liberty/
 GCCFLAG = g++ $(INCLUDEPATH) $(GCCINCLUDE) -std=c++14 -Wall
 
 HEADER_SRC      = src/header/func.cpp
-LOGGER_SRC      = src/debug/logger.cpp
-DEBUG_SRC       = src/debug/debug.cpp
+HEADER_SRC      += src/debug/logger.cpp
+HEADER_SRC      += src/debug/debug.cpp
 FILE_READER_SRC = src/file_reader/file_reader.cpp
 SPEF_SRC        = src/spef/spef.cpp
 VERILOG_SRC     = src/verilog/verilog.cpp
@@ -22,15 +22,15 @@ LIBERTY_SRC    += src/liberty/pin.cpp
 LIBERTY_SRC    += src/liberty/timing_arc.cpp
 LIBERTY_SRC    += src/liberty/timing_table.cpp
 
-HEADER_OBJECT   = logger.o debug.o header.o
-LIBERTY_OBJECT  = cell_lib.o lu_table_template.o pin.o timing_arc.o timing_table.o
+HEADER_OBJECT   = logger.o debug.o func.o
+LIBERTY_OBJECT  = cell_lib.o lu_table_template.o pin.o timing_arc.o timing_table.o cell.o
 
-TEST_LOGGER: logger.o
+TEST_LOGGER:
 	$(GCCFLAG) $(LOGGER_SRC) -DTEST_LOGGER -o logger
 	logger.exe
 
-TEST_DEBUG : logger.o
-	$(GCCFLAG) $(DEBUG_SRC) logger.o -DTEST_DEBUG -o debug
+TEST_DEBUG :
+	$(GCCFLAG) $(DEBUG_SRC) $(LOGGER_SRC) -DTEST_DEBUG -o debug
 	debug.exe
 
 TEST_SPEF:  file_reader.o $(HEADER_OBJECT)
@@ -56,20 +56,23 @@ TEST_TIMING_TABLE: file_reader.o src/liberty/timing_table.cpp $(HEADER_OBJECT)
 TEST_TIMING_ARC: $(HEADER_OBJECT) file_reader.o src/liberty/timing_arc.cpp
 	$(GCCFLAG) file_reader.o $(HEADER_OBJECT) src/liberty/timing_table.cpp src/liberty/timing_arc.cpp -DTEST_TIMING_ARC -o timing_arc
 	timing_arc.exe
+
+TEST_PIN: file_reader.o $(HEADER_OBJECT)
+	$(GCCFLAG) file_reader.o $(HEADER_OBJECT) src/liberty/pin.cpp -DTEST_PIN -o pin
+	pin.exe
+
+TEST_CELLLIB: file_reader.o $(HEADER_OBJECT)
+	$(GCCFLAG) file_reader.o $(HEADER_OBJECT) $(LIBERTY_SRC) -o cell_lib -DTEST_CELLLIB
+	cell_lib.exe
+
 $(HEADER_OBJECT): $(HEADER_SRC)
-	$(GCCFLAG) -c $(HEADER_SRC) -o $(HEADER_OBJECT)
+	$(GCCFLAG) -c $(HEADER_SRC)
 
 $(LIBERTY_OBJECT): $(LIBERTY_SRC)
 	$(GCCFLAG) -c $(LIBERTY_SRC)
 
-logger.o:  $(LOGGER_SRC)
-	$(GCCFLAG) -c $(LOGGER_SRC) -o logger.o
-
-debug.o:  $(DEBUG_SRC)
-	$(GCCFLAG) -c $(DEBUG_SRC) -o debug.o
-
-header.o:  $(HEADER_SRC)
-	$(GCCFLAG) -c $(HEADER_SRC) -o header.o
+# header.o:  $(HEADER_SRC)
+# 	$(GCCFLAG) -c $(HEADER_SRC) -o header.o
 
 file_reader.o: $(FILE_READER_SRC)
 	$(GCCFLAG) -c $(FILE_READER_SRC) -o file_reader.o

@@ -9,7 +9,7 @@ float string_to_float(string val){
 
 void string_to_float(vector<float> &to, string val){
     string cur;
-    for(int i=0; i<val.size(); i++){
+    for(size_t i=0; i<val.size(); i++){
         if(val[i]=='.' or (val[i]>='0' and val[i]<='9') )
             cur += val[i];
         else if(!cur.empty()){

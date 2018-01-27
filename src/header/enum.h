@@ -16,6 +16,8 @@ enum Timing_Sense {
 
 enum Timing_Type{
     RISING_EDGE = 0,
-    FALLING_EDGE ,
+    FALLING_EDGE,
+    SETUP_RISING,
+    HOLD_RISING,
     COMBINATINAL                // default
 };

@@ -25,6 +25,14 @@
 - Add a EXPECT macro
 - EXPECT(A,B) will trigger assertion fail if A != B, and print error message, nothing happen if A == B.
 
+2018/1/27: Some liberty stuff
+- Add EXPECT_NOT for expectation of not equal.
+- Add #define DEBUG_MODE_ON, undefine this will completely turn off debug system, without losing any efficiency.
+
 2018/1/27: fix file_reader , liberty parser
 - add isprint() to is_useful function, and ASSERT_NOT_REACHED() to next_token
-- liberty parser done
+- Liberty parser
+
+2018/1/27: merge two liberty stuffs, add timing type(setup_rising, hold_rising), timing table(fall/rise_constraint)
+- check cell lib: use TEST_CELLLIB
+- Liberty parser done

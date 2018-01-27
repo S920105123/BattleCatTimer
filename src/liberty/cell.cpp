@@ -2,7 +2,6 @@
 
 void Cell::read(File_Reader &in){
     int level = 1;
-    LOG(NORMAL) << "[Cell][read] " << type_name << endl;
     EXPECT(in.next_token(), "{");
     string token, name;
     while(level){
@@ -40,7 +39,7 @@ void Cell::print(const string &tab){
     LOG(CERR) << tab << " Cell : " << type_name << endl;
 
     string nextTab = tab + "    ";
-    for(auto i:pins) i->print(nextTab);
+    for(auto i:pins) i.second->print(nextTab);
 
     LOG(CERR) << endl;
 }

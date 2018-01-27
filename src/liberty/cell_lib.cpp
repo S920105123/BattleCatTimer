@@ -49,12 +49,41 @@ int CellLib::table_template_size(){
     return table_template.size();
 }
 
-int CellLib::print_cell(string name){
+void CellLib::print_cell(string name){
     if(cells.find(name)==cells.end()){
         LOG(CERR) << " no such cells " << name << endl;
     }else cells[name]->print();
 }
 
-int CellLib::print_template(){
-    for(auto i:table_template) i->print();
+void CellLib::print_template(){
+    for(auto i:table_template) i.second->print();
 }
+
+#ifdef TEST_CELLLIB
+
+int main()
+{
+	string filename;
+	CellLib lib;
+	cout << "enter filename : ";
+	cin  >> filename;
+    lib.open(filename);
+	cout << "open " << filename << "ok\n";
+
+	cout << "total cells: " << lib.cells_size() << endl;
+	cout << "template table : ";
+	lib.print_template();
+
+	string name;
+    while(true){
+		cout << "enter cell type or exit : ";
+		cin >> name;
+		if(name=="exit") break;
+		lib.print_cell(name);
+    }
+	Logger* logger = Logger::create();
+    logger->~Logger();
+    return 0;
+}
+
+#endif /* end TEST_CELLLIB */

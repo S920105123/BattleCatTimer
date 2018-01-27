@@ -2,19 +2,23 @@
 
 int main()
 {
+	string filename;
 	CellLib lib;
-    lib.open("testcase_v1.2\\s1196\\s1196_Early.lib");
-	// spef.open("testcase.test");
-    // freopen("test_out.test","w",stdout);
-	cout << "open ok\n";
-	cout << "total cells: " << lib.cells_size() << enld;
+	cout << "enter filename : ";
+	cin  >> filename;
+    lib.open(filename);
+	cout << "open " << filename << "ok\n";
+
+	cout << "total cells: " << lib.cells_size() << endl;
 	cout << "template table : ";
-	libs.print_template();
+	lib.print_template();
 
 	string name;
-    while(cin >> name){
+    while(true){
+		cout << "enter cell type or exit : ";
+		cin >> name;
 		if(name=="exit") break;
-		libs.print_cell(name);
+		lib.print_cell(name);
     }
 	Logger* logger = Logger::create();
     logger->~Logger();

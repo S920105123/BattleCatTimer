@@ -19,8 +19,8 @@ public:
     int cells_size();
     int table_template_size();
 
-    int print_cell(string name);
-    int print_template();
+    void print_cell(string name);
+    void print_template();
 
 private:
     string name;

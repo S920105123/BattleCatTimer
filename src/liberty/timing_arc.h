@@ -17,6 +17,8 @@ public:
         cell_rise_table = NULL;
         fall_transition_table = NULL;
         rise_transition_table = NULL;
+        rise_constraint_table = NULL;
+        fall_constraint_table = NULL;
     }
 
     void read(File_Reader &in);
@@ -37,6 +39,8 @@ private:
     TimingTable *cell_rise_table;
     TimingTable *fall_transition_table;
     TimingTable *rise_transition_table;
+    TimingTable *rise_constraint_table;
+    TimingTable *fall_constraint_table;
 
 };
 

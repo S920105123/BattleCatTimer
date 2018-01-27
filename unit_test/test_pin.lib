@@ -1,0 +1,7 @@
+{
+      direction : output ;
+      capacitance : 0.0 ;
+      max_capacitance : 512.00 ;
+	  girlfriend : NULL;
+      min_capacitance : 0.00 ;
+}

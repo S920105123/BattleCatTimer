@@ -58,6 +58,24 @@ void TimingArc::read(File_Reader &in){
             fall_transition_table->read(in);
             fall_transition_table->set_name(label_name);
         }
+        else if(token=="rise_constraint"){
+            EXPECT(in.next_token(), "(");
+            label_name = in.next_token();
+            EXPECT(in.next_token(), ")");
+
+            rise_constraint_table = new TimingTable();
+            rise_constraint_table->read(in);
+            rise_constraint_table->set_name(label_name);
+        }
+        else if(token=="fall_constraint"){
+            EXPECT(in.next_token(), "(");
+            label_name = in.next_token();
+            EXPECT(in.next_token(), ")");
+
+            fall_constraint_table = new TimingTable();
+            fall_constraint_table->read(in);
+            fall_constraint_table->set_name(label_name);
+        }
         else{
             LOG(WARNING) << "[TimingArc][open] unknown keyword: " << token << endl;
         }
@@ -81,6 +99,8 @@ void TimingArc::set_timing_sense(string val){
 void TimingArc::set_timing_type(string val){
     if(val=="rising_edge") timing_type = RISING_EDGE;
     else if(val=="falling_edge") timing_type = FALLING_EDGE;
+    else if(val=="setup_rising") timing_type = SETUP_RISING;
+    else if(val=="hold_rising") timing_type = HOLD_RISING;
     else if(val=="combinational") timing_type = COMBINATINAL;
     else{
         LOG(ERROR) << "[TimingArc] can't juge timing type: " << val << endl;
@@ -90,8 +110,10 @@ void TimingArc::set_timing_type(string val){
 
 string TimingArc::get_timing_type_string(){
     switch (timing_type) {
-        case RISING_EDGE: return "rising_edge";
+        case RISING_EDGE:  return "rising_edge";
         case FALLING_EDGE: return "falling_edge";
+        case SETUP_RISING: return "setup_rising";
+        case HOLD_RISING:  return "hold_rising";
         default: return "combinatinal";
     }
 }
@@ -127,6 +149,11 @@ void TimingArc::print(const string &tab){
     LOG(CERR) << tab << "fall_transition_table: " << endl;
     if(fall_transition_table) fall_transition_table->print(nextTab);
 
+    LOG(CERR) << tab << "rise_constraint_table: " << endl;
+    if(rise_constraint_table) rise_constraint_table->print(nextTab);
+
+    LOG(CERR) << tab << "fall_constraint_table: " << endl;
+    if(fall_constraint_table) fall_constraint_table->print(nextTab);
     cout << endl;
 }
 
