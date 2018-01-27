@@ -45,6 +45,10 @@ TEST_FILE_READER:
 	$(GCCFLAG) $(FILE_READER_SRC) $(HEADER_OBJECT) -DTEST_FILE_READER -o file_reader
 	file_reader.exe
 
+TEST_PIN: file_reader.o $(HEADER_OBJECT)
+	$(GCCFLAG) file_reader.o $(HEADER_OBJECT) src/liberty/pin.cpp -DTEST_PIN -o pin
+	pin.exe
+	
 $(HEADER_OBJECT): $(HEADER_SRC)
 	$(GCCFLAG) -c $(HEADER_SRC) -o $(HEADER_OBJECT)
 

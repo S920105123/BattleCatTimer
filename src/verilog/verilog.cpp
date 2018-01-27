@@ -7,18 +7,15 @@ void Verilog::parse(const string &fname) {
 	string tok;
 	
 	/* Read in the module name */
-	ASSERT(reader.next_token() == "module");
+	EXPECT(reader.next_token(), "module");
 	module_name = reader.next_token();
 	
 	/* Skip those parameters. */
 	tok = reader.next_token();
-	ASSERT(tok == "(");
+	EXPECT(tok, "(");
 	while (tok != ")") {
 		tok = reader.next_token();
-		if (tok.empty()) {
-			ASSERT_NOT_REACHED();
-			break;
-		}
+		EXPECT_NOT(tok, "");
 	}
 	
 	/* Reading inputs */
@@ -45,28 +42,21 @@ void Verilog::parse(const string &fname) {
 	
 	/* Reading cells */
 	while (tok != "endmodule") {
-		if (tok.empty()) {
-			ASSERT_NOT_REACHED();
-			break;
-		}
-		
+		EXPECT_NOT(tok, "");
 		gate.push_back(Verilog_Gate());
 		Verilog_Gate &gt = gate.back();
 		gt.cell_type = tok;
 		gt.cell_name = reader.next_token();
-		ASSERT(reader.next_token() == "(");
+		EXPECT(reader.next_token(), "(");
 		tok = reader.next_token();  // In case empty argument list.
 		while (tok != ")") {
-			if (tok.empty()) {
-				ASSERT_NOT_REACHED();
-				break;
-			}
+			EXPECT_NOT(tok, "");
 			string inp, from;
-			ASSERT(tok == ".");
+			EXPECT(tok, ".");
 			inp  = reader.next_token();
-			ASSERT(reader.next_token() == "(");
+			EXPECT(reader.next_token(), "(");
 			from = reader.next_token();
-			ASSERT(reader.next_token() == ")");
+			EXPECT(reader.next_token(), ")");
 			gt.param.push_back({inp, from});
 			tok = reader.next_token();
 		}
@@ -82,7 +72,7 @@ void Verilog::parse(const string &fname) {
 
 int main() {
 	Verilog vlog;
-	vlog.parse("unit_test/verilog_test.v");
+	vlog.parse("unit_test/test_verilog.v");
 	
 	LOG(CERR) << "Parse done\n\n";
 	LOG(CERR) << "Module name: " << vlog.module_name << "\n\n";

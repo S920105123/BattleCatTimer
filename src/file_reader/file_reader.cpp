@@ -33,7 +33,7 @@ bool File_Reader::is_specail(char c){
 
 bool File_Reader::is_useful(char c){
     return c!=',' and c!=';' and c!=' ' and c!='\n'
-            and (int)c!=10 and (int)c!=13;
+            and (int)c!=10 and (int)c!=13 and isprint(c);
 }
 
 string File_Reader::next_token(){
