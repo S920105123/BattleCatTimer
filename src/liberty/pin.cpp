@@ -4,7 +4,7 @@ void Pin::read(File_Reader &in){
 	int level = 1;   // Parenthesis level
 	string tok;
 	this->is_clock = false;
-	
+
 	EXPECT(in.next_token(), "{");
 	tok = in.next_token();
 	while (tok != "}" || level!=1) {
@@ -34,9 +34,9 @@ void Pin::read(File_Reader &in){
 		else if (tok == "timing") {
 			EXPECT(in.next_token(), "(");
 			EXPECT(in.next_token(), ")");
-//			TimingArc *arc = new TimingArc;
-//			arc->read(in);
-//			this->timing.insert( make_pair(arc->get_related_pin(), arc) );
+			TimingArc *arc = new TimingArc;
+			arc->read(in);
+			this->timing.insert( make_pair(arc->get_related_pin(), arc) );
 		}
 		else {
 			if (tok == "}") level--;
@@ -58,15 +58,18 @@ void Pin::set_parent(Cell *p) {
 void Pin::print(const string &tab) {
 	string next_level = tab+"    ";
 	LOG(CERR) << tab << "Pin name: " << this->name << endl;
-	LOG(CERR) << tab << "Is Clock: " << (this->is_clock ? "True" : "False") << endl;
-	LOG(CERR) << tab << "Capacitance: " << this->capacitance << endl;
-	LOG(CERR) << tab << "Max capacitance: " << this->max_capacitance << endl;
-	LOG(CERR) << tab << "Min capacitance: " << this->min_capacitance << endl;
-	LOG(CERR) << tab << "Timing Arcs: " << endl;
-//	for (const auto &it : timing) {
-//		it.second->print(next_level);
-//	}
+	LOG(CERR) << tab << "	- Direction: " << this->direction << endl;
+	LOG(CERR) << tab << "	- Is Clock: " << (this->is_clock ? "True" : "False") << endl;
+	LOG(CERR) << tab << "	- Capacitance: " << this->capacitance << endl;
+	LOG(CERR) << tab << "	- Max capacitance: " << this->max_capacitance << endl;
+	LOG(CERR) << tab << "	- Min capacitance: " << this->min_capacitance << endl;
+	LOG(CERR) << tab << "	- Timing Arcs: " << this->min_capacitance << endl;
+	for (const auto &it : timing) {
+		it.second->print(next_level);
+	}
+	LOG(CERR) << endl;
 }
+
 
 // ----------- For testing --------------
 
