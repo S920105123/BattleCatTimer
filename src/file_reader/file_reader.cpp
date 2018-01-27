@@ -32,8 +32,7 @@ bool File_Reader::is_specail(char c){
 }
 
 bool File_Reader::is_useful(char c){
-    return c!=',' and c!=';' and c!=' ' and c!='\n'
-            and (int)c!=10 and (int)c!=13;
+    return c!=',' and c!=';' and c!=' ' and c!='\n' and isprint(c);
 }
 
 string File_Reader::next_token(){
@@ -93,6 +92,7 @@ string File_Reader::next_token(){
             return res;
         }
         else if(s[position] == 0) position++;
+        else ASSERT_NOT_REACHED();
     }
     return res;
 }

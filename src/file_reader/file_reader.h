@@ -2,6 +2,7 @@
 #define FILE_READER_H
 
 #include "header.h"
+#include "debug.h"
 #include "logger.h"
 #include "file_reader.h"
 
