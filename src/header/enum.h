@@ -19,5 +19,6 @@ enum Timing_Type{
     FALLING_EDGE,
     SETUP_RISING,
     HOLD_RISING,
-    COMBINATINAL                // default
+    COMBINATINAL,                // default
+    UNDEFINED_TIMING_TYPE
 };

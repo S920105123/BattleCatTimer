@@ -66,6 +66,7 @@ void TimingTable::print(const string &tab){
         }
         LOG(CERR) << endl;
     }
+    if(label_name == "scalar" && values.size()) LOG(CERR) << tab << values[0] << endl;
 }
 
 #ifdef TEST_TIMING_TABLE
