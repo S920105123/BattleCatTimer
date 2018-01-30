@@ -101,6 +101,8 @@ void TimingArc::set_timing_type(string val){
     else if(val=="falling_edge") timing_type = FALLING_EDGE;
     else if(val=="setup_rising") timing_type = SETUP_RISING;
     else if(val=="hold_rising")  timing_type = HOLD_RISING;
+    else if(val=="setup_falling") timing_type = SETUP_FALLING;
+    else if(val=="hold_falling")  timing_type = HOLD_FALLING;
     else if(val=="combinational")timing_type = COMBINATINAL;
     else if(val=="undefined")    timing_type = UNDEFINED_TIMING_TYPE;
     else{
@@ -115,6 +117,8 @@ string TimingArc::get_timing_type_string(){
         case FALLING_EDGE: return "falling_edge";
         case SETUP_RISING: return "setup_rising";
         case HOLD_RISING:  return "hold_rising";
+        case SETUP_FALLING: return "setup_falling";
+        case HOLD_FALLING:  return "hold_falling";
         case UNDEFINED_TIMING_TYPE: return "undefined";
         default: return "combinatinal";
     }

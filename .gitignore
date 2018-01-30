@@ -3,3 +3,5 @@
 *.test
 *.gch
 *.log
+*.pch
+*.clang_complete

@@ -5,7 +5,7 @@
 #include "debug.h"
 #include "logger.h"
 #include "file_reader.h"
-#include "Pin.h"
+#include "pin.h"
 
 class Cell{
 
