@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <set>
 #include <map>
+#include <tuple>
 
 #include <ctime>
 #include <cstdlib>
@@ -40,5 +41,7 @@ using std::unordered_map;
 using std::queue;
 using std::priority_queue;
 using std::pair;
+using std::tuple;
+using std::tie;
 
 #endif /* end HEADER_H */

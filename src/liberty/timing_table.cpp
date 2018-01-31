@@ -41,7 +41,7 @@ void TimingTable::read(File_Reader &in){
     }
 }
 
-void TimingTable::set_name(string name){
+void TimingTable::set_name(const string& name){
     label_name = name;
 }
 
@@ -84,7 +84,7 @@ int main()
             EXPECT(in.next_token(), "(");
             name = in.next_token();
             EXPECT(in.next_token(), ")");
-            TimingTable* table = new TimingTable();
+            TimingTable* table = new TimingTable(NULL);
             table->set_name(name);
             table->read(in);
             cout << " ------- get " << name <<  " ------- \n";
