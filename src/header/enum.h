@@ -24,3 +24,7 @@ enum Timing_Type{
     HOLD_FALLING,
     UNDEFINED_TIMING_TYPE
 };
+
+typedef enum { RC_TREE, CELL } Edge_type;
+
+typedef enum { EARLY, LATE } Graph_type;

@@ -36,3 +36,7 @@
 2018/1/27: merge two liberty stuffs, add timing type(setup_rising, hold_rising), timing table(fall/rise_constraint)
 - check cell lib: use TEST_CELLLIB
 - Liberty parser done
+
+2018/1/31: Some util func
+- Optimize string_to_float
+- Add an util function of verilog, now you can get cell_type by cell_name

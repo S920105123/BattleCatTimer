@@ -43,10 +43,9 @@ void Verilog::parse(const string &fname) {
 	/* Reading cells */
 	while (tok != "endmodule") {
 		EXPECT_NOT(tok, "");
-		gate.push_back(Verilog_Gate());
-		Verilog_Gate &gt = gate.back();
-		gt.cell_type = tok;
-		gt.cell_name = reader.next_token();
+		Verilog_Gate *gt = new Verilog_Gate;
+		gt->cell_type = tok;
+		gt->cell_name = reader.next_token();
 		EXPECT(reader.next_token(), "(");
 		tok = reader.next_token();  // In case empty argument list.
 		while (tok != ")") {
@@ -57,13 +56,24 @@ void Verilog::parse(const string &fname) {
 			EXPECT(reader.next_token(), "(");
 			from = reader.next_token();
 			EXPECT(reader.next_token(), ")");
-			gt.param.push_back({inp, from});
+			gt->param.push_back({inp, from});
 			tok = reader.next_token();
 		}
 		tok = reader.next_token();
+		gates.insert(make_pair(gt->cell_name, gt));
 	}
 	
 	LOG(NORMAL) << "Parse of verilog file is done." << endl;
+}
+
+const string& Verilog::get_cell_type(const string &inst_name) const {
+	static const string undefined_str = "Undefined";
+	auto it = gates.find(inst_name);
+	if (it == gates.end()) {
+		LOG(WARNING) << "[Verilog] Searching for an unknown verilog gate instance name" << endl;
+		return undefined_str;
+	}
+	return it->second->cell_type;
 }
 
 // --------------- For Test ---------------
@@ -96,7 +106,8 @@ int main() {
 	LOG(CERR) << endl;
 	
 	LOG(CERR) << "Cells: " << endl;
-	for (const Verilog::Verilog_Gate &gt : vlog.gate) {
+	for (auto it : vlog.gates) {
+		const Verilog::Verilog_Gate &gt = *it.second;
 		LOG(CERR) << "    - Type: "<< gt.cell_type << endl;
 		LOG(CERR) << "    - Name: "<< gt.cell_name << endl;
 		LOG(CERR) << "    - Parameters:" << endl;
@@ -105,6 +116,9 @@ int main() {
 		}
 		LOG(CERR) << endl;
 	}
+	
+	string to_find = "U7";
+	LOG(CERR) << "Find instance " << to_find << ". Result is: " << vlog.get_cell_type(to_find) << endl;
 }
 
 #endif
