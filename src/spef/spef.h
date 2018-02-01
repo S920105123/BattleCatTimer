@@ -9,11 +9,13 @@ class SpefNet;
 
 class Spef {
 public:
-    void open(string filename);
+    void open(const string& filename);
 
-    void add_net(string name, SpefNet* net);        // map name to net pointer
+    void add_net(const string& name, SpefNet* net);        // map name to net pointer
 
-    void print_net(string name);
+    void print_net(const string& name);
+
+    SpefNet* get_spefnet_ptr(const string& name);
 
     int size();
 private:
@@ -27,15 +29,37 @@ public:
 
     void set_total_cap(float f);
 
-    void set_name(string _name);
+    void set_name(const string& _name);
 
-    void add_conn(string name,string type, string dir);
+    void add_conn(const string& name,const string& type, const string& dir);
+    void add_cap(const string& name, float f);
+    void add_res(const string& pin1, const string& pin2, float f);
 
-    void add_cap(string name, float f);
+    int get_pin_id(const string& name);
 
-    void add_res(string pin1, string pin2, float f);
+    const vector<tuple<int,int,float>>& get_pin_res(){
+        return pin_res;
+    }
 
-    int get_pin_id(string name);
+    const vector<string>& get_pin_name(){
+        return pin_name;
+    }
+
+    const vector<string>& get_conn_name(){
+        return conn_name;
+    }
+
+    const vector<float>& get_pin_float(){
+        return pin_cap;
+    }
+
+    const map<string, int>& get_pin_id(){
+        return pin_id;
+    }
+
+    float get_total_cap(){
+        return total_cap;
+    }
 
     void print_net();
 
@@ -47,7 +71,8 @@ private:
     vector<string>   conn_name, conn_type, conn_dir;     // save conn
     vector<string>   pin_name;                           // save pinid's name
     vector<float>    pin_cap;                            // save pinid's cap
-    map<int, map<int, float>> pin_res;                   // save res between two pinid
+    // map<int, map<int, float>> pin_res;                // save res between two pinid
+    vector<tuple<int,int,float>> pin_res;
 };
 
 #endif /* end SPEF_H */

@@ -37,7 +37,7 @@ void LuTableTemplate::read(File_Reader &in){
     }
 }
 
-Lu_Table_Variable LuTableTemplate::judge_variable(string name){
+Lu_Table_Variable LuTableTemplate::judge_variable(const string& name){
     if(name == "total_output_net_capacitance")
         return TOTAL_OUTPUT_NET_CAP;
     else if(name == "input_net_transition")
@@ -52,7 +52,7 @@ Lu_Table_Variable LuTableTemplate::judge_variable(string name){
     }
 }
 
-void LuTableTemplate::set_name(string name){
+void LuTableTemplate::set_name(const string& name){
     label_name = name;
 }
 
@@ -81,6 +81,14 @@ void LuTableTemplate::print(const string &tab){
 
     LOG(CERR) << tab << "    - index2 :" ;
     for(auto f:index2) LOG(CERR) << f << " "; cout << endl;
+}
+
+Lu_Table_Variable LuTableTemplate::get_var1(){
+    return var1;
+}
+
+Lu_Table_Variable LuTableTemplate::get_var2(){
+    return var2;
 }
 
 #ifdef TEST_LU_TABLE_TEMPLAT

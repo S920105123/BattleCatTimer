@@ -1,6 +1,6 @@
 #include "cell_lib.h"
 
-void CellLib::open(string filename){
+void CellLib::open(const string& filename){
     File_Reader in;
     LOG(NORMAL) << "[CellLib] is parsing ..." << filename << endl;
     in.open(filename);
@@ -21,7 +21,7 @@ void CellLib::open(string filename){
             EXPECT(in.next_token(), "(");
             name = in.next_token();
             EXPECT(in.next_token(), ")");
-            Cell *cell = new Cell();
+            Cell *cell = new Cell(this);
             cell->set_name(name);
             cell->read(in);
             add_cell(name, cell);
@@ -29,13 +29,13 @@ void CellLib::open(string filename){
     }while(!token.empty());
 }
 
-void CellLib::add_table_template(string name, LuTableTemplate* table){
+void CellLib::add_table_template(const string& name, LuTableTemplate* table){
     if(table_template.find(name)==table_template.end()){
         table_template[name] = table;
     }else LOG(ERROR) << "[CellLib][add_table_template] " << name << " appear twice.\n";
 }
 
-void CellLib::add_cell(string name, Cell* cell){
+void CellLib::add_cell(const string& name, Cell* cell){
     if(cells.find(name)==cells.end()){
         cells[name] = cell;
     }else LOG(ERROR) << "[CellLib][add_cell] " << name << " appear twice.\n";
@@ -49,7 +49,7 @@ int CellLib::table_template_size(){
     return table_template.size();
 }
 
-void CellLib::print_cell(string name){
+void CellLib::print_cell(const string& name){
     if(cells.find(name)==cells.end()){
         LOG(CERR) << " no such cells " << name << endl;
     }else cells[name]->print();
@@ -59,6 +59,63 @@ void CellLib::print_template(){
     for(auto i:table_template) i.second->print();
 }
 
+float CellLib::get_pin_capacitance(const string& cell_type, const string& pin_name){
+    if(cells.find(cell_type)==cells.end()){
+        LOG(ERROR) << "[CellLib][get_pin_capacitance] no such cell type: " <<  cell_type << endl;
+    }else return cells[cell_type]->get_pin_capacitance(pin_name);
+    return 0;
+}
+
+bool CellLib::get_pin_is_clock(const string& cell_type, const string& pin_name){
+    if(cells.find(cell_type)==cells.end()){
+        LOG(ERROR) << "[CellLib][get_pin_is_clock] no such cell type: " <<  cell_type << endl;
+    }else return cells[cell_type]->get_pin_is_clock(pin_name);
+    return false;
+}
+
+string CellLib::get_pin_direction(const string& cell_type, const string& pin_name){
+    if(cells.find(cell_type)==cells.end()){
+        LOG(ERROR) << "[CellLib][get_pin_direction] no such cell type: " <<  cell_type << endl;
+    }else return cells[cell_type]->get_pin_direction(pin_name);
+    return "";
+}
+
+vector<TimingArc*>* CellLib::get_pin_TimingArc(const string& cell_type, const string& pin_name, const string& src){
+    if(cells.find(cell_type)==cells.end()){
+        LOG(ERROR) << "[CellLib][get_pin_TimingArc] no such cell type: " <<  cell_type << endl;
+    }else return cells[cell_type]->get_pin_TimingArc(pin_name, src);
+    return NULL;
+}
+
+vector<TimingArc*>* CellLib::get_pin_total_TimingArc(const string& cell_type, const string& pin_name){
+    if(cells.find(cell_type)==cells.end()){
+        LOG(ERROR) << "[CellLib][get_pin_total_TimingArc] no such cell type: " <<  cell_type << endl;
+    }else return cells[cell_type]->get_pin_total_TimingArc(pin_name);
+    return NULL;
+}
+
+Cell* CellLib::get_cell_ptr(const string& cell_type){
+    if(cells.find(cell_type)==cells.end()){
+        LOG(ERROR) << "[CellLib][get_cell_ptr] no such cell type: " <<  cell_type << endl;
+    }else return cells[cell_type];
+    return NULL;
+}
+
+Pin* CellLib::get_pin_ptr(const string& cell_type, const string& pin_name){
+    if(cells.find(cell_type)==cells.end()){
+        LOG(ERROR) << "[CellLib][get_pin_ptr] no such cell type: " <<  cell_type << endl;
+    }else return cells[cell_type]->get_pin_ptr(pin_name);
+    return NULL;
+}
+
+LuTableTemplate* CellLib::get_table_template(const string& table_label){
+    if(table_template.find(table_label)==table_template.end()){
+        LOG(ERROR) << "[CellLib][get_table_template] no such table_label: " <<  table_label << endl;
+    }else return table_template[table_label];
+    return NULL;
+}
+
+/* -- Test -- */
 #ifdef TEST_CELLLIB
 
 int main()

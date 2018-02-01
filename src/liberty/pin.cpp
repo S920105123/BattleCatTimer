@@ -34,9 +34,10 @@ void Pin::read(File_Reader &in){
 		else if (tok == "timing") {
 			EXPECT(in.next_token(), "(");
 			EXPECT(in.next_token(), ")");
-			TimingArc *arc = new TimingArc;
+			TimingArc *arc = new TimingArc(cell_lib);
 			arc->read(in);
-			this->timing.insert( make_pair(arc->get_related_pin(), arc) );
+			this->add_arc( arc->get_related_pin(), arc);
+			// this->timing.insert( make_pair(arc->get_related_pin(), arc) );
 		}
 		else {
 			if (tok == "}") level--;
@@ -55,6 +56,14 @@ void Pin::set_parent(Cell *p) {
 	this->parent = p;
 }
 
+void Pin::add_arc(const string &src, TimingArc* arc){
+	if(timing.find(src) == timing.end()){
+		timing[src] = new vector<TimingArc*>;
+	}
+	timing[src]->emplace_back( arc );
+	total_timingArc->emplace_back(arc);
+}
+
 void Pin::print(const string &tab) {
 	string next_level = tab+"    ";
 	LOG(CERR) << tab << "Pin name: " << this->name << endl;
@@ -65,11 +74,33 @@ void Pin::print(const string &tab) {
 	LOG(CERR) << tab << "	- Min capacitance: " << this->min_capacitance << endl;
 	LOG(CERR) << tab << "	- Timing Arcs: " << this->min_capacitance << endl;
 	for (const auto &it : timing) {
-		it.second->print(next_level);
+		for(const auto &arc: *it.second)
+			arc->print(next_level);
 	}
 	LOG(CERR) << endl;
 }
 
+float Pin::get_capacitance(){
+	return capacitance;
+}
+
+bool Pin::get_is_clock(){
+	return is_clock;
+}
+
+vector<TimingArc*>* Pin::get_TimingArc(const string& src){
+	if(timing.find(src) == timing.end())
+		LOG(ERROR) << "[Pin][get_TimingArc] pin:" << name << " src:" << src << " empty TimingArc." << endl;
+	return timing[src];
+}
+
+vector<TimingArc*>* Pin::get_total_TimingArc(){
+	return total_timingArc;
+}
+
+string Pin::get_direction(){
+	return direction;
+}
 
 // ----------- For testing --------------
 

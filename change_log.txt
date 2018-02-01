@@ -37,6 +37,11 @@
 - check cell lib: use TEST_CELLLIB
 - Liberty parser done
 
-2018/1/31: Some util func
+2018/1/31: add get function to liberty files
+- modifty all 'string' in parameter to 'const string&'
+- modifty data structure of SpefNet's pin_res
+- add get function of liberty and spef
+
+2018/2/1: Some util func
 - Optimize string_to_float
 - Add an util function of verilog, now you can get cell_type by cell_name

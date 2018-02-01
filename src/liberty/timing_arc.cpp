@@ -27,7 +27,7 @@ void TimingArc::read(File_Reader &in){
             label_name = in.next_token();
             EXPECT(in.next_token(), ")");
 
-            cell_rise_table = new TimingTable();
+            cell_rise_table = new TimingTable(cell_lib);
             cell_rise_table->set_name(label_name);
             cell_rise_table->read(in);
         }
@@ -36,7 +36,7 @@ void TimingArc::read(File_Reader &in){
             label_name = in.next_token();
             EXPECT(in.next_token(), ")");
 
-            cell_fall_table= new TimingTable();
+            cell_fall_table= new TimingTable(cell_lib);
             cell_fall_table->set_name(label_name);
             cell_fall_table->read(in);
         }
@@ -45,7 +45,7 @@ void TimingArc::read(File_Reader &in){
             label_name = in.next_token();
             EXPECT(in.next_token(), ")");
 
-            rise_transition_table = new TimingTable();
+            rise_transition_table = new TimingTable(cell_lib);
             rise_transition_table->set_name(label_name);
             rise_transition_table->read(in);
         }
@@ -54,7 +54,7 @@ void TimingArc::read(File_Reader &in){
             label_name = in.next_token();
             EXPECT(in.next_token(), ")");
 
-            fall_transition_table = new TimingTable();
+            fall_transition_table = new TimingTable(cell_lib);
             fall_transition_table->set_name(label_name);
             fall_transition_table->read(in);
         }
@@ -63,7 +63,7 @@ void TimingArc::read(File_Reader &in){
             label_name = in.next_token();
             EXPECT(in.next_token(), ")");
 
-            rise_constraint_table = new TimingTable();
+            rise_constraint_table = new TimingTable(cell_lib);
             rise_constraint_table->set_name(label_name);
             rise_constraint_table->read(in);
         }
@@ -72,7 +72,7 @@ void TimingArc::read(File_Reader &in){
             label_name = in.next_token();
             EXPECT(in.next_token(), ")");
 
-            fall_constraint_table = new TimingTable();
+            fall_constraint_table = new TimingTable(cell_lib);
             fall_constraint_table->set_name(label_name);
             fall_constraint_table->read(in);
         }
@@ -86,7 +86,7 @@ string TimingArc::get_related_pin(){
     return related_pin;
 }
 
-void TimingArc::set_timing_sense(string val){
+void TimingArc::set_timing_sense(const string& val){
     if(val=="negative_unate") timing_sense = NEGATIVE_UNATE;
     else if(val=="positive_unate") timing_sense = POSITIVE_UNATE;
     else if(val=="non_unate") timing_sense = NON_UNATE;
@@ -96,7 +96,7 @@ void TimingArc::set_timing_sense(string val){
     }
 }
 
-void TimingArc::set_timing_type(string val){
+void TimingArc::set_timing_type(const string& val){
     if(val=="rising_edge")       timing_type = RISING_EDGE;
     else if(val=="falling_edge") timing_type = FALLING_EDGE;
     else if(val=="setup_rising") timing_type = SETUP_RISING;
@@ -177,7 +177,7 @@ int main()
         if(token=="timing"){
             EXPECT(in.next_token(), "(");
             EXPECT(in.next_token(), ")");
-            TimingArc * arc = new TimingArc();
+            TimingArc * arc = new TimingArc(NULL);
             arc->read(in);
             cout << " ------- get " << arc->get_related_pin() <<  " ------- \n";
             arc->print();

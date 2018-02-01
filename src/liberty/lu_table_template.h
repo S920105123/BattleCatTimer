@@ -14,14 +14,17 @@ public:
         var2 = UNDEFINED_LU_TABLE_VARIABLE;
     }
     void read(File_Reader &in);
-    void print(const string &tab="");
+    void print(const string& tab="");
 
     string get_variable_string(Lu_Table_Variable var);
 
-    void set_name(string name);
+    void set_name(const string& name);
+
+    Lu_Table_Variable get_var1();
+    Lu_Table_Variable get_var2();
 
 private:
-    Lu_Table_Variable judge_variable(string var);
+    Lu_Table_Variable judge_variable(const string& var);
 
     string label_name;
     Lu_Table_Variable var1, var2;
