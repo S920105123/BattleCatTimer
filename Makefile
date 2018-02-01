@@ -31,7 +31,7 @@ TEST_LOGGER:
 	logger.exe
 
 TEST_DEBUG :
-	$(GCCFLAG) $(DEBUG_SRC) $(LOGGER_SRC) -DTEST_DEBUG -o debug
+	$(GCCFLAG) $(HEADER_SRC) -DTEST_DEBUG -o debug
 	debug.exe
 
 TEST_SPEF:  file_reader.o $(HEADER_OBJECT)

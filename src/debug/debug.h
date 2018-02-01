@@ -12,15 +12,15 @@ const bool ASSERT_FAILURE_CRASH = true; // Set false to disable crash from fail 
 	#define ASSERT(EXPR) assert_handler((EXPR), __FILE__, __FUNCTION__, __LINE__)
 	#define ASSERT_NOT_REACHED() ASSERT(false)
 	#define UNEXPECTED(NAME, UNEXPECT, EXPECT) \
-		LOG(CERR) << "\n[Fatal] Expectation fail, expect \"" << NAME << "\" to be \"" << (EXPECT) << "\", but it is \"" << (UNEXPECT) << "\"" <<  endl; \
+		{LOG(CERR) << "\n[Fatal] Expectation fail, expect \"" << NAME << "\" to be \"" << (EXPECT) << "\", but it is \"" << (UNEXPECT) << "\"" <<  endl; \
 		Logger::Log(CERR,false) << "- At \"" << __FILE__ << "\", \"" << __FUNCTION__ << "\", line " << __LINE__ << endl;                                \
 		LOG(ERROR) << "Expectation fail, expect variable \"" << NAME << "\" to be \"" << (EXPECT) << "\", but it is \"" << (UNEXPECT) << "\"" <<  endl;          \
-		Logger::Log(ERROR,false) << "At \"" << __FILE__ << "\", \"" << __FUNCTION__ << "\", line " << __LINE__ << endl;
+		Logger::Log(ERROR,false) << "At \"" << __FILE__ << "\", \"" << __FUNCTION__ << "\", line " << __LINE__ << endl;}
 	#define UNEXPECTED_NOT(NAME, UNEXPECT, EXPECT) \
-		LOG(CERR) << "\n[Fatal] Expectation fail, expect \"" << NAME << "\" not to be \"" << (EXPECT) << "\", but it is." << endl; \
+		{LOG(CERR) << "\n[Fatal] Expectation fail, expect \"" << NAME << "\" not to be \"" << (EXPECT) << "\", but it is." << endl; \
 		Logger::Log(CERR,false) << "- At \"" << __FILE__ << "\", \"" << __FUNCTION__ << "\", line " << __LINE__ << endl;           \
 		LOG(ERROR) << "Expectation fail, expect variable \"" << NAME << "\" not to be \"" << (EXPECT) << "\", but it is." << endl; \
-		Logger::Log(ERROR,false) << "At \"" << __FILE__ << "\", \"" << __FUNCTION__ << "\", line " << __LINE__ << endl;
+		Logger::Log(ERROR,false) << "At \"" << __FILE__ << "\", \"" << __FUNCTION__ << "\", line " << __LINE__ << endl;}
 	#define EXPECT(AGENT, TO_BE)              \
 		if ((AGENT) != (TO_BE)) {             \
 			UNEXPECTED(#AGENT, AGENT, TO_BE); \
@@ -35,10 +35,10 @@ const bool ASSERT_FAILURE_CRASH = true; // Set false to disable crash from fail 
 #else
 	#define ASSERT(EXPR) (EXPR);
 	#define ASSERT_NOT_REACHED() ;
-	#define UNEXPECTED(NAME, UNEXPECT, EXPECT) (NAME); (UNEXPECT); (EXPECT);
-	#define UNEXPECTED_NOT(NAME, UNEXPECT, EXPECT) (NAME); (UNEXPECT); (EXPECT);
-	#define EXPECT(AGENT, TO_BE) (AGENT); (TO_BE);
-	#define EXPECT_NOT(AGENT, TO_BE) (AGENT); (TO_BE); 
+	#define UNEXPECTED(NAME, UNEXPECT, EXPECT) (NAME), (UNEXPECT), (EXPECT);
+	#define UNEXPECTED_NOT(NAME, UNEXPECT, EXPECT) (NAME), (UNEXPECT), (EXPECT);
+	#define EXPECT(AGENT, TO_BE) (AGENT), (TO_BE);
+	#define EXPECT_NOT(AGENT, TO_BE) (AGENT), (TO_BE); 
 #endif
 
 void assert_handler(int expr, const char *fname, const char *func, int line);

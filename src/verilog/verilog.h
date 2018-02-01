@@ -22,11 +22,12 @@ struct Verilog {
 	};
 
 	void parse(const string &fname); // Use this function to initiate from a .v file.
+	const string& get_cell_type(const string &inst_name) const;
 
 	string module_name;
 	vector<string> wire;             // Wire objects
 	vector<string> input, output;    // Primary input, output
-	vector<Verilog_Gate> gate;       // Gates
+	unordered_map<string, Verilog_Gate*> gates;
 };
 
 #endif
