@@ -135,9 +135,7 @@ void SpefNet::set_name(const string& _name){
 }
 
 void SpefNet::add_conn(const string& name,const string& type, const string& dir){
-    conn_name.emplace_back(name);
-    conn_type.emplace_back(type);
-    conn_dir.emplace_back(dir);
+    conn.emplace_back(name, type, dir);
 }
 
 void SpefNet::add_cap(const string& name, float f){
@@ -156,10 +154,22 @@ void SpefNet::add_res(const string& pin1, const string& pin2, float f){
     // pin_res[p1][p2] = f;
 }
 
+int SpefNet::get_pin_id(const string& name){
+    if(pin_id.find( name )==pin_id.end()){
+        LOG(WARNING) << "[SpefNet] Net:" << net_name << " : " << name << " don't appear at CAP, so it's CAP is 0\n";
+        add_cap( name , 0);
+    }
+    return pin_id[ name ];
+}
+
 void SpefNet::print_net(){
     cout << "net_name:" << net_name << endl;
     cout << "CONN:\n" ;
-    for(auto x:conn_name) cout << x << " its pinid = " << pin_id[x] << endl;
+    for(auto& x:conn){
+        string name, type, dir;
+        tie(name, type, dir) = x;
+        cout << name << " pin id = " << pin_id[name] << endl;
+    }
 
     cout << "CAP:\n";
     for(size_t i=0; i<pin_cap.size(); i++)
@@ -178,14 +188,6 @@ void SpefNet::print_net(){
         cout << from << "(" << pin_name[from] << ")" << " " <<
                 to << "(" << pin_name[to] << ")" << " = " << res << endl;
     }
-}
-
-int SpefNet::get_pin_id(const string& name){
-    if(pin_id.find( name )==pin_id.end()){
-        LOG(WARNING) << "[SpefNet] Net:" << net_name << " : " << name << " don't appear at CAP, so it's RES is 0\n";
-        add_cap( name , 0);
-    }
-    return pin_id[ name ];
 }
 
 /* --- Test --- */

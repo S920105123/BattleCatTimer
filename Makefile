@@ -6,6 +6,7 @@ GCCINCLUDE += -Isrc/file_reader/
 GCCINCLUDE += -Isrc/debug/
 GCCINCLUDE += -Isrc/spef/
 GCCINCLUDE += -Isrc/liberty/
+GCCINCLUDE += -Isrc/graph/
 
 GCCFLAG = g++ $(INCLUDEPATH) $(GCCINCLUDE) -std=c++14 -Wall
 

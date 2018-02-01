@@ -37,28 +37,46 @@ public:
 
     int get_pin_id(const string& name);
 
-    const vector<tuple<int,int,float>>& get_pin_res(){
+    const vector<tuple<int,int,float>>& get_pin_res(){ // for iterator
         return pin_res;
     }
 
-    const vector<string>& get_pin_name(){
-        return pin_name;
+    const vector<tuple<string,string,string>>& get_total_conn(){
+        return conn;
     }
 
-    const vector<string>& get_conn_name(){
-        return conn_name;
+    string get_pin_name(int pin_id){
+        if(id >= pin_name.size())
+            LOG(ERROR) << "[SpefNet][get_pin_name] id over size\n";
+        else return pin_name[ id ];
+        return "";
     }
 
-    const vector<float>& get_pin_float(){
-        return pin_cap;
+    float get_pin_cap(const string & pin_name){
+        return pin_cap[ get_pin_id(name) ];
     }
 
-    const map<string, int>& get_pin_id(){
-        return pin_id;
+    float get_pin_cap(int id){
+        if(id >= pin_cap.size())
+            LOG(ERROR) << "[SpefNet][get_pin_cap] id over size\n";
+        else return pin_cap[ id ];
+        return 0;
     }
 
     float get_total_cap(){
         return total_cap;
+    }
+
+    string get_name(){
+        return net_name;
+    }
+
+    int get_num_pins(){
+        return pin_id.size();
+    }
+
+    const map<string,itn>& get_total_pins(){
+        return pin_id;
     }
 
     void print_net();
@@ -67,11 +85,11 @@ private:
 
     string net_name;
     float total_cap;
-    map<string, int> pin_id;                             // map pin name to pinid
-    vector<string>   conn_name, conn_type, conn_dir;     // save conn
-    vector<string>   pin_name;                           // save pinid's name
-    vector<float>    pin_cap;                            // save pinid's cap
-    // map<int, map<int, float>> pin_res;                // save res between two pinid
+    unordered_map<string, int> pin_id;                  // map pin name to pinid
+    vector<tuple<string,string,string> > conn;          // name, type, dir
+    vector<string>   pin_name;                          // save pinid's name
+    vector<float>    pin_cap;                           // save pinid's cap
+    // map<int, map<int, float>> pin_res;               // save res between two pinid
     vector<tuple<int,int,float>> pin_res;
 };
 

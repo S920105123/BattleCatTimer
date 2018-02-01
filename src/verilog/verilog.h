@@ -20,9 +20,9 @@ struct Verilog {
 		string cell_type, cell_name;
 		vector< pair<string,string> > param;
 	};
-	
+
 	void parse(const string &fname); // Use this function to initiate from a .v file.
-	
+
 	string module_name;
 	vector<string> wire;             // Wire objects
 	vector<string> input, output;    // Primary input, output
