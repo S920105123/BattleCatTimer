@@ -1,6 +1,8 @@
 #include "logger.h"
 
 Logger* Logger::logger_instance = NULL;
+int Logger::error_num = 0;
+int Logger::warning_num = 0;
 
 Logger* Logger::create() {
 	if(logger_instance == NULL){
@@ -13,6 +15,8 @@ Logger* Logger::create() {
 		}
 		logger_instance->on = logger_instance->flog.is_open();
 		logger_instance->cur_stream = &logger_instance->flog;
+		logger_instance->error_num = 0;
+		logger_instance->warning_num = 0;
 	}
 	return logger_instance;
 }
@@ -22,6 +26,7 @@ Logger::~Logger() {
 	char *tstr = ctime(&now);
 	flog << "\n\n[Log] - "<<tstr<<"- ";
 	flog << "close log files\n";
+	std::cerr << "Log error : " << error_num << ", warning : " << warning_num << endl;
 	flog.close();
 }
 
@@ -38,8 +43,8 @@ Logger& Logger::Log(Log_type type, bool prefix) {
 			char *tstr = ctime(&now);
 			*(logger_instance->cur_stream) << "\n\n";
 			if (type == NORMAL)       logger_instance->flog << "[Log] ";
-			else if (type == WARNING) logger_instance->flog << "[Warning] ";
-			else                      logger_instance->flog << "[Error] ";
+			else if (type == WARNING) logger_instance->flog << "[Warning] ", logger_instance->warning_num++;
+			else                      logger_instance->flog << "[Error] ", logger_instance->error_num++;
 			*(logger_instance->cur_stream) << tstr;
 		}
 		*(logger_instance->cur_stream) << "- ";

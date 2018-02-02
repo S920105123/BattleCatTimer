@@ -5,6 +5,7 @@ GCCINCLUDE += -Isrc/header/
 GCCINCLUDE += -Isrc/file_reader/
 GCCINCLUDE += -Isrc/debug/
 GCCINCLUDE += -Isrc/spef/
+GCCINCLUDE += -Isrc/verilog/
 GCCINCLUDE += -Isrc/liberty/
 GCCINCLUDE += -Isrc/graph/
 
@@ -22,9 +23,12 @@ LIBERTY_SRC    += src/liberty/cell.cpp
 LIBERTY_SRC    += src/liberty/pin.cpp
 LIBERTY_SRC    += src/liberty/timing_arc.cpp
 LIBERTY_SRC    += src/liberty/timing_table.cpp
+DATA_SRC        = $(SPEF_SRC) $(VERILOG_SRC) $(LIBERTY_SRC)
+RCTREE_SRC      = src/graph/rc_tree.cpp
 
 HEADER_OBJECT   = logger.o debug.o func.o
 LIBERTY_OBJECT  = cell_lib.o lu_table_template.o pin.o timing_arc.o timing_table.o cell.o
+DATA_OBEJCT     = verilog.o spef.o $(LIBERTY_OBJECT)
 
 TEST_LOGGER:
 	$(GCCFLAG) $(LOGGER_SRC) -DTEST_LOGGER -o logger
@@ -66,20 +70,29 @@ TEST_CELLLIB: file_reader.o $(HEADER_OBJECT)
 	$(GCCFLAG) file_reader.o $(HEADER_OBJECT) $(LIBERTY_SRC) -o cell_lib -DTEST_CELLLIB
 	cell_lib.exe
 
+TEST_RCTREE: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT)
+	$(GCCFLAG) file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(RCTREE_SRC) -o rc_tree2 -DTEST_RCTREE
+	rc_tree2.exe
+
 $(HEADER_OBJECT): $(HEADER_SRC)
 	$(GCCFLAG) -c $(HEADER_SRC)
 
-$(LIBERTY_OBJECT): $(LIBERTY_SRC)
-	$(GCCFLAG) -c $(LIBERTY_SRC)
+# $(LIBERTY_OBJECT): $(LIBERTY_SRC)
+# 	$(GCCFLAG) -c $(LIBERTY_SRC)
 
+$(DATA_OBEJCT): $(DATA_SRC)
+	$(GCCFLAG) -c $(DATA_SRC)
 # header.o:  $(HEADER_SRC)
 # 	$(GCCFLAG) -c $(HEADER_SRC) -o header.o
 
 file_reader.o: $(FILE_READER_SRC)
 	$(GCCFLAG) -c $(FILE_READER_SRC) -o file_reader.o
 
-spef.o: $(SPEF_SRC)
-	$(GCCFLAG) -c $(SPEF_SRC) -o spef.o
+# spef.o: $(SPEF_SRC)
+# 	$(GCCFLAG) -c $(SPEF_SRC) -o spef.o
+#
+# verilog.o: $(VERILOG_SRC)
+# 	$(GCCFLAG) -c $(VERILOG_SRC) -o verilog.o
 
 main: file_reader.o $(HEADER_OBJECT) $(LIBERTY_OBJECT)
 	$(GCCFLAG) $(HEADER_OBJECT) $(LIBERTY_OBJECT) file_reader.o test_main.cpp  -o main

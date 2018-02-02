@@ -45,3 +45,7 @@
 2018/2/1: Some util func
 - Optimize string_to_float
 - Add an util function of verilog, now you can get cell_type by cell_name
+
+2018/2/2: rc tree done
+- rc tree done
+- show log message(#error, #warning )

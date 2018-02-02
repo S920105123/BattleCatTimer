@@ -7,32 +7,48 @@
 #include "spef.h"
 #include "cell_lib.h"
 
-class RcTree{
-
-public:
-    struct RcNode{
+class RCTree{
+    struct RCNode{
         float downstream;
-        float delay;
         float cap;
+        float delay;
+        float impluse;                  // delay*cap
+        float beta;
+        RCNode(){}
+        RCNode(float _downstream, float _cap, float _delay):
+        downstream(_downstream), cap(_cap), delay(_delay){
+            beta = 0;
+            impluse = 0;
+        }
     };
 
-    struct RcEdge{
+    struct RCEdge{
         int to;
         float res;
+        RCEdge(){}
+        RCEdge(int _to,float _res):to(_to), res(_res){}
     };
 
-    RcTree(SpefNet* _spefnet, Verilog* _verilog, CellLib* _cell_lib);
+public:
+
+    RCTree(SpefNet* _spefnet, Verilog* _verilog, CellLib* _cell_lib);
+    float get_slew(float input_slew, string name);
+    float get_delay(string name);
+
+    void print();
 
 private:
     void build_tree();
+    void cal();
     void cal_downstream(int x, int pa);
-    void cal_delay(int x, int pa);
-    void cal_slew(int x, int pa);
+    void cal_delay(int x, int pa);          // cal delay and impluse
+    // void cal_impluse(int x, int pa);
+    void cal_beta(int x, int pa);
 
     int root, num_nodes;
 
-    vector<RcEdge>* G;
-    vector<RcNode> nodes;
+    vector<RCEdge>* G;
+    vector<RCNode> nodes;
 
     SpefNet *spefnet;
     Verilog *verilog;

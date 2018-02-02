@@ -17,6 +17,10 @@ public:
 
     SpefNet* get_spefnet_ptr(const string& name);
 
+    const map<string, SpefNet*>& get_total_nets(){
+        return nets;
+    }
+
     int size();
 private:
 
@@ -45,19 +49,23 @@ public:
         return conn;
     }
 
+    const vector<string>& get_total_pins_name(){
+        return pin_name;
+    }
+
     string get_pin_name(int pin_id){
-        if(id >= pin_name.size())
+        if((size_t)pin_id >= pin_name.size())
             LOG(ERROR) << "[SpefNet][get_pin_name] id over size\n";
-        else return pin_name[ id ];
+        else return pin_name[ pin_id ];
         return "";
     }
 
     float get_pin_cap(const string & pin_name){
-        return pin_cap[ get_pin_id(name) ];
+        return pin_cap[ get_pin_id(pin_name) ];
     }
 
     float get_pin_cap(int id){
-        if(id >= pin_cap.size())
+        if((size_t)id >= pin_cap.size())
             LOG(ERROR) << "[SpefNet][get_pin_cap] id over size\n";
         else return pin_cap[ id ];
         return 0;
@@ -75,7 +83,7 @@ public:
         return pin_id.size();
     }
 
-    const map<string,itn>& get_total_pins(){
+    const unordered_map<string,int>& get_total_pins(){
         return pin_id;
     }
 

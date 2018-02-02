@@ -16,7 +16,7 @@ void Spef::open(const string& filename){
             spef_net = new SpefNet();
 
             net_name = in.next_token();
-            tot_cap  = string_to_float( in.next_token() );
+            tot_cap  = stof( in.next_token() );
             spef_net->set_name( net_name );
             spef_net->set_total_cap( tot_cap );
             if(in.next_token()!="*" or (token=in.next_token())!="CONN")
@@ -60,7 +60,7 @@ void Spef::open(const string& filename){
                         name += in.next_token();
                         val = in.next_token();
                     }
-                    spef_net->add_cap(name, string_to_float(val));
+                    spef_net->add_cap(name, stof(val) );
                 }while(true);
             }
 
@@ -86,7 +86,7 @@ void Spef::open(const string& filename){
                         name2 += in.next_token();
                         val = in.next_token();
                     }
-                    spef_net->add_res(name, name2, string_to_float(val));
+                    spef_net->add_res(name, name2, stof( val) );
                 }while(true);
             }
 
@@ -212,12 +212,12 @@ int main()
         cin >> name;
         if(name=="exit") break;
 
-        SpefNet *spefnet = spef.get_spef_net_ptr( name );
+        SpefNet *spefnet = spef.get_spefnet_ptr( name );
         if(spefnet==NULL){
             cout << "no such net: " << name << endl;
             continue;
         }
-        const auto & pin_name = spefnet->get_pin_name();
+        const auto & pin_name = spefnet->get_total_pins_name();
         for(const auto& t:spefnet->get_pin_res()){
             int from, to;
             float res;
