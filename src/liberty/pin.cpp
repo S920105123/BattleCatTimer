@@ -1,4 +1,5 @@
-#include "pin.h"
+// #include "pin.h"
+#include "liberty.h"
 
 void Pin::read(File_Reader &in){
 	int level = 1;   // Parenthesis level
@@ -36,6 +37,8 @@ void Pin::read(File_Reader &in){
 			EXPECT(in.next_token(), ")");
 			TimingArc *arc = new TimingArc(cell_lib);
 			arc->read(in);
+			arc->set_cell_ptr(parent);
+			arc->set_to_pin(name);
 			this->add_arc( arc->get_related_pin(), arc);
 			// this->timing.insert( make_pair(arc->get_related_pin(), arc) );
 		}

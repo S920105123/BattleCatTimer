@@ -1,4 +1,5 @@
-#include "cell.h"
+// #include "cell.h"
+#include "liberty.h"
 
 void Cell::read(File_Reader &in){
     int level = 1;

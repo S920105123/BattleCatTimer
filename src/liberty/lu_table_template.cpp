@@ -1,4 +1,5 @@
-#include "lu_table_template.h"
+// #include "lu_table_template.h"
+#include "liberty.h"
 
 void LuTableTemplate::read(File_Reader &in){
     int level = 1;

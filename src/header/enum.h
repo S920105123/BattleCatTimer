@@ -2,8 +2,8 @@
 enum Lu_Table_Variable{
     INPUT_NET_TRANSITION = 0,
     TOTAL_OUTPUT_NET_CAP,
-    CONSTRAINED_PIN_TRANSITION,
-    RELATED_PIN_TRANSIITION,
+    CONSTRAINED_PIN_TRANSITION,   // data slew
+    RELATED_PIN_TRANSIITION,      // clock slew
     UNDEFINED_LU_TABLE_VARIABLE // default
 };
 
@@ -23,6 +23,11 @@ enum Timing_Type{
     HOLD_RISING,
     HOLD_FALLING,
     UNDEFINED_TIMING_TYPE
+};
+
+enum Transition_Type{
+    FALL = 0,
+    RISE
 };
 
 typedef enum { RC_TREE, CELL } Edge_type;

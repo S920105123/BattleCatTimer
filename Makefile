@@ -55,15 +55,15 @@ TEST_LU_TABLE_TEMPLATE: file_reader.o src/liberty/lu_table_template.cpp $(HEADER
 	lu_table_template.exe
 
 TEST_TIMING_TABLE: file_reader.o src/liberty/timing_table.cpp $(HEADER_OBJECT)
-	$(GCCFLAG) file_reader.o $(HEADER_OBJECT) src/liberty/timing_table.cpp -DTEST_TIMING_TABLE -o timing_table
+	$(GCCFLAG) file_reader.o $(HEADER_OBJECT) $(LIBERTY_SRC) -DTEST_TIMING_TABLE -o timing_table
 	timing_table.exe
 
 TEST_TIMING_ARC: $(HEADER_OBJECT) file_reader.o src/liberty/timing_arc.cpp
-	$(GCCFLAG) file_reader.o $(HEADER_OBJECT) src/liberty/timing_table.cpp src/liberty/timing_arc.cpp -DTEST_TIMING_ARC -o timing_arc
+	$(GCCFLAG) file_reader.o $(HEADER_OBJECT) $(LIBERTY_SRC) -DTEST_TIMING_ARC -o timing_arc
 	timing_arc.exe
 
 TEST_PIN: file_reader.o $(HEADER_OBJECT)
-	$(GCCFLAG) file_reader.o $(HEADER_OBJECT) src/liberty/pin.cpp -DTEST_PIN -o pin
+	$(GCCFLAG) file_reader.o $(HEADER_OBJECT) $(LIBERTY_SRC) -DTEST_PIN -o pin
 	pin.exe
 
 TEST_CELLLIB: file_reader.o $(HEADER_OBJECT)

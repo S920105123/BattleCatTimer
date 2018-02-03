@@ -44,4 +44,10 @@ using std::pair;
 using std::tuple;
 using std::tie;
 
+/*  math */
+using std::max;
+using std::min;
+using std::sqrt;
+using std::swap;
+
 #endif /* end HEADER_H */

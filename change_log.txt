@@ -49,3 +49,8 @@
 2018/2/2: rc tree done
 - rc tree done
 - show log message(#error, #warning )
+
+2018/2/3: liberty delay done
+- add liberty.h
+- add get_delay/slew/constraint to timing_arc.cpp
+- add get_value to timing_table.cpp

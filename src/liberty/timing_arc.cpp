@@ -1,4 +1,5 @@
-#include "timing_arc.h"
+// #include "timing_arc.h"
+#include "liberty.h"
 
 void TimingArc::read(File_Reader &in){
 
@@ -111,14 +112,22 @@ void TimingArc::set_timing_type(const string& val){
     }
 }
 
+void TimingArc::set_cell_ptr(Cell *_cell){
+    cell = _cell;
+}
+
 string TimingArc::get_timing_type_string(){
     switch (timing_type) {
         case RISING_EDGE:  return "rising_edge";
         case FALLING_EDGE: return "falling_edge";
         case SETUP_RISING: return "setup_rising";
         case HOLD_RISING:  return "hold_rising";
-        case SETUP_FALLING: return "setup_falling";
-        case HOLD_FALLING:  return "hold_falling";
+        case SETUP_FALLING:
+            LOG(WARNING) << "appear setup_falling\n";
+            return "setup_falling";
+        case HOLD_FALLING:
+            LOG(WARNING) << "appear hold_falling\n";
+            return "hold_falling";
         case UNDEFINED_TIMING_TYPE: return "undefined";
         default: return "combinatinal";
     }
@@ -135,6 +144,102 @@ string TimingArc::get_timing_sense_string(){
         default:
             return "undefined";
     }
+}
+
+float TimingArc::get_delay(
+    Transition_Type from, Transition_Type to, float input_val, float output_val){
+    string at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
+    if(cell_rise_table==NULL){
+        LOG(ERROR) << "[TimingArc][get_delay] cell_rise_table==NULL, at " << at << endl;
+        return 0;
+    }
+    if(cell_fall_table==NULL){
+        LOG(ERROR) << "[TimingArc][get_delay] cell_rise_table==NULL, at " << at << endl;
+        return 0;
+    }
+    switch(timing_sense){
+        case POSITIVE_UNATE:
+            if(from==RISE) return cell_rise_table->get_value(input_val, output_val);
+            else return cell_fall_table->get_value(input_val, output_val);
+            break;
+        case NEGATIVE_UNATE:
+            if(from==FALL) return cell_rise_table->get_value(input_val, output_val);
+            else return cell_fall_table->get_value(input_val, output_val);
+            break;
+        case NON_UNATE:
+            if(to==FALL) return cell_fall_table->get_value(input_val, output_val);
+            else return cell_rise_table->get_value(input_val, output_val);
+            break;
+        case UNDEFINED_TIMING_SENSE:
+            LOG(ERROR) << "[TimingArc][get_delay] undefined timing sense.\n";
+            return 0;
+            break;
+    }
+    return 0;
+}
+
+float TimingArc::get_slew(
+    Transition_Type from, Transition_Type to, float input_val, float output_val){
+    string at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
+    if(fall_transition_table==NULL){
+        LOG(ERROR) << "[TimingArc][get_slew] fall_transition_table==NULL, at " << at << endl;
+        return 0;
+    }
+    if(rise_transition_table==NULL){
+        LOG(ERROR) << "[TimingArc][get_slew] rise_transition_table==NULL, at " << at << endl;
+        return 0;
+    }
+    switch(timing_sense){
+        case POSITIVE_UNATE:
+            if(from==RISE) return rise_transition_table->get_value(input_val, output_val);
+            else return fall_transition_table->get_value(input_val, output_val);
+            break;
+        case NEGATIVE_UNATE:
+            if(from==FALL) return rise_transition_table->get_value(input_val, output_val);
+            else return fall_transition_table->get_value(input_val, output_val);
+            break;
+        case NON_UNATE:
+            if(to==FALL) return fall_transition_table->get_value(input_val, output_val);
+            else return rise_transition_table->get_value(input_val, output_val);
+            break;
+        case UNDEFINED_TIMING_SENSE:
+            LOG(ERROR) << "[TimingArc][get_delay] undefined timing sense.\n";
+            return 0;
+            break;
+    }
+    return 0;
+}
+
+float TimingArc::get_constraint(
+    Transition_Type from, Transition_Type to, float input_val, float output_val){
+    string at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
+    if(fall_constraint_table==NULL){
+        LOG(ERROR) << "[TimingArc][get_slew] fall_constraint_table==NULL, at " << at << endl;
+        return 0;
+    }
+    if(rise_constraint_table==NULL){
+        LOG(ERROR) << "[TimingArc][get_slew] rise_constraint_table==NULL, at " << at << endl;
+        return 0;
+    }
+    switch(timing_sense){
+        case POSITIVE_UNATE:
+            if(from==RISE) return rise_constraint_table->get_value(input_val, output_val);
+            else return fall_constraint_table->get_value(input_val, output_val);
+            break;
+        case NEGATIVE_UNATE:
+            if(from==FALL) return rise_constraint_table->get_value(input_val, output_val);
+            else return fall_constraint_table->get_value(input_val, output_val);
+            break;
+        case NON_UNATE:
+            if(to==FALL) return fall_constraint_table->get_value(input_val, output_val);
+            else return rise_constraint_table->get_value(input_val, output_val);
+            break;
+        case UNDEFINED_TIMING_SENSE:
+            LOG(ERROR) << "[TimingArc][get_delay] undefined timing sense.\n";
+            return 0;
+            break;
+    }
+    return 0;
 }
 
 void TimingArc::print(const string &tab){
@@ -177,7 +282,7 @@ int main()
         if(token=="timing"){
             EXPECT(in.next_token(), "(");
             EXPECT(in.next_token(), ")");
-            TimingArc * arc = new TimingArc(NULL);
+            TimingArc * arc = new TimingArc(NULL){;
             arc->read(in);
             cout << " ------- get " << arc->get_related_pin() <<  " ------- \n";
             arc->print();

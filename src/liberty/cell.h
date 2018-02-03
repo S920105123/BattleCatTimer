@@ -26,6 +26,8 @@ public:
 
     void print(const string &tab="");
 
+    string get_type_name(){ return type_name; }
+
     float get_pin_capacitance(const string& pin_name);
     string get_pin_direction(const string& pin_name);
     bool get_pin_is_clock(const string& pin_name);
