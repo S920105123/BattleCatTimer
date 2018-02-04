@@ -30,6 +30,3 @@ enum Transition_Type{
     RISE
 };
 
-typedef enum { RC_TREE, CELL } Edge_type;
-
-typedef enum { EARLY, LATE } Graph_type;

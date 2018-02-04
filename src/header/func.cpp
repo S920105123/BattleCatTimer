@@ -11,3 +11,11 @@ void string_to_float(vector<float> &to, const string &val){
 		to.push_back(f);
 	}
 }
+
+string cell_pin_concat(const string &cell, const string &pin) {
+	// "cell", "pin"  ->  "cell:pin"
+	string res=cell;
+	res += ':';
+	res += pin;
+	return res;
+}

@@ -25,6 +25,7 @@ LIBERTY_SRC    += src/liberty/timing_arc.cpp
 LIBERTY_SRC    += src/liberty/timing_table.cpp
 DATA_SRC        = $(SPEF_SRC) $(VERILOG_SRC) $(LIBERTY_SRC)
 RCTREE_SRC      = src/graph/rc_tree.cpp
+GRAPH_SRC       = src/graph/graph.cpp
 
 HEADER_OBJECT   = logger.o debug.o func.o
 LIBERTY_OBJECT  = cell_lib.o lu_table_template.o pin.o timing_arc.o timing_table.o cell.o
@@ -73,15 +74,20 @@ TEST_CELLLIB: file_reader.o $(HEADER_OBJECT)
 TEST_RCTREE: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT)
 	$(GCCFLAG) file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(RCTREE_SRC) -o rc_tree2 -DTEST_RCTREE
 	rc_tree2.exe
+	
+TEST_GRAPH: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT)
+	$(GCCFLAG) file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_SRC) -o graph -DTEST_GRAPH
+	graph.exe
 
 $(HEADER_OBJECT): $(HEADER_SRC)
 	$(GCCFLAG) -c $(HEADER_SRC)
 
+$(DATA_OBEJCT): $(DATA_SRC)
+	$(GCCFLAG) -c $(DATA_SRC)
+	
 # $(LIBERTY_OBJECT): $(LIBERTY_SRC)
 # 	$(GCCFLAG) -c $(LIBERTY_SRC)
 
-$(DATA_OBEJCT): $(DATA_SRC)
-	$(GCCFLAG) -c $(DATA_SRC)
 # header.o:  $(HEADER_SRC)
 # 	$(GCCFLAG) -c $(HEADER_SRC) -o header.o
 

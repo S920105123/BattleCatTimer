@@ -1,6 +1,6 @@
 #include "verilog.h"
 
-void Verilog::parse(const string &fname) {
+void Verilog::open(const string &fname) {
 	File_Reader reader;
 	reader.open(fname);
 	

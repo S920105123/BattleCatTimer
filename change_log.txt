@@ -54,3 +54,6 @@
 - add liberty.h
 - add get_delay/slew/constraint to timing_arc.cpp
 - add get_value to timing_table.cpp
+
+2018/2/4: Building graph building function
+- An graph now can be constructed by .v and .lib files. (without any info.)
