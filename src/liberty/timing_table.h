@@ -11,8 +11,9 @@ class CellLib;
 class TimingTable{
 
 public:
-    TimingTable(CellLib *_cell_lib){
+    TimingTable(CellLib *_cell_lib, const string& _table_tpye){
         cell_lib = _cell_lib;
+        table_type = _table_tpye;
     }
 
     void read(File_Reader &in);
@@ -33,7 +34,7 @@ private:
               v1   ans  v2
     */
     float liner_polation(float v1, float v2, float indx1, float indx2, float x);
-    string label_name;
+    string label_name, table_type;
     vector<float> index1, index2;
     vector<float> values;
 

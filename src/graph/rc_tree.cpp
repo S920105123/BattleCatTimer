@@ -103,15 +103,20 @@ void RCTree::cal_beta(int x,int pa){
     }
 }
 
-float RCTree::get_slew(float input_slew,string name){
+float RCTree::get_slew(const string& name,float input_slew){
     int id = spefnet->get_pin_id(name);
     float tmp = std::sqrt(2*nodes[id].beta - nodes[id].delay*nodes[id].delay);
     return std::sqrt( tmp*tmp + input_slew*input_slew);
 }
 
-float RCTree::get_delay(string name){
+float RCTree::get_delay(const string& name){
     int id = spefnet->get_pin_id(name);
     return nodes[id].delay;
+}
+
+float RCTree::get_downstream(const string& name){
+    int id = spefnet->get_pin_id(name);
+    return nodes[id].downstream;
 }
 
 void RCTree::print(){
@@ -121,7 +126,7 @@ void RCTree::print(){
         cout << "   " << spefnet->get_pin_name(i) << " delay = " << nodes[i].delay
             << " downstream = " << nodes[i].downstream
             << " beta = " << nodes[i].beta
-            << " slew(input_slew=30) = " << get_slew(30, spefnet->get_pin_name(i))         // use simple:inp2 input slew
+            << " slew(input_slew=30) = " << get_slew(spefnet->get_pin_name(i), 30)         // use simple:inp2 input slew
             << endl;
     }
 }

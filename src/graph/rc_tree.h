@@ -32,8 +32,9 @@ class RCTree{
 public:
 
     RCTree(SpefNet* _spefnet, Verilog* _verilog, CellLib* _cell_lib);
-    float get_slew(float input_slew, string name);
-    float get_delay(string name);
+    float get_slew(const string& name, float input_slew);
+    float get_delay(const string& name);
+    float get_downstream(const string& name);
 
     void print();
 

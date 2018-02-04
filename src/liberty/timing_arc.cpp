@@ -28,7 +28,7 @@ void TimingArc::read(File_Reader &in){
             label_name = in.next_token();
             EXPECT(in.next_token(), ")");
 
-            cell_rise_table = new TimingTable(cell_lib);
+            cell_rise_table = new TimingTable(cell_lib, "cell_rise");
             cell_rise_table->set_name(label_name);
             cell_rise_table->read(in);
         }
@@ -37,7 +37,7 @@ void TimingArc::read(File_Reader &in){
             label_name = in.next_token();
             EXPECT(in.next_token(), ")");
 
-            cell_fall_table= new TimingTable(cell_lib);
+            cell_fall_table= new TimingTable(cell_lib, "cell_fall");
             cell_fall_table->set_name(label_name);
             cell_fall_table->read(in);
         }
@@ -46,7 +46,7 @@ void TimingArc::read(File_Reader &in){
             label_name = in.next_token();
             EXPECT(in.next_token(), ")");
 
-            rise_transition_table = new TimingTable(cell_lib);
+            rise_transition_table = new TimingTable(cell_lib, "rise_transition");
             rise_transition_table->set_name(label_name);
             rise_transition_table->read(in);
         }
@@ -55,7 +55,7 @@ void TimingArc::read(File_Reader &in){
             label_name = in.next_token();
             EXPECT(in.next_token(), ")");
 
-            fall_transition_table = new TimingTable(cell_lib);
+            fall_transition_table = new TimingTable(cell_lib, "fall_transition");
             fall_transition_table->set_name(label_name);
             fall_transition_table->read(in);
         }
@@ -64,7 +64,7 @@ void TimingArc::read(File_Reader &in){
             label_name = in.next_token();
             EXPECT(in.next_token(), ")");
 
-            rise_constraint_table = new TimingTable(cell_lib);
+            rise_constraint_table = new TimingTable(cell_lib, "rise_constraint");
             rise_constraint_table->set_name(label_name);
             rise_constraint_table->read(in);
         }
@@ -73,7 +73,7 @@ void TimingArc::read(File_Reader &in){
             label_name = in.next_token();
             EXPECT(in.next_token(), ")");
 
-            fall_constraint_table = new TimingTable(cell_lib);
+            fall_constraint_table = new TimingTable(cell_lib, "fall_constraint");
             fall_constraint_table->set_name(label_name);
             fall_constraint_table->read(in);
         }

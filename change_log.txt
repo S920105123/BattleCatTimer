@@ -57,3 +57,8 @@
 
 2018/2/4: Building graph building function
 - An graph now can be constructed by .v and .lib files. (without any info.)
+
+2018/2/4: modifty test_main
+- change cell, timing_table debug message
+- add get_downstream to rc_tree
+- modifty test_main for querying testcase
