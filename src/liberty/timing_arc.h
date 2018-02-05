@@ -38,7 +38,7 @@ public:
 
     void read(File_Reader &in);
 
-    string get_related_pin();
+    const string& get_related_pin();
     Timing_Type get_timing_type(){ return timing_type; }
     Timing_Sense get_timing_sense(){ return timing_sense; }
 

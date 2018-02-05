@@ -42,7 +42,7 @@ public:
     bool get_is_clock();
     vector<TimingArc*>* get_TimingArc(const string& src);       // TimingArc: from src to this pin
     vector<TimingArc*>* get_total_TimingArc();           // TimingArc: total src to this pin
-    string get_direction();
+    Direction_type get_direction();
 
 private:
     string name, direction;

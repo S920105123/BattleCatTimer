@@ -1,5 +1,5 @@
 
-enum Lu_Table_Variable{
+enum Lu_Table_Variable {
     INPUT_NET_TRANSITION = 0,
     TOTAL_OUTPUT_NET_CAP,
     CONSTRAINED_PIN_TRANSITION,   // data slew
@@ -14,7 +14,7 @@ enum Timing_Sense {
     UNDEFINED_TIMING_SENSE      // default
 };
 
-enum Timing_Type{
+enum Timing_Type {
     COMBINATINAL = 0,                // default
     RISING_EDGE,
     FALLING_EDGE,
@@ -25,8 +25,17 @@ enum Timing_Type{
     UNDEFINED_TIMING_TYPE
 };
 
-enum Transition_Type{
+enum Transition_Type {
     FALL = 0,
     RISE
 };
 
+enum Direction_type {
+	INPUT = 0,
+	OUTPUT
+};
+
+enum Mode {
+	EARLY = 0,
+	LATE
+};

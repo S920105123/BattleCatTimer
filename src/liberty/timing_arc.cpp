@@ -83,7 +83,7 @@ void TimingArc::read(File_Reader &in){
     }
 }
 
-string TimingArc::get_related_pin(){
+const string& TimingArc::get_related_pin(){
     return related_pin;
 }
 

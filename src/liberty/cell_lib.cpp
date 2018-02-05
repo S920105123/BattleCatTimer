@@ -74,11 +74,13 @@ bool CellLib::get_pin_is_clock(const string& cell_type, const string& pin_name){
     return false;
 }
 
-string CellLib::get_pin_direction(const string& cell_type, const string& pin_name){
+Direction_type CellLib::get_pin_direction(const string& cell_type, const string& pin_name){
     if(cells.find(cell_type)==cells.end()){
         LOG(ERROR) << "[CellLib][get_pin_direction] no such cell type: " <<  cell_type << endl;
-    }else return cells[cell_type]->get_pin_direction(pin_name);
-    return "";
+    } else {
+    	return cells[cell_type]->get_pin_direction(pin_name);
+	}
+    return OUTPUT; // Unknown
 }
 
 vector<TimingArc*>* CellLib::get_pin_TimingArc(const string& cell_type, const string& pin_name, const string& src){

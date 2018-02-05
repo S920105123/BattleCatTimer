@@ -5,8 +5,8 @@
 int Graph::add_node(const string &name) {
 	int id = this->next_id++;
 	this->trans.insert(make_pair(name, id));
-	this->nodes.push_back(Node(id, name));
-	this->adj.push_back(vector<Edge>());
+	this->nodes.emplace_back(id, name);
+	this->adj.emplace_back();
 	return id;
 }
 
@@ -35,30 +35,42 @@ Graph::Node::Node(int index, const string &name) {
 
 // ------------------ Edge related ----------------------
 
-Graph::Edge::Edge(int src, int dest, Edge_type type, void *delay_ref) {
+Graph::Edge::Edge(int src, int dest, Edge_type type) {
 	this->from = src;
 	this->to = dest;
 	this->type = type;
-	if (type == CELL) {
-		this->arc = (TimingArc*)delay_ref;
-//		this->tree = NULL;
-	} else {
-		this->arc = NULL;
-//		this->tree = delay_ref;
-	}
 }
 
-void Graph::add_edge(int src, int dest, Edge_type type, void *delay_ref) {
-	this->adj[src].push_back(Edge(src, dest, type, delay_ref));
+Graph::Edge* Graph::add_edge(int src, int dest, Edge_type type) {
+	Edge *eptr = new Edge(src, dest, type);
+	this->adj[src].insert( {dest, eptr} );
 	LOG(CERR) << "An edge built from " << this->get_name(src)<< " to " << this->get_name(dest);
-	if (type == CELL) {
+	if (type == IN_CELL) {
 		LOG(CERR) << " (In cell edge).\n"; 
 	} else {
 		LOG(CERR) << " (RC tree edge).\n"; 
 	}
+	return eptr;
 }
 
-const vector< vector< Graph::Edge > >& Graph::adj_list() const {
+Graph::Edge* Graph::get_edge(int src, int dest) {
+	auto it = this->adj[src].find(dest);
+	if (it == this->adj[src].end()) {
+		return NULL;
+	}
+	return it->second;
+}
+
+void Graph::add_arc(int src, int dest, TimingArc *arc, Mode mode) {
+	// mode=0 -> eraly,    mode=1 -> late
+	Edge *eptr = this->get_edge(src, dest);
+	if (eptr == NULL) {
+		eptr = this->add_edge(src, dest, IN_CELL);
+	}
+	eptr->arcs[mode].emplace_back(arc);
+}
+
+const vector< unordered_map< int, Graph::Edge* > >& Graph::adj_list() const {
 	return this->adj;
 }
 
@@ -76,9 +88,10 @@ Graph::Wire_mapping* Graph::get_wire_mapping(const string &wire_name) {
 
 // ------------------ Graph related ----------------------
 
-void Graph::build(Verilog &vlog, CellLib &lib, Graph_type type) {
+void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_lib) {
 	/* Initilize */
-	this->next_id=0;
+	this->next_id = 0;
+	CellLib &lib = early_lib; // Two lib has the same topological structure.
 	
 	/* Construct wire mapping */
 	for (const string &wire_name : vlog.wire) {
@@ -94,14 +107,21 @@ void Graph::build(Verilog &vlog, CellLib &lib, Graph_type type) {
 		for (const pair<string,string> &io_pair : gt->param) {
 			const string &pin_name = io_pair.first, &wire_name = io_pair.second;
 			// Following lines should be changed to enum value.
-			string direction = lib.get_pin_direction(cell_type, pin_name);
-			if (direction == "output") {
-				// Construct in-cell timing arc.
+			Direction_type direction = lib.get_pin_direction(cell_type, pin_name);
+			if (direction == OUTPUT) {
+				// Construct in-cell timing arc. (early mode)
 				int sink = this->get_index( cell_pin_concat(cell_name, pin_name) );
-				vector<TimingArc*> *arcs = lib.get_pin_total_TimingArc(cell_type, pin_name);
+				vector<TimingArc*> *arcs = early_lib.get_pin_total_TimingArc(cell_type, pin_name);
 				for (TimingArc *arc : *arcs) {
 					int src = this->get_index( cell_pin_concat(cell_name, arc->get_related_pin()) );
-					this->add_edge(src,sink,CELL,arc);
+					this->add_arc(src,sink, arc, EARLY);
+				}
+				
+				// Construct in-cell timing arc. (late mode)
+				arcs = late_lib.get_pin_total_TimingArc(cell_type, pin_name);
+				for (TimingArc *arc : *arcs) {
+					int src = this->get_index( cell_pin_concat(cell_name, arc->get_related_pin()) );
+					this->add_arc(src,sink, arc, LATE);
 				}
 				
 				// Complete wire mapping. Here "sink" is the output pin.
@@ -114,7 +134,7 @@ void Graph::build(Verilog &vlog, CellLib &lib, Graph_type type) {
 				int sink = this->get_index( cell_pin_concat(cell_name, pin_name) );
 				Wire_mapping *mapping = this->get_wire_mapping(wire_name);
 				ASSERT(mapping != NULL);
-				mapping->sinks.push_back(sink);
+				mapping->sinks.emplace_back(sink);
 			}
 		}
 	}
@@ -133,17 +153,19 @@ void Graph::build(Verilog &vlog, CellLib &lib, Graph_type type) {
 		int sink = this->get_index( cell_pin_concat( output_prefix, out_pin ) );
 		Wire_mapping *mapping = this->get_wire_mapping(out_pin);
 		ASSERT(mapping != NULL);
-		mapping->sinks.push_back(sink);
+		mapping->sinks.emplace_back(sink);
 	}
 	
 	/* Construct external timing arc through wire mapping */
 	for (const auto &wire_pair : this->wire_mapping) {
+		const string &wire_name = wire_pair.first;
 		Wire_mapping *mapping = wire_pair.second;
 		int from = mapping->src;
 		ASSERT(from != -1);
 		for (int to : mapping->sinks) {
-			// RC TREE NEED TO BE FILLED IN
-			add_edge(from, to, RC_TREE, NULL);
+			Edge *eptr = add_edge(from, to, RC_TREE);
+			SpefNet *net = spef.get_spefnet_ptr(wire_name);
+			eptr->tree = new RCTree(net, &vlog, &lib);
 		}
 	}
 }
@@ -155,12 +177,15 @@ void Graph::build(Verilog &vlog, CellLib &lib, Graph_type type) {
 
 int main() {
 	Verilog vlog;
-	CellLib lib;
+	CellLib early_lib, late_lib;
+	Spef spef;
 	Graph G;
 	
+	spef.open("unit_test/graph/simple.spef");
 	vlog.open("unit_test/graph/simple.v");
-	lib.open("unit_test/graph/simple_Early.lib");
-	G.build(vlog,lib,EARLY);
+	early_lib.open("unit_test/graph/simple_Early.lib");
+	late_lib.open("unit_test/graph/simple_Late.lib");
+	G.build(vlog, spef, early_lib, late_lib);
 	
 }
 

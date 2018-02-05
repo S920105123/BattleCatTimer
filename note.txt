@@ -1,3 +1,4 @@
 - Pin direction is given by a string, it should be changed
 - TimingArc get_related_pin should return const string &
 - Unateness should be given by string or enum.
+- Load of primary output is asserted in .timing file

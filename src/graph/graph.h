@@ -8,10 +8,10 @@
 #include "verilog.h"
 #include "cell_lib.h"
 #include "timing_arc.h"
+#include "rc_tree.h"
 
-typedef enum { RC_TREE, CELL } Edge_type;
-typedef enum { EARLY, LATE } Graph_type;
-const string input_prefix = "primary_in";
+typedef enum { RC_TREE, IN_CELL } Edge_type;
+const string input_prefix  = "primary_in";
 const string output_prefix = "primary_out";
 
 class Graph {
@@ -28,13 +28,13 @@ public:
 	};
 	
 	struct Edge {
-		// If "type"==CELL, use "arc", "tree" otherwise.
+		// If "type"==IN_CELL, refer "arcs" for delay, "tree" otherwise.
 		Edge_type type;
 		int from ,to;
-		// RC_tree*
-		TimingArc *arc;
+		RCTree *tree;
+		vector<TimingArc*> arcs[2];
 		
-		Edge(int src, int dest, Edge_type type, void *delay_ref);
+		Edge(int src, int dest, Edge_type type);
 		float get_delay() const;
 	};
 	
@@ -50,20 +50,22 @@ public:
 	int add_node(const string &name);
 	
 	// Edge related
-	const vector<vector<Edge>>& adj_list() const;             // Return adjacency list of node i.
-	void add_edge(int src, int dest, Edge_type type, void *delay_ref);
+	const vector< unordered_map<int, Edge*> >& adj_list() const;// Return adjacency list of node i.
+	Edge* add_edge(int src, int dest, Edge_type type);          // Add an empty edge, with neither arc nor rc tree.
+	Edge* get_edge(int src, int dest);                          // Return NULL if not exist
+	void add_arc(int src, int dest, TimingArc *arc, Mode mode); // Append one arc to edge from src to dest, add edge if doesn't exist.
 	
 	// Wire related
 	Wire_mapping* get_wire_mapping(const string &wire_name);
 	
 	// Graph related
-	void build(Verilog &vlog, CellLib &lib, Graph_type type); // Build this graph from a verilog file.
+	void build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_lib); // Build this graph from a verilog file.
 	
 private:
 	int next_id;
-	unordered_map<string,int> trans;  // Transform name to index.
-	vector<Node> nodes;               // nodes[i]: Node with index i.
-	vector< vector<Edge> > adj;       // Adjacency list of all nodes.
+	unordered_map<string,int> trans;         // Transform name to index.
+	vector<Node> nodes;                      // nodes[i]: Node with index i.
+	vector< unordered_map<int, Edge*> > adj; // Adjacency list of all nodes.
 	
 	// Used when building graph, not sure if this will be used in the future.
 	// Key  = wire name

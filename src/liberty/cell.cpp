@@ -52,11 +52,11 @@ float Cell::get_pin_capacitance(const string& pin_name){
     return 0;
 }
 
-string Cell::get_pin_direction(const string& pin_name){
+Direction_type Cell::get_pin_direction(const string& pin_name){
     if(pins.find(pin_name)==pins.end()){
         LOG(ERROR) << "[Cell][get_pin_direction] no such pin " << pin_name << endl;
     }else return pins[pin_name]->get_direction();
-    return "";
+    return OUTPUT;
 }
 
 bool Cell::get_pin_is_clock(const string& pin_name){

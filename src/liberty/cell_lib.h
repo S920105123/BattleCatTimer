@@ -29,7 +29,7 @@ public:
 
     float get_pin_capacitance(const string& cell_type, const string& pin_name);
     bool get_pin_is_clock(const string& cell_type, const string& pin_name);
-    string get_pin_direction(const string& cell_type, const string& pin_name);
+    Direction_type get_pin_direction(const string& cell_type, const string& pin_name);
     vector<TimingArc*>* get_pin_TimingArc(const string& cell_type, const string& pin_name, const string& src);       // TimingArc: from src to this pin
     vector<TimingArc*>* get_pin_total_TimingArc(const string& cell_type, const string& pin_name);             // TimingArc: total src to this pin
 

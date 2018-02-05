@@ -29,7 +29,7 @@ public:
     string get_type_name(){ return type_name; }
 
     float get_pin_capacitance(const string& pin_name);
-    string get_pin_direction(const string& pin_name);
+    Direction_type get_pin_direction(const string& pin_name);
     bool get_pin_is_clock(const string& pin_name);
     vector<TimingArc*>* get_pin_TimingArc(const string& pin_name, const string& src);
     vector<TimingArc*>* get_pin_total_TimingArc(const string& pin_name);

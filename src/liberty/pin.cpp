@@ -101,8 +101,8 @@ vector<TimingArc*>* Pin::get_total_TimingArc(){
 	return total_timingArc;
 }
 
-string Pin::get_direction(){
-	return direction;
+Direction_type Pin::get_direction(){
+	return tolower(direction[0])=='o' ? OUTPUT : INPUT;
 }
 
 // ----------- For testing --------------
