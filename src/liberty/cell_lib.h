@@ -11,6 +11,10 @@
 class CellLib{
 
 public:
+    CellLib(Mode mode){
+        timing_mode = mode;
+    }
+
     ~CellLib(){
         for(auto it:table_template) delete it.second;
         for(auto it:cells) delete it.second;
@@ -33,12 +37,15 @@ public:
     vector<TimingArc*>* get_pin_TimingArc(const string& cell_type, const string& pin_name, const string& src);       // TimingArc: from src to this pin
     vector<TimingArc*>* get_pin_total_TimingArc(const string& cell_type, const string& pin_name);             // TimingArc: total src to this pin
 
+    Mode get_timing_mode(){ return timing_mode; }
+
     Cell* get_cell_ptr(const string& cell_type);
     Pin* get_pin_ptr(const string& cell_type, const string& pin_name);
 
     LuTableTemplate* get_table_template(const string& table_label);
 private:
     string name;
+    Mode timing_mode;
     unordered_map<string, LuTableTemplate*> table_template;
     unordered_map<string, Cell*> cells;
 };

@@ -39,7 +39,16 @@ void Pin::read(File_Reader &in){
 			arc->read(in);
 			arc->set_cell_ptr(parent);
 			arc->set_to_pin(name);
-			this->add_arc( arc->get_related_pin(), arc);
+			ASSERT(cell_lib!=NULL);
+			if(cell_lib->get_timing_mode()==Mode::EARLY){
+				if( arc->get_timing_type() != Timing_Type::SETUP_RISING and
+					arc->get_timing_type() != Timing_Type::SETUP_FALLING)
+					this->add_arc( arc->get_related_pin(), arc);
+			}else{ // Late
+				if( arc->get_timing_type() != Timing_Type::HOLD_RISING and
+					arc->get_timing_type() != Timing_Type::HOLD_FALLING)
+					this->add_arc( arc->get_related_pin(), arc);
+			}
 			// this->timing.insert( make_pair(arc->get_related_pin(), arc) );
 		}
 		else {

@@ -30,15 +30,17 @@ class RCTree{
 public:
 
     RCTree(SpefNet* _spefnet, Verilog* _verilog, CellLib* _cell_lib[2]);
+    void cal();
+    void build_tree();
+
     float get_slew(Mode mode, const string& name, float input_slew);
     float get_delay(Mode mode, const string& name);
     float get_downstream(Mode mode, const string& name);
 
     void print();
+    void add_pin_cap(const string&name, float cap);
 
 private:
-    void build_tree();
-    void cal();
     void cal_downstream(int x, int pa);
     void cal_delay(int x, int pa);          // cal delay and impluse
     // void cal_impluse(int x, int pa);

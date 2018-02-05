@@ -82,26 +82,34 @@ void rc_delay()
 	    if(spefnet==NULL) continue;
 	    spef->print_net(net_name);
 	    RCTree rc(spefnet, verilog, lib);
+		rc.build_tree();
+		if(net_name=="out") rc.add_pin_cap("out", 4); // simple.timing load out 4
+		rc.cal();
 
 		string which, name;
-		cout << "enter delay, slew or downstream: ";
+		cout << "enter delay, slew or downstream or all: ";
 		cin >> which;
 		cout << "enter name: ";
 		cin >> name;
 		int mode;
 		cout << "enter Mode(0:Early, 1:Late): ";
 		cin >> mode;
-		if(which=="delay"){
+		if(which=="delay" or which=="all"){
 			cout << "delay = " << rc.get_delay(static_cast<Mode>(mode), name) << endl;
 		}
-		else if(which=="downstream"){
+		if(which=="downstream" or which=="all"){
 			cout << "downstream = " << rc.get_downstream(static_cast<Mode>(mode), name) << endl;
 		}
-		else{
+		if(which=="slew" or which=="all"){
 			float input_slew;
-			cout << "enter input_slew: ";
-			cin >> input_slew;
-			cout << "slew = " << rc.get_slew(static_cast<Mode>(mode), name, input_slew) << endl;
+			string tmp;
+			while(true){
+				cout << "enter input_slew or exit: ";
+				cin >> tmp;
+				if(tmp=="exit") break;
+				input_slew = stof(tmp);
+				cout << "input_slew = " << input_slew << ", slew = " << rc.get_slew(static_cast<Mode>(mode), name, input_slew) << endl;
+			}
 		}
 	}
 }
@@ -116,8 +124,8 @@ int main()
 
 		spef = new Spef();
 		verilog = new Verilog();
-		lib[EARLY] = new CellLib();
-		lib[LATE] = new CellLib();
+		lib[EARLY] = new CellLib(Mode::EARLY);
+		lib[LATE] = new CellLib(Mode::LATE);
 
 		string tmp = testcase + "/" + testcase;
 		spef->open("testcase_v1.2/" + tmp  + ".spef");

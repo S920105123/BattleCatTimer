@@ -42,6 +42,11 @@ public:
     Timing_Type get_timing_type(){ return timing_type; }
     Timing_Sense get_timing_sense(){ return timing_sense; }
 
+    bool is_constraint();
+    bool is_transition_defined(Transition_Type from, Transition_Type to);
+    bool is_falling_triggered();
+    bool is_rising_triggered();
+
     float get_delay(Transition_Type from, Transition_Type to, float input_val, float output_val);
     float get_slew(Transition_Type from, Transition_Type to, float input_val, float output_val);
     float get_constraint(Transition_Type from, Transition_Type to, float input_val, float output_val);

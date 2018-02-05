@@ -149,6 +149,10 @@ string TimingArc::get_timing_sense_string(){
 float TimingArc::get_delay(
     Transition_Type from, Transition_Type to, float input_val, float output_val){
     string at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
+    if(!is_transition_defined(from, to)){
+        LOG(CERR) << "[TimingArc][get_delay] wrong transition arc from = "
+        << from << ", to = " << to <<  " at " << at << endl;
+    }
     if(cell_rise_table==NULL){
         LOG(ERROR) << "[TimingArc][get_delay] cell_rise_table==NULL, at " << at << endl;
         return 0;
@@ -181,6 +185,10 @@ float TimingArc::get_delay(
 float TimingArc::get_slew(
     Transition_Type from, Transition_Type to, float input_val, float output_val){
     string at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
+    if(!is_transition_defined(from, to)){
+        LOG(CERR) << "[TimingArc][get_slew] wrong transition arc from = "
+        << from << ", to = " << to <<  " at " << at << endl;
+    }
     if(fall_transition_table==NULL){
         LOG(ERROR) << "[TimingArc][get_slew] fall_transition_table==NULL, at " << at << endl;
         return 0;
@@ -213,33 +221,80 @@ float TimingArc::get_slew(
 float TimingArc::get_constraint(
     Transition_Type from, Transition_Type to, float input_val, float output_val){
     string at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
+    if(!is_constraint()){
+        LOG(CERR) << "[TimingArc][get_constraint] isn't constraint arc at " << at << endl;
+        return 0;
+    }
+    if(!is_transition_defined(from, to)){
+        LOG(CERR) << "[TimingArc][get_constraint] wrong transition arc from = "
+        << from << ", to = " << to <<  " at " << at << endl;
+        return 0;
+    }
     if(fall_constraint_table==NULL){
-        LOG(ERROR) << "[TimingArc][get_slew] fall_constraint_table==NULL, at " << at << endl;
+        LOG(ERROR) << "[TimingArc][get_constraint] fall_constraint_table==NULL, at " << at << endl;
         return 0;
     }
     if(rise_constraint_table==NULL){
-        LOG(ERROR) << "[TimingArc][get_slew] rise_constraint_table==NULL, at " << at << endl;
+        LOG(ERROR) << "[TimingArc][get_constraint] rise_constraint_table==NULL, at " << at << endl;
         return 0;
     }
     switch(timing_sense){
         case POSITIVE_UNATE:
-            if(from==RISE) return rise_constraint_table->get_value(input_val, output_val);
-            else return fall_constraint_table->get_value(input_val, output_val);
-            break;
         case NEGATIVE_UNATE:
-            if(from==FALL) return rise_constraint_table->get_value(input_val, output_val);
-            else return fall_constraint_table->get_value(input_val, output_val);
-            break;
         case NON_UNATE:
-            if(to==FALL) return fall_constraint_table->get_value(input_val, output_val);
-            else return rise_constraint_table->get_value(input_val, output_val);
-            break;
-        case UNDEFINED_TIMING_SENSE:
-            LOG(ERROR) << "[TimingArc][get_delay] undefined timing sense.\n";
+            LOG(WARNING) << "[TimingArc][get_constraint] check timing_sense at " << at << endl;
             return 0;
             break;
+        case UNDEFINED_TIMING_SENSE:
+            break;
     }
-    return 0;
+
+    if(to==RISE) return rise_constraint_table->get_value(input_val, output_val);
+    else return fall_constraint_table->get_value(input_val, output_val);
+}
+
+bool TimingArc::is_constraint(){
+    switch(timing_type){
+        case HOLD_RISING:
+        case HOLD_FALLING:
+        case SETUP_RISING:
+        case SETUP_FALLING:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool TimingArc::is_transition_defined(Transition_Type from, Transition_Type to){
+    if(is_rising_triggered()  and from!=RISE) return false;
+    if(is_falling_triggered() and from!=FALL) return false;
+
+    if(timing_sense==POSITIVE_UNATE and from!=to) return false;
+    if(timing_sense==NEGATIVE_UNATE and from==to) return false;
+
+    return true;
+}
+
+bool TimingArc::is_falling_triggered(){
+    switch(timing_type){
+        case SETUP_FALLING:
+        case HOLD_FALLING:
+        case FALLING_EDGE:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool TimingArc::is_rising_triggered(){
+    switch(timing_type){
+        case SETUP_RISING:
+        case HOLD_RISING:
+        case RISING_EDGE:
+            return true;
+        default:
+            return false;
+    }
 }
 
 void TimingArc::print(const string &tab){

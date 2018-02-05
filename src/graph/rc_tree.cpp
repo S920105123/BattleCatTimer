@@ -7,9 +7,6 @@ RCTree::RCTree(SpefNet* _spefnet, Verilog* _verilog, CellLib* _cell_lib[2]){
     cell_lib[EARLY] = _cell_lib[EARLY];
     cell_lib[LATE] = _cell_lib[LATE];
 
-    build_tree();
-    if(root==-1) return;
-    cal();
 }
 
 void RCTree::build_tree(){
@@ -129,6 +126,12 @@ float RCTree::get_delay(Mode mode, const string& name){
 float RCTree::get_downstream(Mode mode, const string& name){
     int id = spefnet->get_pin_id(name);
     return nodes[id].downstream[mode];
+}
+
+void RCTree::add_pin_cap(const string& name, float cap){
+    int id = spefnet->get_pin_id(name);
+    nodes[id].cap[EARLY] += cap;
+    nodes[id].cap[LATE]  += cap;
 }
 
 void RCTree::print(){
