@@ -66,7 +66,7 @@ float TimingTable::get_value(float input_val,float output_val){
        */
     if(tu->get_var1()==TOTAL_OUTPUT_NET_CAP or tu->get_var1()==CONSTRAINED_PIN_TRANSITION){
         std::swap(input_val, output_val);
-        LOG(WARNING) << "[TimingTable][get_value] table: " << label_name << " check its variable order.";
+        // LOG(WARNING) << "[TimingTable][get_value] table: " << label_name << " check its variable order.";
     }
 
     int idx = std::lower_bound(index1.begin(), index1.end(), input_val) - index1.begin();

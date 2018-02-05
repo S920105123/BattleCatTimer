@@ -62,3 +62,6 @@
 - change cell, timing_table debug message
 - add get_downstream to rc_tree
 - modifty test_main for querying testcase
+
+2018/2/5: rctree early, late mode
+- add early, late mode to rc_tree

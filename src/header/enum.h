@@ -30,3 +30,7 @@ enum Transition_Type{
     RISE
 };
 
+enum Mode {
+    EARLY = 0,
+    LATE
+};

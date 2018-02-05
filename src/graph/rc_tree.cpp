@@ -1,10 +1,11 @@
 
 #include "rc_tree.h"
 
-RCTree::RCTree(SpefNet* _spefnet, Verilog* _verilog, CellLib* _cell_lib){
+RCTree::RCTree(SpefNet* _spefnet, Verilog* _verilog, CellLib* _cell_lib[2]){
     spefnet  = _spefnet;
     verilog  = _verilog;
-    cell_lib = _cell_lib;
+    cell_lib[EARLY] = _cell_lib[EARLY];
+    cell_lib[LATE] = _cell_lib[LATE];
 
     build_tree();
     if(root==-1) return;
@@ -27,9 +28,9 @@ void RCTree::build_tree(){
     /* build nodes */
     nodes.resize( num_nodes + 5);
     for(auto& it:spefnet->get_total_pins()){ // <string, int>
-        nodes[it.second].cap = spefnet->get_pin_cap(it.second);
-        nodes[it.second].downstream = 0;
-        nodes[it.second].delay = 0;
+        nodes[it.second].cap[EARLY] = nodes[it.second].cap[LATE] = spefnet->get_pin_cap(it.second);
+        nodes[it.second].downstream[EARLY] = nodes[it.second].downstream[LATE] = 0;
+        nodes[it.second].delay[EARLY] = nodes[it.second].delay[LATE] = 0;
     }
 
         /* get root and add tap capaitance from liberty*/
@@ -54,8 +55,13 @@ void RCTree::build_tree(){
             LOG(ERROR) << "[RC_Tree][build_grapgh] net: " << spefnet->get_name()
                 << " : " << name <<" inst is empty or pin_name is empty\n";
 
-        float tap_cap = cell_lib->get_pin_capacitance(verilog->get_cell_type(inst), pin_name);
-        nodes[ spefnet->get_pin_id(name) ].cap += tap_cap;
+        float tap_cap_early = cell_lib[EARLY]->get_pin_capacitance(verilog->get_cell_type(inst), pin_name);
+        nodes[ spefnet->get_pin_id(name) ].cap[EARLY] += tap_cap_early;
+
+        float tap_cap_late = cell_lib[LATE]->get_pin_capacitance(verilog->get_cell_type(inst), pin_name);
+        nodes[ spefnet->get_pin_id(name) ].cap[LATE] += tap_cap_late;
+        if(tap_cap_late != tap_cap_early)
+            LOG(WARNING) << "[RC_Tree][build_grapgh] net: " << spefnet->get_name() << " early pin cap != late pin cap" << name << endl;
     }
 
     if(root==-1) LOG(ERROR) << "[RC_Tree][build_tree] net = "
@@ -72,19 +78,24 @@ void RCTree::cal(){
 }
 
 void RCTree::cal_downstream(int x, int pa){
-    nodes[x].downstream = nodes[x].cap;
+    nodes[x].downstream[EARLY] = nodes[x].cap[EARLY];
+    nodes[x].downstream[LATE]  = nodes[x].cap[LATE];
     for(auto e:G[x]) if(e.to != pa){
         cal_downstream(e.to, x);
-        nodes[x].downstream += nodes[e.to].downstream;
+        nodes[x].downstream[EARLY] += nodes[e.to].downstream[EARLY];
+        nodes[x].downstream[LATE]  += nodes[e.to].downstream[LATE];
     }
 }
 
 void RCTree::cal_delay(int x,int pa){
-    nodes[x].impluse = nodes[x].cap*nodes[x].delay;
+    nodes[x].impluse[EARLY] = nodes[x].cap[EARLY]*nodes[x].delay[EARLY];
+    nodes[x].impluse[LATE]  = nodes[x].cap[LATE]*nodes[x].delay[LATE];
     for(auto e:G[x]) if(e.to != pa){
-        nodes[e.to].delay += nodes[x].delay + nodes[e.to].downstream*e.res;
+        nodes[e.to].delay[EARLY] += nodes[x].delay[EARLY] + nodes[e.to].downstream[EARLY]*e.res;
+        nodes[e.to].delay[LATE] += nodes[x].delay[LATE] + nodes[e.to].downstream[LATE]*e.res;
         cal_delay(e.to, x);
-        nodes[x].impluse += nodes[e.to].impluse;
+        nodes[x].impluse[EARLY] += nodes[e.to].impluse[EARLY];
+        nodes[x].impluse[LATE] += nodes[e.to].impluse[LATE];
     }
 }
 
@@ -98,36 +109,40 @@ void RCTree::cal_delay(int x,int pa){
 
 void RCTree::cal_beta(int x,int pa){
     for(auto e:G[x]) if(e.to != pa){
-        nodes[e.to].beta += nodes[x].beta + nodes[e.to].impluse*e.res;
+        nodes[e.to].beta[EARLY] += nodes[x].beta[EARLY] + nodes[e.to].impluse[EARLY]*e.res;
+        nodes[e.to].beta[LATE] += nodes[x].beta[LATE] + nodes[e.to].impluse[LATE]*e.res;
         cal_beta(e.to, x);
     }
 }
 
-float RCTree::get_slew(const string& name,float input_slew){
+float RCTree::get_slew(Mode mode, const string& name,float input_slew){
     int id = spefnet->get_pin_id(name);
-    float tmp = std::sqrt(2*nodes[id].beta - nodes[id].delay*nodes[id].delay);
+    float tmp = std::sqrt(2*nodes[id].beta[mode] - nodes[id].delay[mode]*nodes[id].delay[mode]);
     return std::sqrt( tmp*tmp + input_slew*input_slew);
 }
 
-float RCTree::get_delay(const string& name){
+float RCTree::get_delay(Mode mode, const string& name){
     int id = spefnet->get_pin_id(name);
-    return nodes[id].delay;
+    return nodes[id].delay[mode];
 }
 
-float RCTree::get_downstream(const string& name){
+float RCTree::get_downstream(Mode mode, const string& name){
     int id = spefnet->get_pin_id(name);
-    return nodes[id].downstream;
+    return nodes[id].downstream[mode];
 }
 
 void RCTree::print(){
     cout << "net: " << spefnet->get_name() << endl;
     cout << "   root = " << spefnet->get_pin_name(root) << endl;
     for(int i=0; i<num_nodes; i++){
-        cout << "   " << spefnet->get_pin_name(i) << " delay = " << nodes[i].delay
-            << " downstream = " << nodes[i].downstream
-            << " beta = " << nodes[i].beta
-            << " slew(input_slew=30) = " << get_slew(spefnet->get_pin_name(i), 30)         // use simple:inp2 input slew
-            << endl;
+            cout << "   " << spefnet->get_pin_name(i)  << endl;
+            cout << "   delal: EARLY = " << nodes[i].delay[EARLY] << ", LATE = " << nodes[i].delay[LATE] << endl;
+            cout << "   downstream: EARLY = " << nodes[i].downstream[EARLY] << ", LATE = " << nodes[i].downstream[LATE] << endl;
+            cout << "   beta: EARLY = " << nodes[i].beta[EARLY] << ", LATE = " << nodes[i].beta[LATE] << endl;
+            // use simple:inp2 input slew
+            cout << "   slew(input_slew=30) EARLY = " << get_slew(EARLY, spefnet->get_pin_name(i), 30)  << endl;
+            cout << "   slew(input_slew=30) LATE = " << get_slew(LATE, spefnet->get_pin_name(i), 30)  << endl;
+            cout << endl;
     }
 }
 
@@ -135,44 +150,52 @@ void RCTree::print(){
 
 int main()
 {
-    string testcase[5] ={ "s1196", "systemcdes", "usb_funct", "vga_lcd"};
 
-    for(int i=0; i<4; i++){
-        Spef* spef = new Spef();
-        Verilog* verilog = new Verilog();
-        CellLib* lib = new CellLib();
+    Spef* spef = new Spef();
+    Verilog* verilog = new Verilog();
+    CellLib* lib[2];
+    lib[EARLY] = new CellLib();
+    lib[LATE] = new CellLib();
 
-        string tmp = testcase[i] + "/" + testcase[i];
-        spef->open("testcase_v1.2/" + tmp  + ".spef");
-        verilog->parse("testcase_v1.2/" + tmp + ".v");
-        lib->open("testcase_v1.2/" + tmp + "_Early.lib");
+    // string testcase[5] ={ "s1196", "systemcdes", "usb_funct", "vga_lcd"};
+    // for(int i=0; i<4; i++){
+    //     spef = new Spef();
+    //     verilog = new Verilog();
+    //     lib[EARLY] = new CellLib();
+    //     lib[LATE] = new CellLib();
+    //     string tmp = testcase[i] + "/" + testcase[i];
+    //     spef->open("testcase_v1.2/" + tmp  + ".spef");
+    //     verilog->open("testcase_v1.2/" + tmp + ".v");
+    //     lib[EARLY]->open("testcase_v1.2/" + tmp + "_Early.lib");
+    //     lib[LATE]->open("testcase_v1.2/" + tmp + "_Late.lib");
+    //
+    //     cout << "open " << testcase[i] << "ok\n";
+    //     cout << "try to buil all rc tree...\n";
+    //     for(auto& it:spef->get_total_nets()){
+    //         RCTree rc(it.second, verilog, lib);
+    //     }
+    //     cout << "buil ok!\n";
+    //
+    // }
 
-        cout << "open " << testcase[i] << "ok\n";
-        cout << "try to buil all rc tree...\n";
-        for(auto& it:spef->get_total_nets()){
-            RCTree rc(it.second, verilog, lib);
+    spef->open("simple/simple.spef");
+    verilog->open("simple/simple.v");
+    lib[EARLY]->open("simple/simple_Early.lib");
+    lib[LATE]->open("simple/simple_Late.lib");
+    string name;
+    cout << "enter net name or exit: ";
+    while(cin>>name){
+        if(name=="exit") break;
+        SpefNet* spefnet = spef->get_spefnet_ptr(name);
+        if(spefnet==NULL){
+            cout << "no such spefnet: " << name << endl;
+            continue;
         }
-        cout << "buil ok!\n";
-
+        spef->print_net(name);
+        RCTree rc(spefnet, verilog, lib);
+        rc.print();
     }
     Logger::create()->~Logger();
-
-    // spef->open("simple/simple.spef");
-    // verilog->parse("simple/simple.v");
-    // lib->open("simple/simple_Early.lib");
-    // string name;
-    // cout << "enter net name or exit: ";
-    // while(cin>>name){
-    //     SpefNet* spefnet = spef->get_spefnet_ptr(name);
-    //     if(name=="exit") break;
-    //     if(spefnet==NULL){
-    //         cout << "no such spefnet: " << name << endl;
-    //         continue;
-    //     }
-    //     spef->print_net(name);
-    //     RCTree rc(spefnet, verilog, lib);
-    //     // rc.print();
-    // }
 }
 
 #endif /* end TEST_RC_TREE */

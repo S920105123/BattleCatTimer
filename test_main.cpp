@@ -3,9 +3,9 @@
 #include "spef.h"
 #include "rc_tree.h"
 
-Spef* spef = new Spef();
-Verilog* verilog = new Verilog();
-CellLib* lib = new CellLib();
+Spef* spef;
+Verilog* verilog;
+CellLib* lib[2];
 
 void cell_delay(){
 	string cell_type, pin_name, related_pin;
@@ -21,7 +21,11 @@ void cell_delay(){
 		cout << "enter related_pin(from): ";
 		cin >> related_pin;
 
-		Pin* pin = lib->get_pin_ptr(cell_type, pin_name);
+		int mode;
+		cout << "enter Mode(0:Early, 1:Late): ";
+		cin >> mode;
+
+		Pin* pin = lib[mode]->get_pin_ptr(cell_type, pin_name);
 		if(pin!=NULL) cout << "pin get!\n";
 		else continue;
 
@@ -46,19 +50,19 @@ void cell_delay(){
 		Transition_Type to   = to_s=="FALL"? FALL:RISE;
 
 		int cas;
-		cout << "enter case: 1. delay, 2.slew, 3.constraint : ";
+		cout << "enter case: 1. delay, 2.slew, 3.constraint 4. All: ";
 		cin >> cas;
 		for(auto it:*timingarc){
 			// it->print("  ");
-			if(cas == 1){
+			if(cas == 1 or cas==4){
 				float delay = it->get_delay(from, to, x, y);
 				cout << "\ndelay = " << delay << endl;
 			}
-			else if(cas==2){
+			if(cas==2 or cas==4){
 				float slew = it->get_slew(from, to, x, y);
 				cout << "\nslew = " << slew << endl;
 			}
-			else{
+			if(cas==3 or cas==4){
 				float constraint = it->get_constraint(from, to, x, y);
 				cout << "\nconstraint = " << constraint << endl;
 			}
@@ -84,17 +88,20 @@ void rc_delay()
 		cin >> which;
 		cout << "enter name: ";
 		cin >> name;
+		int mode;
+		cout << "enter Mode(0:Early, 1:Late): ";
+		cin >> mode;
 		if(which=="delay"){
-			cout << "delay = " << rc.get_delay(name) << endl;
+			cout << "delay = " << rc.get_delay(static_cast<Mode>(mode), name) << endl;
 		}
 		else if(which=="downstream"){
-			cout << "downstream = " << rc.get_downstream(name) << endl;
+			cout << "downstream = " << rc.get_downstream(static_cast<Mode>(mode), name) << endl;
 		}
 		else{
 			float input_slew;
 			cout << "enter input_slew: ";
 			cin >> input_slew;
-			cout << "slew = " << rc.get_slew(name, input_slew) << endl;
+			cout << "slew = " << rc.get_slew(static_cast<Mode>(mode), name, input_slew) << endl;
 		}
 	}
 }
@@ -107,15 +114,25 @@ int main()
 		cin  >> testcase;
 		if(testcase=="exit") break;
 
+		spef = new Spef();
+		verilog = new Verilog();
+		lib[EARLY] = new CellLib();
+		lib[LATE] = new CellLib();
+
 		string tmp = testcase + "/" + testcase;
 		spef->open("testcase_v1.2/" + tmp  + ".spef");
 		verilog->open("testcase_v1.2/" + tmp + ".v");
-		lib->open("testcase_v1.2/" + tmp + "_Early.lib");
+		lib[EARLY]->open("testcase_v1.2/" + tmp + "_Early.lib");
+		lib[LATE]->open("testcase_v1.2/" + tmp + "_Late.lib");
 		cout << "open " << testcase << " ok\n";
 
-		cout << "total cells: " << lib->cells_size() << endl;
+		cout << "Early: total cells: " << lib[EARLY]->cells_size() << endl;
 		cout << "template table: ";
-		lib->print_template();
+		lib[EARLY]->print_template();
+		cout << endl;
+		cout << "Late: total cells: " << lib[LATE]->cells_size() << endl;
+		cout << "template table: ";
+		lib[LATE]->print_template();
 
 		string mod;
 		while(true){
