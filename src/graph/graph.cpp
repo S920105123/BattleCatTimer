@@ -44,12 +44,12 @@ Graph::Edge::Edge(int src, int dest, Edge_type type) {
 Graph::Edge* Graph::add_edge(int src, int dest, Edge_type type) {
 	Edge *eptr = new Edge(src, dest, type);
 	this->adj[src].insert( {dest, eptr} );
-	LOG(CERR) << "An edge built from " << this->get_name(src)<< " to " << this->get_name(dest);
-	if (type == IN_CELL) {
-		LOG(CERR) << " (In cell edge).\n"; 
-	} else {
-		LOG(CERR) << " (RC tree edge).\n"; 
-	}
+//	LOG(CERR) << "An edge built from " << this->get_name(src)<< " to " << this->get_name(dest);
+//	if (type == IN_CELL) {
+//		LOG(CERR) << " (In cell edge).\n"; 
+//	} else {
+//		LOG(CERR) << " (RC tree edge).\n"; 
+//	}
 	return eptr;
 }
 
@@ -92,6 +92,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 	/* Initilize */
 	this->next_id = 0;
 	CellLib &lib = early_lib; // Two lib has the same topological structure.
+	CellLib *lib_arr[2] = {&early_lib, &late_lib};
 	
 	/* Construct wire mapping */
 	for (const string &wire_name : vlog.wire) {
@@ -165,7 +166,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 		for (int to : mapping->sinks) {
 			Edge *eptr = add_edge(from, to, RC_TREE);
 			SpefNet *net = spef.get_spefnet_ptr(wire_name);
-			eptr->tree = new RCTree(net, &vlog, &lib);
+			eptr->tree = new RCTree(net, &vlog, lib_arr);
 		}
 	}
 }
@@ -177,7 +178,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 
 int main() {
 	Verilog vlog;
-	CellLib early_lib, late_lib;
+	CellLib early_lib(EARLY), late_lib(LATE);
 	Spef spef;
 	Graph G;
 	

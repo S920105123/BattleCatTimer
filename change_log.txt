@@ -69,3 +69,6 @@
 2018/2/5: modify timing_arc timing query
 - add some functions to avoid invalid timing query
 - can add pin cap to rc_tree for `load` in timing file
+
+1018/2/5: graph construction complete
+- Just as the title
