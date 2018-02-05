@@ -9,16 +9,14 @@
 
 class RCTree{
     struct RCNode{
-        float downstream;
-        float cap;
-        float delay;
-        float impluse;                  // delay*cap
-        float beta;
-        RCNode(){}
-        RCNode(float _downstream, float _cap, float _delay):
-        downstream(_downstream), cap(_cap), delay(_delay){
-            beta = 0;
-            impluse = 0;
+        float downstream[2];
+        float cap[2];
+        float delay[2];
+        float impluse[2];                  // delay*cap
+        float beta[2];
+        RCNode(){
+            beta[EARLY] = beta[LATE] = 0;
+            impluse[EARLY] = impluse[LATE] = 0;
         }
     };
 
@@ -31,15 +29,18 @@ class RCTree{
 
 public:
 
-    RCTree(SpefNet* _spefnet, Verilog* _verilog, CellLib* _cell_lib);
-    float get_slew(float input_slew, string name);
-    float get_delay(string name);
+    RCTree(SpefNet* _spefnet, Verilog* _verilog, CellLib* _cell_lib[2]);
+    void cal();
+    void build_tree();
+
+    float get_slew(Mode mode, const string& name, float input_slew);
+    float get_delay(Mode mode, const string& name);
+    float get_downstream(Mode mode, const string& name);
 
     void print();
+    void add_pin_cap(const string&name, float cap);
 
 private:
-    void build_tree();
-    void cal();
     void cal_downstream(int x, int pa);
     void cal_delay(int x, int pa);          // cal delay and impluse
     // void cal_impluse(int x, int pa);
@@ -52,7 +53,7 @@ private:
 
     SpefNet *spefnet;
     Verilog *verilog;
-    CellLib *cell_lib;
+    CellLib *cell_lib[2];
 };
 
 #endif /* end RC_TREE_H */

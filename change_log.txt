@@ -38,8 +38,8 @@
 - Liberty parser done
 
 2018/1/31: add get function to liberty files
-- modifty all 'string' in parameter to 'const string&'
-- modifty data structure of SpefNet's pin_res
+- modify all 'string' in parameter to 'const string&'
+- modify data structure of SpefNet's pin_res
 - add get function of liberty and spef
 
 2018/2/1: Some util func
@@ -57,3 +57,15 @@
 
 2018/2/4: Building graph building function
 - An graph now can be constructed by .v and .lib files. (without any info.)
+
+2018/2/4: modify test_main
+- change cell, timing_table debug message
+- add get_downstream to rc_tree
+- modify test_main for querying testcase
+
+2018/2/5: rctree early, late mode
+- add early, late mode to rc_tree
+
+2018/2/5: modify timing_arc timing query
+- add some functions to avoid invalid timing query
+- can add pin cap to rc_tree for `load` in timing file

@@ -74,7 +74,7 @@ TEST_CELLLIB: file_reader.o $(HEADER_OBJECT)
 TEST_RCTREE: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT)
 	$(GCCFLAG) file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(RCTREE_SRC) -o rc_tree2 -DTEST_RCTREE
 	rc_tree2.exe
-	
+
 TEST_GRAPH: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT)
 	$(GCCFLAG) file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_SRC) -o graph -DTEST_GRAPH
 	graph.exe
@@ -84,24 +84,15 @@ $(HEADER_OBJECT): $(HEADER_SRC)
 
 $(DATA_OBEJCT): $(DATA_SRC)
 	$(GCCFLAG) -c $(DATA_SRC)
-	
-# $(LIBERTY_OBJECT): $(LIBERTY_SRC)
-# 	$(GCCFLAG) -c $(LIBERTY_SRC)
-
-# header.o:  $(HEADER_SRC)
-# 	$(GCCFLAG) -c $(HEADER_SRC) -o header.o
 
 file_reader.o: $(FILE_READER_SRC)
 	$(GCCFLAG) -c $(FILE_READER_SRC) -o file_reader.o
 
-# spef.o: $(SPEF_SRC)
-# 	$(GCCFLAG) -c $(SPEF_SRC) -o spef.o
-#
-# verilog.o: $(VERILOG_SRC)
-# 	$(GCCFLAG) -c $(VERILOG_SRC) -o verilog.o
+rc_tree.o: $(RCTREE_SRC)
+	$(GCCFLAG) -c $(RCTREE_SRC) -o rc_tree.o
 
-main: file_reader.o $(HEADER_OBJECT) $(LIBERTY_OBJECT)
-	$(GCCFLAG) $(HEADER_OBJECT) $(LIBERTY_OBJECT) file_reader.o test_main.cpp  -o main
+main: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) rc_tree.o
+	$(GCCFLAG) $(HEADER_OBJECT) $(DATA_OBEJCT) rc_tree.o file_reader.o test_main.cpp  -o main
 	main.exe
 
 clean:
