@@ -2,6 +2,18 @@
 
 // ------------------ Node related ----------------------
 
+Graph::Node::Node(int index, const string &name) {
+	this->exist = true;
+	this->name = name;
+	this->index = index;
+	
+	// These undefined values is defined in header.h
+	this->rat[EARLY][RISE] = this->rat[EARLY][FALL] = UNDEFINED_RAT[EARLY]; 
+	this->rat[LATE][RISE]  = this->rat[LATE][FALL]  = UNDEFINED_RAT[LATE];
+	this->at[EARLY][RISE]  = this->at[EARLY][FALL]  = UNDEFINED_AT[EARLY];
+	this->at[LATE][RISE]   = this->at[LATE][FALL]   = UNDEFINED_AT[LATE];
+}
+
 int Graph::add_node(const string &name) {
 	int id = this->next_id++;
 	this->trans.insert(make_pair(name, id));
@@ -19,6 +31,15 @@ int Graph::get_index(const string &name) {
 	}
 }
 
+bool Graph::in_graph(int index) const {
+	return this->nodes[index].exist;
+}
+
+bool Graph::in_graph(const string &name) const {
+	auto it = this->trans.find(name);
+	return it != this->trans.end();
+}
+
 const string& Graph::get_name(int index) const {
 	static const string EMPTY = string("");
 	if (index > (int)this->nodes.size() || this->nodes[index].name.empty()) {
@@ -28,9 +49,30 @@ const string& Graph::get_name(int index) const {
 	return this->nodes[index].name;
 }
 
-Graph::Node::Node(int index, const string &name) {
-	this->name = name;
-	this->index = index;
+void Graph::set_at(const string &pin_name, float early_at[2], float late_at[2]) {
+	string handle = cell_pin_concat( INPUT_PREFIX, pin_name );
+	if (!in_graph(handle)) {
+		LOG(ERROR) << "Try to modify arrival time of a node which is not primary input. (" << pin_name << ")" << endl;
+		ASSERT_NOT_REACHED();
+	}
+	int index = this->get_index(handle);
+	this->nodes[index].at[EARLY][RISE] = early_at[RISE];
+	this->nodes[index].at[EARLY][FALL] = early_at[FALL];
+	this->nodes[index].at[LATE][RISE]  = late_at[RISE];
+	this->nodes[index].at[LATE][FALL]  = late_at[FALL];
+}
+
+void Graph::set_rat(const string &pin_name, float early_rat[2], float late_rat[2]) {
+	string handle = cell_pin_concat( OUTPUT_PREFIX, pin_name );
+	if (!in_graph(handle)) {
+		LOG(ERROR) << "Try to modify required arrival time of a node which is not primary output. (" << pin_name << ")"  << endl;
+		ASSERT_NOT_REACHED();
+	}
+	int index = this->get_index(handle);
+	this->nodes[index].rat[EARLY][RISE] = early_rat[RISE];
+	this->nodes[index].rat[EARLY][FALL] = early_rat[FALL];
+	this->nodes[index].rat[LATE][RISE]  = late_rat[RISE];
+	this->nodes[index].rat[LATE][FALL]  = late_rat[FALL];
 }
 
 // ------------------ Edge related ----------------------
@@ -44,6 +86,7 @@ Graph::Edge::Edge(int src, int dest, Edge_type type) {
 Graph::Edge* Graph::add_edge(int src, int dest, Edge_type type) {
 	Edge *eptr = new Edge(src, dest, type);
 	this->adj[src].insert( {dest, eptr} );
+	this->adj[dest].insert( {src, eptr} );
 //	LOG(CERR) << "An edge built from " << this->get_name(src)<< " to " << this->get_name(dest);
 //	if (type == IN_CELL) {
 //		LOG(CERR) << " (In cell edge).\n";
@@ -53,7 +96,7 @@ Graph::Edge* Graph::add_edge(int src, int dest, Edge_type type) {
 	return eptr;
 }
 
-Graph::Edge* Graph::get_edge(int src, int dest) {
+Graph::Edge* Graph::get_edge(int src, int dest) const {
 	auto it = this->adj[src].find(dest);
 	if (it == this->adj[src].end()) {
 		return NULL;
@@ -80,7 +123,7 @@ Graph::Wire_mapping::Wire_mapping() {
 	this->src=-1;
 }
 
-Graph::Wire_mapping* Graph::get_wire_mapping(const string &wire_name) {
+Graph::Wire_mapping* Graph::get_wire_mapping(const string &wire_name) const {
 	auto it = this->wire_mapping.find(wire_name);
 	if (it == wire_mapping.end()) return NULL;
 	return it->second;
@@ -142,7 +185,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 
 	/* Create nodes for primary input */
 	for (const string &in_pin : vlog.input) {
-		int src = this->get_index( cell_pin_concat( input_prefix, in_pin ) );
+		int src = this->get_index( cell_pin_concat( INPUT_PREFIX, in_pin ) );
 		Wire_mapping *mapping = this->get_wire_mapping(in_pin);
 		ASSERT(mapping != NULL);
 		ASSERT(mapping->src == -1);
@@ -151,7 +194,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 
 	/* Create nodes for primary output */
 	for (const string &out_pin : vlog.output) {
-		int sink = this->get_index( cell_pin_concat( output_prefix, out_pin ) );
+		int sink = this->get_index( cell_pin_concat( OUTPUT_PREFIX, out_pin ) );
 		Wire_mapping *mapping = this->get_wire_mapping(out_pin);
 		ASSERT(mapping != NULL);
 		mapping->sinks.emplace_back(sink);
@@ -171,17 +214,17 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 				SpefNet *net = new SpefNet();
 				net->set_total_cap(0);
 				string root = get_name ( wire_mapping[wire_name]->src ), type="I", dir="O";
-				if(is_prefix(root, input_prefix)) root = root.substr( input_prefix.size()+1 ), type="P", dir="I";
-				if(is_prefix(root, output_prefix)) root = root.substr( output_prefix.size()+1 ), type="P", dir="O";
+				if(is_prefix(root, INPUT_PREFIX)) root = root.substr( INPUT_PREFIX.size()+1 ), type="P", dir="I";
+				if(is_prefix(root, OUTPUT_PREFIX)) root = root.substr( OUTPUT_PREFIX.size()+1 ), type="P", dir="O";
 
 				net->set_name(wire_name);
 				net->add_conn(root, type, dir);
-				for(auto &it: (*wire_mapping[wire_name]).sinks){
+				for(auto &it: (*wire_mapping[wire_name]).sinks) {
 					string name = get_name(it), type="I", dir="I";
-					if(is_prefix(name, input_prefix))
-						name = name.substr( input_prefix.size()+1 ), type="P", dir="I";
-					if(is_prefix(name, output_prefix))
-						name = name.substr( output_prefix.size()+1 ), type="P", dir="O";
+					if(is_prefix(name, INPUT_PREFIX))
+						name = name.substr( INPUT_PREFIX.size()+1 ), type="P", dir="I";
+					if(is_prefix(name, OUTPUT_PREFIX))
+						name = name.substr( OUTPUT_PREFIX.size()+1 ), type="P", dir="O";
 
 					net->add_conn(name, type , dir);
 					net->add_cap(name, 0);
@@ -194,7 +237,6 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 		}
 	}
 }
-
 
 // ------------ For Testing ----------------
 

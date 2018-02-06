@@ -4,6 +4,7 @@
 #include "header.h"
 #define endl '\n'     // So that logger can use it.
 #define LOG(TYPE) Logger::Log(TYPE)
+#define LOG_PLACE(TYPE) Logger::Log(TYPE, flase) << "In " << __FILE__ << ", line number: " << __LINE__ << endl;
 
 typedef enum { NORMAL, WARNING, ERROR, CERR } Log_type;
 

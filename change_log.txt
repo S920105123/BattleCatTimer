@@ -75,3 +75,7 @@
 
 2018/2/6: modify graph's build rc_tree
 - build rc_tree after new a rctree
+
+2018/2/6: Graph interface
+- Add function to set at/rat of primary in/out
+- Add in_graph checking

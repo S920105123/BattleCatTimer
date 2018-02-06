@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #include <string>
 #include <vector>
@@ -51,5 +52,8 @@ using std::max;
 using std::min;
 using std::sqrt;
 using std::swap;
+
+const float UNDEFINED_RAT[2] = { -987654.0, 987654.0  };  // Early/late
+const float UNDEFINED_AT[2]  = { 987654.0 , -987654.0 };  // Early/late
 
 #endif /* end HEADER_H */
