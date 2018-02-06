@@ -118,9 +118,9 @@ int Spef::size(){
     return nets.size();
 }
 
-SpefNet* Spef::get_spefnet_ptr(const string &name){
+SpefNet* Spef::get_spefnet_ptr(const string &name, bool logged){
     if(nets.find(name)==nets.end()){
-        LOG(ERROR) << "[Spef][get_spef_net_ptr] no such net: " << name << endl;
+        if(logged) LOG(ERROR) << "[Spef][get_spef_net_ptr] no such net: " << name << endl;
     }else return nets[name];
     return NULL;
 }
@@ -168,7 +168,7 @@ void SpefNet::print_net(){
     for(auto& x:conn){
         string name, type, dir;
         tie(name, type, dir) = x;
-        cout << name << " pin id = " << pin_id[name] << endl;
+        cout << name << " " << type << " " << dir << " pin id = " << pin_id[name] << endl;
     }
 
     cout << "CAP:\n";
@@ -217,6 +217,7 @@ int main()
             cout << "no such net: " << name << endl;
             continue;
         }
+        spefnet->print_net();
         const auto & pin_name = spefnet->get_total_pins_name();
         for(const auto& t:spefnet->get_pin_res()){
             int from, to;

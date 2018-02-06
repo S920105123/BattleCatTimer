@@ -72,3 +72,6 @@
 
 1018/2/5: graph construction complete
 - Just as the title
+
+2018/2/6: modify graph's build rc_tree
+- build rc_tree after new a rctree

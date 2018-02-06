@@ -19,3 +19,11 @@ string cell_pin_concat(const string &cell, const string &pin) {
 	res += pin;
 	return res;
 }
+
+bool is_prefix(const string& s, const string &prefix){
+    if(prefix.size() > s.size()) return false;
+    for(size_t i=0; i<prefix.size(); i++){
+        if(prefix[i]!=s[i]) return false;
+    }
+    return true;
+}

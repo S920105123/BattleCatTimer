@@ -15,7 +15,7 @@ public:
 
     void print_net(const string& name);
 
-    SpefNet* get_spefnet_ptr(const string& name);
+    SpefNet* get_spefnet_ptr(const string& name, bool log=true);
 
     const map<string, SpefNet*>& get_total_nets(){
         return nets;
