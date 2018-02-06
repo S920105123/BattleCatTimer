@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include <queue>
+#include <stack>
 #include <unordered_set>
 #include <unordered_map>
 #include <set>
@@ -39,6 +40,7 @@ using std::vector;
 using std::map;
 using std::unordered_map;
 using std::queue;
+using std::stack;
 using std::priority_queue;
 using std::pair;
 using std::tuple;
