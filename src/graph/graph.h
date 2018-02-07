@@ -22,8 +22,10 @@ public:
 		bool exist;
 		int index;
 		string name;
-		float at[2][2];  // Arrival time. e.g, at[EARLY][RISE]
-		float rat[2][2]; // Required arrival time.
+		RCTree *tree;
+		float at[2][2];   // Arrival time. e.g, at[EARLY][RISE]
+		float rat[2][2];  // Required arrival time.
+		float slew[2][2];
 		
 		Node(int index, const string& name);
 	};
@@ -36,13 +38,19 @@ public:
 		vector<TimingArc*> arcs[2];
 		
 		Edge(int src, int dest, Edge_type type);
-		float get_delay() const;
 	};
 	
 	struct Wire_mapping {
 		int src;
 		vector<int> sinks;
 		Wire_mapping();
+	};
+	
+	struct Constraint {
+		Mode mode;
+		int src, sink;
+		TimingArc *arc;
+		Constraint(int src, int sink, TimingArc *arc, Mode mode);
 	};
 	
 	// Node related
@@ -55,17 +63,19 @@ public:
 	int add_node(const string &name);
 	
 	// Edge related
-	const vector< unordered_map<int, Edge*> >& adj_list() const;     // Return adjacency list
-	const vector< unordered_map<int, Edge*> >& rev_adj_list() const; // Return reverse adjacency list
-	Edge* add_edge(int src, int dest, Edge_type type);               // Add an empty edge, with neither arc nor rc tree.
-	Edge* get_edge(int src, int dest) const;                         // Return NULL if not exist
-	void add_arc(int src, int dest, TimingArc *arc, Mode mode);      // Append one arc to edge from src to dest, add edge if doesn't exist.
+	const vector< unordered_map<int, Edge*> >& adj_list() const;      // Return adjacency list
+	const vector< unordered_map<int, Edge*> >& rev_adj_list() const;  // Return reverse adjacency list
+	Edge* add_edge(int src, int dest, Edge_type type);                // Add an empty edge, with neither arc nor rc tree.
+	Edge* get_edge(int src, int dest) const;                          // Return NULL if not exist
+	void add_arc(int src, int dest, TimingArc *arc, Mode mode);       // Append one arc to edge from src to dest, add edge if doesn't exist.
+	void add_constraint(int src, int dest, TimingArc *arc, Mode mode);// Add a constraint, src must be a clock
 	
 	// Wire related
 	Wire_mapping* get_wire_mapping(const string &wire_name) const;
 	
 	// Graph related
 	void build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_lib); // Build this graph from a verilog file.
+	void calculate_at(Mode mode);
 	
 private:
 	int next_id;
@@ -73,6 +83,14 @@ private:
 	vector<Node> nodes;                          // nodes[i]: Node with index i.
 	vector< unordered_map<int, Edge*> > adj;     // Adjacency list of all nodes.
 	vector< unordered_map<int, Edge*> > rev_adj; // Reverse adjacency list.
+	vector< Constraint > constraints;            // Conatraint edges
+	
+	
+	
+	// Graph related
+	void at_arc_update(int from, int to, TimingArc *arc, Mode mode);
+	void at_update(Edge *eptr, Mode mode);
+	void at_dfs(int index, Mode mode, vector<bool> &visit);
 	
 	// "wire_mapping":
 	// key  = wire name

@@ -1,3 +1,5 @@
+#ifndef ENUM_H
+#define ENUM_H
 
 enum Lu_Table_Variable {
     INPUT_NET_TRANSITION = 0,
@@ -39,3 +41,5 @@ enum Mode {
 	EARLY = 0,
 	LATE
 };
+
+#endif

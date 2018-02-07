@@ -27,3 +27,21 @@ bool is_prefix(const string& s, const string &prefix){
     }
     return true;
 }
+
+bool at_worse_than(float at1, float at2, Mode mode) {
+	// Always choose worst at
+	if (mode == EARLY) return at1 < at2;
+	return at1 > at2;
+}
+
+bool slew_worse_than(float s1, float s2, Mode mode) {
+	// Always choose worst at
+	if (mode == EARLY) return s1 < s2;
+	return s1 > s2;
+}
+
+bool rat_worse_than(float r1, float r2, Mode mode) {
+	// Always choose worst (most strict) rat
+	if (mode == EARLY) return r1 > r2;
+	return r2 > r1;
+}

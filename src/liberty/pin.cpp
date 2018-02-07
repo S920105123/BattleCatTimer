@@ -101,10 +101,13 @@ bool Pin::get_is_clock(){
 }
 
 vector<TimingArc*>* Pin::get_TimingArc(const string& src){
-	if(timing.find(src) == timing.end())
+	auto it = timing.find(src);
+	if(it == timing.end()) {
 		LOG(ERROR) << "[Pin][get_TimingArc] Cell: " << parent->get_type_name()
 		<< " pin: " << name << " src: " << src << " empty TimingArc." << endl;
-	return timing[src];
+		return NULL;
+	}
+	return it->second;
 }
 
 vector<TimingArc*>* Pin::get_total_TimingArc(){

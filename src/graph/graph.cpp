@@ -4,14 +4,17 @@
 
 Graph::Node::Node(int index, const string &name) {
 	this->exist = true;
-	this->name = name;
+	this->name  = name;
 	this->index = index;
+	this->tree  = NULL;
 	
 	// These undefined values is defined in header.h
-	this->rat[EARLY][RISE] = this->rat[EARLY][FALL] = UNDEFINED_RAT[EARLY]; 
-	this->rat[LATE][RISE]  = this->rat[LATE][FALL]  = UNDEFINED_RAT[LATE];
-	this->at[EARLY][RISE]  = this->at[EARLY][FALL]  = UNDEFINED_AT[EARLY];
-	this->at[LATE][RISE]   = this->at[LATE][FALL]   = UNDEFINED_AT[LATE];
+	this->slew[EARLY][RISE] = this->slew[EARLY][FALL] = UNDEFINED_SLEW[EARLY];
+	this->slew[LATE][RISE]  = this->slew[LATE][FALL]  = UNDEFINED_SLEW[LATE];
+	this->rat[EARLY][RISE]  = this->rat[EARLY][FALL]  = UNDEFINED_RAT[EARLY]; 
+	this->rat[LATE][RISE]   = this->rat[LATE][FALL]   = UNDEFINED_RAT[LATE];
+	this->at[EARLY][RISE]   = this->at[EARLY][FALL]   = UNDEFINED_AT[EARLY];
+	this->at[LATE][RISE]    = this->at[LATE][FALL]    = UNDEFINED_AT[LATE];
 }
 
 int Graph::add_node(const string &name) {
@@ -32,12 +35,12 @@ int Graph::get_index(const string &name) {
 }
 
 bool Graph::in_graph(int index) const {
-	return this->nodes[index].exist;
+	return index < (int)this->nodes.size() && this->nodes[index].exist;
 }
 
 bool Graph::in_graph(const string &name) const {
 	auto it = this->trans.find(name);
-	return it != this->trans.end();
+	return it != this->trans.end() && this->in_graph(it->second);
 }
 
 const string& Graph::get_name(int index) const {
@@ -49,7 +52,7 @@ const string& Graph::get_name(int index) const {
 	return this->nodes[index].name;
 }
 
-void Graph::set_at(const string &pin_name, float early_at[2], float late_at[2]) {
+void Graph::set_at(const string &pin_name, float early_at[], float late_at[2]) {
 	string handle = cell_pin_concat( INPUT_PREFIX, pin_name );
 	if (!in_graph(handle)) {
 		LOG(ERROR) << "Try to modify arrival time of a node which is not primary input. (" << pin_name << ")" << endl;
@@ -113,6 +116,25 @@ void Graph::add_arc(int src, int dest, TimingArc *arc, Mode mode) {
 	eptr->arcs[mode].emplace_back(arc);
 }
 
+void Graph::add_constraint(int src, int dest, TimingArc *arc, Mode mode) {
+	this->constraints.emplace_back(src, dest, arc, mode);
+	
+	LOG(CERR) << "A constraint built from " << this->get_name(src)<< " to " << this->get_name(dest);
+	if (mode == EARLY) {
+		LOG(CERR) << " (Hold).\n";
+	} else {
+		LOG(CERR) << " (Setup).\n";
+	}
+}
+
+Graph::Constraint::Constraint(int src, int sink, TimingArc *arc, Mode mode) {
+	ASSERT(arc->is_constraint());
+	this->src  = src;
+	this->sink = sink;
+	this->arc  = arc;
+	this->mode = mode;
+}
+
 const vector< unordered_map< int, Graph::Edge* > >& Graph::adj_list() const {
 	return this->adj;
 }
@@ -132,6 +154,8 @@ Graph::Wire_mapping* Graph::get_wire_mapping(const string &wire_name) const {
 // ------------------ Graph related ----------------------
 
 void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_lib) {
+	/* Build a graph via above list of terrible files */
+	
 	/* Initilize */
 	this->next_id = 0;
 	CellLib &lib = early_lib; // Two lib has the same topological structure.
@@ -153,19 +177,14 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 			// Following lines should be changed to enum value.
 			Direction_type direction = lib.get_pin_direction(cell_type, pin_name);
 			if (direction == OUTPUT) {
-				// Construct in-cell timing arc. (early mode)
+				// Construct in-cell timing arc.
 				int sink = this->get_index( cell_pin_concat(cell_name, pin_name) );
-				vector<TimingArc*> *arcs = early_lib.get_pin_total_TimingArc(cell_type, pin_name);
-				for (TimingArc *arc : *arcs) {
-					int src = this->get_index( cell_pin_concat(cell_name, arc->get_related_pin()) );
-					this->add_arc(src,sink, arc, EARLY);
-				}
-
-				// Construct in-cell timing arc. (late mode)
-				arcs = late_lib.get_pin_total_TimingArc(cell_type, pin_name);
-				for (TimingArc *arc : *arcs) {
-					int src = this->get_index( cell_pin_concat(cell_name, arc->get_related_pin()) );
-					this->add_arc(src,sink, arc, LATE);
+				for (int mode=EARLY; mode<=LATE; mode++) {
+					vector<TimingArc*> *arcs = lib_arr[mode]->get_pin_total_TimingArc(cell_type, pin_name);
+					for (TimingArc *arc : *arcs) {
+						int src = this->get_index( cell_pin_concat(cell_name, arc->get_related_pin()) );
+						this->add_arc(src, sink, arc, (Mode)mode);
+					}
 				}
 
 				// Complete wire mapping. Here "sink" is the output pin.
@@ -174,8 +193,17 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 				ASSERT(mapping->src == -1);
 				mapping->src = sink;
 			} else {
-				// Complete wire mapping.
+				// Check for constraint edges (early)
 				int sink = this->get_index( cell_pin_concat(cell_name, pin_name) );
+				for (int mode=EARLY; mode<=LATE; mode++) {
+					vector<TimingArc*> *arcs = lib_arr[mode]->get_pin_total_TimingArc(cell_type, pin_name);
+					for (TimingArc *arc : *arcs) {
+						int src = this->get_index( cell_pin_concat(cell_name, arc->get_related_pin()) );
+						this->add_constraint(src, sink, arc, (Mode)mode);
+					}
+				}
+				
+				// Complete wire mapping.
 				Wire_mapping *mapping = this->get_wire_mapping(wire_name);
 				ASSERT(mapping != NULL);
 				mapping->sinks.emplace_back(sink);
@@ -206,34 +234,129 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 		Wire_mapping *mapping = wire_pair.second;
 		int from = mapping->src;
 		ASSERT(from != -1);
-		for (int to : mapping->sinks) {
-			Edge *eptr = add_edge(from, to, RC_TREE);
-			SpefNet *net = spef.get_spefnet_ptr(wire_name, 0);
-			if(net!=NULL) eptr->tree = new RCTree(net, &vlog, lib_arr);
-			else{
-				SpefNet *net = new SpefNet();
-				net->set_total_cap(0);
-				string root = get_name ( wire_mapping[wire_name]->src ), type="I", dir="O";
-				if(is_prefix(root, INPUT_PREFIX)) root = root.substr( INPUT_PREFIX.size()+1 ), type="P", dir="I";
-				if(is_prefix(root, OUTPUT_PREFIX)) root = root.substr( OUTPUT_PREFIX.size()+1 ), type="P", dir="O";
-
-				net->set_name(wire_name);
-				net->add_conn(root, type, dir);
-				for(auto &it: (*wire_mapping[wire_name]).sinks) {
-					string name = get_name(it), type="I", dir="I";
-					if(is_prefix(name, INPUT_PREFIX))
-						name = name.substr( INPUT_PREFIX.size()+1 ), type="P", dir="I";
-					if(is_prefix(name, OUTPUT_PREFIX))
-						name = name.substr( OUTPUT_PREFIX.size()+1 ), type="P", dir="O";
-
-					net->add_conn(name, type , dir);
-					net->add_cap(name, 0);
-					net->add_res(root, get_name(it), 0);
-				}
-				spef.add_net( wire_name, net);
-				eptr->tree = new RCTree(net, &vlog, lib_arr);
+		SpefNet *net = spef.get_spefnet_ptr(wire_name, 0);
+		RCTree *tree = NULL;
+		if (net!=NULL) tree = new RCTree(net, &vlog, lib_arr);
+		else{
+			SpefNet *net = new SpefNet();
+			net->set_total_cap(0);
+			string root = get_name ( wire_mapping[wire_name]->src ), type="I", dir="O";
+			if(is_prefix(root, INPUT_PREFIX)) root = root.substr( INPUT_PREFIX.size()+1 ), type="P", dir="I";
+			if(is_prefix(root, OUTPUT_PREFIX)) root = root.substr( OUTPUT_PREFIX.size()+1 ), type="P", dir="O";
+			net->set_name(wire_name);
+			net->add_conn(root, type, dir);
+			for(auto &it: (*wire_mapping[wire_name]).sinks) {
+				string name = get_name(it), type="I", dir="I";
+				if(is_prefix(name, INPUT_PREFIX))
+					name = name.substr( INPUT_PREFIX.size()+1 ), type="P", dir="I";
+				if(is_prefix(name, OUTPUT_PREFIX))
+					name = name.substr( OUTPUT_PREFIX.size()+1 ), type="P", dir="O";
+				net->add_conn(name, type , dir);
+				net->add_cap(name, 0);
+				net->add_res(root, get_name(it), 0);
 			}
-			eptr->tree->build_tree();
+			spef.add_net( wire_name, net);
+			tree = new RCTree(net, &vlog, lib_arr);
+		}
+		tree->build_tree();
+		nodes[from].tree = tree;
+		for (int to : mapping->sinks) {
+			nodes[to].tree = tree;
+			Edge *eptr = add_edge(from, to, RC_TREE);
+			eptr->tree = tree;
+		}
+	}
+}
+
+void Graph::at_arc_update(int from, int to, TimingArc *arc, Mode mode) {
+	/* Use "from" update "to" through "arc" */
+	Node &node_from = this->nodes[from], &node_to = this->nodes[to];
+	for (Transition_Type type_from=RISE; type_from!=FALL; type_from=FALL) {
+		for (Transition_Type type_to=RISE; type_to!=FALL; type_to=FALL) {
+			// No ++ in Transition_Type
+			if (!arc->is_transition_defined(type_from, type_to)) continue;
+			float cap_load = node_to.tree->get_downstream(mode, node_to.name);
+			float input_slew = node_from.slew[mode][type_from];
+			
+			/* Try to update at */
+			if (node_from.at[mode][type_from] != UNDEFINED_AT[mode]) {
+				float delay = arc->get_delay(type_from, type_to, input_slew, cap_load);
+				float new_at = node_from.at[mode][type_from] + delay;
+				float &at = node_to.at[mode][type_to];
+				if (at == UNDEFINED_AT[mode] || at_worse_than(new_at, at, mode)) {
+					// Always choose worst at.
+					at = new_at;
+				}
+			}
+			
+			/* Try to update slew */
+			if (input_slew != UNDEFINED_SLEW[mode]) {
+				float new_slew = arc->get_slew(type_from, type_to, input_slew, cap_load);
+				float &slew = node_to.slew[mode][type_to];
+				if (slew == UNDEFINED_SLEW[mode] || slew_worse_than(new_slew, slew, mode)) {
+					// Always choose worst slew.
+					slew = new_slew;
+				}
+			}
+		}
+	}
+}
+
+void Graph::at_update(Edge *eptr, Mode mode) {
+	/* Use eptr->from to relax eptr->to */
+	int from = eptr->from, to = eptr->to;
+	if (eptr->type == IN_CELL) {
+		/* Update from in-cell timing arc */
+		for (TimingArc *arc : eptr->arcs[mode]) {
+			at_arc_update(from, to, arc, mode);
+		}
+	}
+	else {
+		/* Update from RC tree */
+		Node &node_from = this->nodes[from], &node_to = this->nodes[to];
+		float delay = eptr->tree->get_delay(mode, node_to.name);
+		for (Transition_Type type=RISE; type!=FALL; type=FALL) {
+			float new_slew = eptr->tree->get_slew(mode, node_to.name, node_from.slew[mode][type]);
+			if (node_from.slew[mode][type] != UNDEFINED_SLEW[mode]) {
+				float &slew = node_to.slew[mode][type];
+				if ( slew == UNDEFINED_SLEW[mode] || slew_worse_than(new_slew, slew, mode) ) {
+					// Always choose worst slew
+					slew = new_slew;
+				}
+			}
+			if (node_from.at[mode][type] != UNDEFINED_AT[mode]) {
+				float &at = node_to.at[mode][type], new_at = node_from.at[mode][type] + delay;
+				if ( at == UNDEFINED_AT[mode] || at_worse_than(new_at, at, mode) ) {
+					// Always choose worst at
+					at = new_at;
+				}
+			}
+		}
+	}
+}
+
+void Graph::at_dfs(int index, Mode mode, vector<bool> &visit) {
+	/* Top-down DP structrue */
+	for (const auto &adj_pair : this->rev_adj[index]) {
+		Edge *eptr = adj_pair.second;
+		int from = eptr->from, to = eptr->to;
+		ASSERT(to == index);
+		if (!visit[from]) {
+			visit[from] = true;
+			at_dfs(from, mode, visit);
+		}
+		this->at_update(eptr, mode);
+	}
+}
+
+void Graph::calculate_at(Mode mode) {
+	/* Calculate arrival times and slews of all the vertices in this graph */
+	vector<bool> visit(this->nodes.size());
+	std::fill(visit.begin(), visit.end(), false);
+	for (int i=0; i<(int)this->nodes.size(); i++) {
+		if (!visit[i]) {
+			visit[i] = true;
+			at_dfs(i, mode, visit);
 		}
 	}
 }

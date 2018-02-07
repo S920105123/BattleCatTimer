@@ -47,9 +47,9 @@ public:
     bool is_falling_triggered();
     bool is_rising_triggered();
 
-    float get_delay(Transition_Type from, Transition_Type to, float input_val, float output_val);
-    float get_slew(Transition_Type from, Transition_Type to, float input_val, float output_val);
-    float get_constraint(Transition_Type from, Transition_Type to, float input_val, float output_val);
+    float get_delay(Transition_Type from, Transition_Type to, float input_slew, float output_load);
+    float get_slew(Transition_Type from, Transition_Type to, float input_slew, float output_load);
+    float get_constraint(Transition_Type from, Transition_Type to, float input_slew, float output_slew);
 
     void set_timing_sense(const string& val);
     void set_timing_type(const string& val);
