@@ -7,11 +7,11 @@ Graph::Node::Node(int index, const string &name) {
 	this->name  = name;
 	this->index = index;
 	this->tree  = NULL;
-	
+
 	// These undefined values is defined in header.h
 	this->slew[EARLY][RISE] = this->slew[EARLY][FALL] = UNDEFINED_SLEW[EARLY];
 	this->slew[LATE][RISE]  = this->slew[LATE][FALL]  = UNDEFINED_SLEW[LATE];
-	this->rat[EARLY][RISE]  = this->rat[EARLY][FALL]  = UNDEFINED_RAT[EARLY]; 
+	this->rat[EARLY][RISE]  = this->rat[EARLY][FALL]  = UNDEFINED_RAT[EARLY];
 	this->rat[LATE][RISE]   = this->rat[LATE][FALL]   = UNDEFINED_RAT[LATE];
 	this->at[EARLY][RISE]   = this->at[EARLY][FALL]   = UNDEFINED_AT[EARLY];
 	this->at[LATE][RISE]    = this->at[LATE][FALL]    = UNDEFINED_AT[LATE];
@@ -22,6 +22,7 @@ int Graph::add_node(const string &name) {
 	this->trans.insert(make_pair(name, id));
 	this->nodes.emplace_back(id, name);
 	this->adj.emplace_back();
+	this->rev_adj.emplace_back();
 	return id;
 }
 
@@ -196,7 +197,7 @@ Graph::Edge::Edge(int src, int dest, Edge_type type) {
 Graph::Edge* Graph::add_edge(int src, int dest, Edge_type type) {
 	Edge *eptr = new Edge(src, dest, type);
 	this->adj[src].insert( {dest, eptr} );
-	this->adj[dest].insert( {src, eptr} );
+	this->rev_adj[dest].insert( {src, eptr} );
 //	LOG(CERR) << "An edge built from " << this->get_name(src)<< " to " << this->get_name(dest);
 //	if (type == IN_CELL) {
 //		LOG(CERR) << " (In cell edge).\n";
@@ -225,7 +226,7 @@ void Graph::add_arc(int src, int dest, TimingArc *arc, Mode mode) {
 
 void Graph::add_constraint(int src, int dest, TimingArc *arc, Mode mode) {
 	this->constraints.emplace_back(src, dest, arc, mode);
-	
+
 	LOG(CERR) << "A constraint built from " << this->get_name(src)<< " to " << this->get_name(dest);
 	if (mode == EARLY) {
 		LOG(CERR) << " (Hold).\n";
@@ -262,7 +263,7 @@ Graph::Wire_mapping* Graph::get_wire_mapping(const string &wire_name) const {
 
 void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_lib) {
 	/* Build a graph via above list of terrible files */
-	
+
 	/* Initilize */
 	this->next_id = 0;
 	CellLib &lib = early_lib; // Two lib has the same topological structure.
@@ -309,7 +310,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 						this->add_constraint(src, sink, arc, (Mode)mode);
 					}
 				}
-				
+
 				// Complete wire mapping.
 				Wire_mapping *mapping = this->get_wire_mapping(wire_name);
 				ASSERT(mapping != NULL);
@@ -366,6 +367,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 			tree = new RCTree(net, &vlog, lib_arr);
 		}
 		tree->build_tree();
+		tree->cal();
 		nodes[from].tree = tree;
 		for (int to : mapping->sinks) {
 			nodes[to].tree = tree;
@@ -378,13 +380,15 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 void Graph::at_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 	/* Use "from" update "to" through "arc" */
 	Node &node_from = this->nodes[from], &node_to = this->nodes[to];
-	for (Transition_Type type_from=RISE; type_from!=FALL; type_from=FALL) {
-		for (Transition_Type type_to=RISE; type_to!=FALL; type_to=FALL) {
+	Transition_Type types[] = {RISE, FALL};
+	for (int i=0; i<2; i++) {
+		for (int j=0; j<2; j++) {
+			Transition_Type type_from = types[i], type_to = types[j];
 			// No ++ in Transition_Type
 			if (!arc->is_transition_defined(type_from, type_to)) continue;
 			float cap_load = node_to.tree->get_downstream(mode, node_to.name);
 			float input_slew = node_from.slew[mode][type_from];
-			
+
 			/* Try to update at */
 			if (node_from.at[mode][type_from] != UNDEFINED_AT[mode]) {
 				float delay = arc->get_delay(type_from, type_to, input_slew, cap_load);
@@ -395,7 +399,7 @@ void Graph::at_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 					at = new_at;
 				}
 			}
-			
+
 			/* Try to update slew */
 			if (input_slew != UNDEFINED_SLEW[mode]) {
 				float new_slew = arc->get_slew(type_from, type_to, input_slew, cap_load);
@@ -422,7 +426,10 @@ void Graph::at_update(Edge *eptr, Mode mode) {
 		/* Update from RC tree */
 		Node &node_from = this->nodes[from], &node_to = this->nodes[to];
 		float delay = eptr->tree->get_delay(mode, node_to.name);
-		for (Transition_Type type=RISE; type!=FALL; type=FALL) {
+		Transition_Type types[] = {RISE, FALL};
+		// for (Transition_Type type=RISE; type!=FALL; type=FALL) {
+		for (int i=0; i<2; i++) {
+			Transition_Type type = types[i];
 			float new_slew = eptr->tree->get_slew(mode, node_to.name, node_from.slew[mode][type]);
 			if (node_from.slew[mode][type] != UNDEFINED_SLEW[mode]) {
 				float &slew = node_to.slew[mode][type];
@@ -454,6 +461,9 @@ void Graph::at_dfs(int index, Mode mode, vector<bool> &visit) {
 		}
 		this->at_update(eptr, mode);
 	}
+	// LOG(CERR) << get_name(index) << " " << get_mode_string(mode) << endl;
+	// LOG(CERR) << "at rise: " << nodes[index].at[mode][RISE] << " " <<  "at fall: " << nodes[index].at[mode][LATE] << " " << endl;
+	// LOG(CERR) << "slew rise: " << nodes[index].slew[mode][RISE] << " " <<  "slew fall: " << nodes[index].slew[mode][LATE] << " " << endl << endl;
 }
 
 void Graph::calculate_at(Mode mode) {

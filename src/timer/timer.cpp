@@ -24,7 +24,7 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
     graph->calculate_at(EARLY);
     LOG(CERR) << "ok! \ngraph calculate_at late... ";
     graph->calculate_at(LATE);
-    LOG(CERR) << "ok! \nexecuting ops... ";
+    LOG(CERR) << "ok! \nexecuting .ops\n";
     // graph->cal();
     open_ops(ops);
     LOG(CERR) << "ok!\nFinished!\n";
@@ -185,19 +185,19 @@ void Timer::open_ops(const string& ops){
         /* Timing queryies */
         else if(cmd=="report_at"){
             read_timing_assertion_option(in, name, mode, transition, val);
-            output << graph->get_at(name, mode, transition) << endl;
+            output << std::fixed << std::setprecision(3) << graph->get_at(name, mode, transition) << endl;
         }
         else if(cmd=="report_rat"){
             read_timing_assertion_option(in, name, mode, transition, val);
-            output << graph->get_rat(name, mode, transition) << endl;
+            output << std::fixed << std::setprecision(3) << graph->get_rat(name, mode, transition) << endl;
         }
         else if(cmd=="report_slack"){
             read_timing_assertion_option(in, name, mode, transition, val);
-            output << graph->get_slack(name, mode, transition) << endl;
+            output << std::fixed << std::setprecision(3) << graph->get_slack(name, mode, transition) << endl;
         }
         else if(cmd=="report_slew"){
             read_timing_assertion_option(in, name, mode, transition, val);
-            output << graph->get_slew(name, mode, transition) << endl;
+            output << std::fixed << std::setprecision(3) << graph->get_slew(name, mode, transition) << endl;
         }
         else if(cmd=="report_worst_paths"){
             name = "";
