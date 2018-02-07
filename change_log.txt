@@ -88,3 +88,6 @@
 - Add mode-dependent comparison between at/rat (func.cpp)
 - Calculate at/slew function in graph.
 - Fix duplicate RCTree.
+
+2018/2/7: test simple
+- use `make main` to test simple, then check simple/myoutput

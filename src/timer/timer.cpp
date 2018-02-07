@@ -9,16 +9,25 @@ Timer::~Timer(){
     if(graph) delete graph;
 
     Logger::create()->~Logger();
+    output.close();
 }
 
-void Timer::run(const string& tau, const string& timing, const string& ops, const string&output){
+void Timer::run(const string& tau, const string& timing, const string& ops, const string&output_file){
     open_tau(tau);
     graph = new Graph();
     graph->build(*verilog, *spef, *lib[EARLY], *lib[LATE]);
 
+    output.open(output_file);
     open_timing(timing); // init graph
+    LOG(CERR) << "graph init ok! \n";
+    LOG(CERR) << "graph calculate at early... ";
+    graph->calculate_at(EARLY);
+    LOG(CERR) << "ok! \ngraph calculate_at late... ";
+    graph->calculate_at(LATE);
+    LOG(CERR) << "ok! \nexecuting ops... ";
     // graph->cal();
     open_ops(ops);
+    LOG(CERR) << "ok!\nFinished!\n";
 }
 
 void Timer::open_tau(const string& tau){
@@ -176,19 +185,19 @@ void Timer::open_ops(const string& ops){
         /* Timing queryies */
         else if(cmd=="report_at"){
             read_timing_assertion_option(in, name, mode, transition, val);
-            graph->get_at(name, mode, transition);
+            output << graph->get_at(name, mode, transition) << endl;
         }
         else if(cmd=="report_rat"){
             read_timing_assertion_option(in, name, mode, transition, val);
-            graph->get_rat(name, mode, transition);
+            output << graph->get_rat(name, mode, transition) << endl;
         }
         else if(cmd=="report_slack"){
             read_timing_assertion_option(in, name, mode, transition, val);
-            graph->get_slack(name, mode, transition);
+            output << graph->get_slack(name, mode, transition) << endl;
         }
         else if(cmd=="report_slew"){
             read_timing_assertion_option(in, name, mode, transition, val);
-            graph->get_slew(name, mode, transition);
+            output << graph->get_slew(name, mode, transition) << endl;
         }
         else if(cmd=="report_worst_paths"){
             name = "";

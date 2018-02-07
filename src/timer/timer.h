@@ -23,6 +23,7 @@ private:
     void read_timing_assertion_option(File_Reader& in, string &name, Mode &mode, Transition_Type &transition, float &val);
     void read_pin_name(File_Reader& in, string &name);
 
+    ofstream output;
     Verilog *verilog;
     Spef* spef;
     CellLib* lib[2];
