@@ -35,7 +35,16 @@ bool File_Reader::is_useful(char c){
     return c!=',' and c!=';' and c!=' ' and c!='\n' and isprint(c);
 }
 
+void File_Reader::put_back(const string& s){
+    buf.push(s);
+}
+
 string File_Reader::next_token(){
+    if(!buf.empty()){
+        string val = buf.top();
+        buf.pop();
+        return val;
+    }
     string res="";
     char *s = buffer;
     while(position<length){

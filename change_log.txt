@@ -80,6 +80,10 @@
 - Add function to set at/rat of primary in/out
 - Add in_graph checking
 
+2018/2/7: timer object
+- add timer object
+- Add some functino in .ops file to Graph
+
 2018/2/7: Dynamic programming fiesta
 - Add mode-dependent comparison between at/rat (func.cpp)
 - Calculate at/slew function in graph.

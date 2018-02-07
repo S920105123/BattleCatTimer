@@ -45,3 +45,24 @@ bool rat_worse_than(float r1, float r2, Mode mode) {
 	if (mode == EARLY) return r1 > r2;
 	return r2 > r1;
 }
+
+bool isfloat(const string& s){
+    size_t pos;
+    try{
+        stof(s,&pos);
+        return (pos==s.size());
+    }
+    catch(...){
+        return false;
+    }
+}
+
+string get_mode_string(Mode mode){
+    if(mode==LATE) return "Late";
+    else return "Early";
+}
+
+string get_transition_string(Transition_Type transition){
+    if(transition==RISE) return "Rise";
+    else return "Fall";
+}

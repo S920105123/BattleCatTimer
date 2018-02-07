@@ -16,6 +16,7 @@ public:
     string next_token();
 
     void open(const string &filename);
+    void put_back(const string& s);
 
 private:
     bool is_normal(char c);
@@ -23,6 +24,7 @@ private:
     bool is_useful(char c);
 
     char* buffer;
+    stack<string> buf;
     int position;     // now position
     int length;       // file size
 };

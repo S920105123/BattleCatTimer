@@ -8,6 +8,7 @@ GCCINCLUDE += -Isrc/spef/
 GCCINCLUDE += -Isrc/verilog/
 GCCINCLUDE += -Isrc/liberty/
 GCCINCLUDE += -Isrc/graph/
+GCCINCLUDE += -Isrc/timer/
 
 GCCFLAG = g++ $(INCLUDEPATH) $(GCCINCLUDE) -std=c++14 -Wall
 
@@ -23,13 +24,16 @@ LIBERTY_SRC    += src/liberty/cell.cpp
 LIBERTY_SRC    += src/liberty/pin.cpp
 LIBERTY_SRC    += src/liberty/timing_arc.cpp
 LIBERTY_SRC    += src/liberty/timing_table.cpp
-DATA_SRC        = $(SPEF_SRC) $(VERILOG_SRC) $(LIBERTY_SRC)
 RCTREE_SRC      = src/graph/rc_tree.cpp
 GRAPH_SRC       = src/graph/graph.cpp
+TIMER_SRC       = src/timer/timer.cpp
+
+DATA_SRC        = $(SPEF_SRC) $(VERILOG_SRC) $(LIBERTY_SRC)
 
 HEADER_OBJECT   = logger.o debug.o func.o
 LIBERTY_OBJECT  = cell_lib.o lu_table_template.o pin.o timing_arc.o timing_table.o cell.o
 DATA_OBEJCT     = verilog.o spef.o $(LIBERTY_OBJECT)
+GRAPH_OBJECT    = graph.o rc_tree.o
 
 TEST_LOGGER:
 	$(GCCFLAG) $(LOGGER_SRC) -DTEST_LOGGER -o logger
@@ -91,9 +95,19 @@ file_reader.o: $(FILE_READER_SRC)
 rc_tree.o: $(RCTREE_SRC)
 	$(GCCFLAG) -c $(RCTREE_SRC) -o rc_tree.o
 
-main: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) rc_tree.o
+timer.o: $(TIMER_SRC)
+	$(GCCFLAG) -c $(TIMER_SRC) -o timer.o
+
+graph.o: $(GRAPH_SRC)
+	$(GCCFLAG) -c $(GRAPH_SRC) -o graph.o
+
+test_main: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) rc_tree.o
 	$(GCCFLAG) $(HEADER_OBJECT) $(DATA_OBEJCT) rc_tree.o file_reader.o test_main.cpp  -o main
 	main.exe
+
+main: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) rc_tree.o graph.o timer.o
+	$(GCCFLAG) $(HEADER_OBJECT) $(DATA_OBEJCT) rc_tree.o file_reader.o graph.o timer.o main.cpp  -o main
+	main simple/simple.tau2015 simple/simple.timing simple/simple.ops simple/myoutput
 
 clean:
 	del *.o

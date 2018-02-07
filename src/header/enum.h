@@ -42,4 +42,4 @@ enum Mode {
 	LATE
 };
 
-#endif
+#endif /* end ENUM_H */

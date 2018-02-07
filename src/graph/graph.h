@@ -17,29 +17,31 @@ const string OUTPUT_PREFIX = "primary_out";
 class Graph {
 
 public:
-	
+
 	struct Node {
 		bool exist;
 		int index;
 		string name;
 		RCTree *tree;
-		float at[2][2];   // Arrival time. e.g, at[EARLY][RISE]
-		float rat[2][2];  // Required arrival time.
+		
+		float at[2][2];  // Arrival time. e.g, at[EARLY][RISE]
+		float rat[2][2]; // Required arrival time.
 		float slew[2][2];
+		float slack[2][2];
 		
 		Node(int index, const string& name);
 	};
-	
+
 	struct Edge {
 		// If "type"==IN_CELL, refer "arcs" for delay, "tree" otherwise.
 		Edge_type type;
 		int from ,to;
 		RCTree *tree;
 		vector<TimingArc*> arcs[2];
-		
+
 		Edge(int src, int dest, Edge_type type);
 	};
-	
+
 	struct Wire_mapping {
 		int src;
 		vector<int> sinks;
@@ -60,8 +62,30 @@ public:
 	bool in_graph(const string &name) const;           // Check whether a node with "name" in graph (name: <cell_name>:<pin_name>)
 	void set_at(const string &pin_name, float early_at[2], float late_at[2]); // Set arrival time of given pin, only primary input is allowed to be set by this function
 	void set_rat(const string &pin_name, float early_rat[2], float late_rat[2]);    // Only primary output can be set by this function
-	int add_node(const string &name);
+	void set_at(const string &pin_name, Mode mode, Transition_Type transition, float val);
+	void set_rat(const string &pin_name, Mode mode, Transition_Type transition, float val);
+	void set_slew(const string &pin_name, Mode mode, Transition_Type transition, float val);
+	void set_slew(const string &pin_name, float early_rat[2], float late_rat[2]);
 	
+	float get_at(const string &pin_name, Mode mode, Transition_Type transition);
+	float get_rat(const string &pin_name, Mode mode, Transition_Type transition);
+	float get_slew(const string &pin_name, Mode mode, Transition_Type transition);
+	float get_slack(const string &pin_name, Mode mode, Transition_Type transition);
+	/* unimplement */
+	void set_load(const string& pin_name, float cap);
+	void set_clock(const string& pin_name,float period, float low);
+	void report_worst_paths(const string& pin, int num_path);
+	void disconnect_pin(const string& pin);
+	void connect_pin(const string& pin, const string& net);
+	void remove_net(const string& net);
+	void update_spef(const string& filename);
+	void remove_gate(const string& inst_name);
+	void insert_net(const string& net_name);
+	void insert_gate(const string& inst_name, const string& cell_type);
+	void repower_gate(const string& inst_name, const string& cell_type);
+
+	int add_node(const string &name);
+
 	// Edge related
 	const vector< unordered_map<int, Edge*> >& adj_list() const;      // Return adjacency list
 	const vector< unordered_map<int, Edge*> >& rev_adj_list() const;  // Return reverse adjacency list
@@ -72,13 +96,14 @@ public:
 	
 	// Wire related
 	Wire_mapping* get_wire_mapping(const string &wire_name) const;
-	
+
 	// Graph related
 	void build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_lib); // Build this graph from a verilog file.
 	void calculate_at(Mode mode);
 	
 private:
 	int next_id;
+	int clock_T;								 // clock period
 	unordered_map<string,int> trans;             // Transform name to index.
 	vector<Node> nodes;                          // nodes[i]: Node with index i.
 	vector< unordered_map<int, Edge*> > adj;     // Adjacency list of all nodes.
