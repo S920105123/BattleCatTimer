@@ -36,7 +36,7 @@ DATA_OBEJCT     = verilog.o spef.o $(LIBERTY_OBJECT)
 GRAPH_OBJECT    = graph.o rc_tree.o
 
 TEST_LOGGER:
-	$(GCCFLAG) $(LOGGER_SRC) -DTEST_LOGGER -o logger
+	$(GCCFLAG) src/debug/logger.cpp -DTEST_LOGGER -o logger
 	logger.exe
 
 TEST_DEBUG :

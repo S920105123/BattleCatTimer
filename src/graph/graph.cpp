@@ -252,18 +252,18 @@ void Graph::add_arc(int src, int dest, TimingArc *arc, Mode mode) {
 void Graph::add_constraint(int src, int dest, TimingArc *arc, Mode mode) {
 	this->constraints.emplace_back(src, dest, arc, mode);
 
-	LOG(CERR) << "A constraint built from " << this->get_name(src)<< " to " << this->get_name(dest);
-	if (mode == EARLY) {
-		LOG(CERR) << " (Hold).\n";
-	} else {
-		LOG(CERR) << " (Setup).\n";
-	}
+//	LOG(CERR) << "A constraint built from " << this->get_name(src)<< " to " << this->get_name(dest);
+//	if (mode == EARLY) {
+//		LOG(CERR) << " (Hold).\n";
+//	} else {
+//		LOG(CERR) << " (Setup).\n";
+//	}
 }
 
-Graph::Constraint::Constraint(int src, int sink, TimingArc *arc, Mode mode) {
+Graph::Constraint::Constraint(int from, int to, TimingArc *arc, Mode mode) {
 	ASSERT(arc->is_constraint());
-	this->src  = src;
-	this->sink = sink;
+	this->from = from;
+	this->to   = to;
 	this->arc  = arc;
 	this->mode = mode;
 }
@@ -326,7 +326,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 				ASSERT(mapping->src == -1);
 				mapping->src = sink;
 			} else {
-				// Check for constraint edges (early)
+				// Check for constraint edges
 				int sink = this->get_index( cell_pin_concat(cell_name, pin_name) );
 				for (int mode=EARLY; mode<=LATE; mode++) {
 					vector<TimingArc*> *arcs = lib_arr[mode]->get_pin_total_TimingArc(cell_type, pin_name);
@@ -409,18 +409,24 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 	}
 }
 
+// --------------------------------------------------------------------
+// ----------------- Dynamic Programming Fiesta !! --------------------
+// ---------------- Show your love for DP to pass ---------------------
+// --------------------------------------------------------------------
+
+//  ------------------ Arrival time calculation -----------------------
+
 void Graph::at_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 	/* Use "from" update "to" through "arc" */
 	Node &node_from = this->nodes[from], &node_to = this->nodes[to];
-	Transition_Type types[] = {RISE, FALL};
+	
 	for (int i=0; i<2; i++) {
 		for (int j=0; j<2; j++) {
-			Transition_Type type_from = types[i], type_to = types[j];
+			Transition_Type type_from = TYPES[i], type_to = TYPES[j];
 			// No ++ in Transition_Type
 			if (!arc->is_transition_defined(type_from, type_to)) continue;
 			float cap_load = node_to.tree->get_downstream(mode, node_to.name);
 			float input_slew = node_from.slew[mode][type_from];
-
 			/* Try to update at */
 			if (node_from.at[mode][type_from] != UNDEFINED_AT[mode]) {
 				float delay = arc->get_delay(type_from, type_to, input_slew, cap_load);
@@ -431,7 +437,7 @@ void Graph::at_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 					at = new_at;
 				}
 			}
-
+	
 			/* Try to update slew */
 			if (input_slew != UNDEFINED_SLEW[mode]) {
 				float new_slew = arc->get_slew(type_from, type_to, input_slew, cap_load);
@@ -445,69 +451,208 @@ void Graph::at_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 	}
 }
 
-void Graph::at_update(Edge *eptr, Mode mode) {
+void Graph::at_update(Edge *eptr) {
 	/* Use eptr->from to relax eptr->to */
 	int from = eptr->from, to = eptr->to;
 	if (eptr->type == IN_CELL) {
 		/* Update from in-cell timing arc */
-		for (TimingArc *arc : eptr->arcs[mode]) {
-			at_arc_update(from, to, arc, mode);
+		for (int i=0; i<2; i++) {
+			Mode mode = MODES[i];
+			for (TimingArc *arc : eptr->arcs[mode]) {
+				at_arc_update(from, to, arc, mode);
+			}
 		}
 	}
 	else {
 		/* Update from RC tree */
 		Node &node_from = this->nodes[from], &node_to = this->nodes[to];
-		float delay = eptr->tree->get_delay(mode, node_to.name);
-		Transition_Type types[] = {RISE, FALL};
-		// for (Transition_Type type=RISE; type!=FALL; type=FALL) {
+
 		for (int i=0; i<2; i++) {
-			Transition_Type type = types[i];
-			float new_slew = eptr->tree->get_slew(mode, node_to.name, node_from.slew[mode][type]);
-			if (node_from.slew[mode][type] != UNDEFINED_SLEW[mode]) {
-				float &slew = node_to.slew[mode][type];
-				if ( slew == UNDEFINED_SLEW[mode] || slew_worse_than(new_slew, slew, mode) ) {
-					// Always choose worst slew
-					slew = new_slew;
+			Mode mode = MODES[i];  // No + operator for Mode nor Transition_type
+			float delay = eptr->tree->get_delay(mode, node_to.name);
+			for (int j=0; j<2; j++) {
+				Transition_Type type = TYPES[j];
+				float new_slew = eptr->tree->get_slew(mode, node_to.name, node_from.slew[mode][type]);
+				if (node_from.slew[mode][type] != UNDEFINED_SLEW[mode]) {
+					float &slew = node_to.slew[mode][type];
+					if ( slew == UNDEFINED_SLEW[mode] || slew_worse_than(new_slew, slew, mode) ) {
+						// Always choose worst slew
+						slew = new_slew;
+					}
 				}
-			}
-			if (node_from.at[mode][type] != UNDEFINED_AT[mode]) {
-				float &at = node_to.at[mode][type], new_at = node_from.at[mode][type] + delay;
-				if ( at == UNDEFINED_AT[mode] || at_worse_than(new_at, at, mode) ) {
-					// Always choose worst at
-					at = new_at;
+				if (node_from.at[mode][type] != UNDEFINED_AT[mode]) {
+					float &at = node_to.at[mode][type], new_at = node_from.at[mode][type] + delay;
+					if ( at == UNDEFINED_AT[mode] || at_worse_than(new_at, at, mode) ) {
+						// Always choose worst at
+						at = new_at;
+					}
 				}
 			}
 		}
 	}
 }
 
-void Graph::at_dfs(int index, Mode mode, vector<bool> &visit) {
-	/* Top-down DP structrue */
+void Graph::at_dfs(int index, vector<bool> &visit) {
+	// Top-down DP structrue 
+	// Assuming slew and at are both ready after calling this function
+	
 	for (const auto &adj_pair : this->rev_adj[index]) {
 		Edge *eptr = adj_pair.second;
 		int from = eptr->from, to = eptr->to;
 		ASSERT(to == index);
 		if (!visit[from]) {
 			visit[from] = true;
-			at_dfs(from, mode, visit);
+			at_dfs(from, visit);
 		}
-		this->at_update(eptr, mode);
+		this->at_update(eptr);
 	}
-	LOG(CERR) << get_name(index) << " " << get_mode_string(mode) << " "
-	 << nodes[index].at[mode][RISE] << " " <<  nodes[index].at[mode][FALL] << " "
-	 << nodes[index].slew[mode][RISE] << " " <<  nodes[index].slew[mode][FALL] << endl;
+//	LOG(CERR) << get_name(index) << " " << get_mode_string(mode) << " "
+//	 << nodes[index].at[mode][RISE] << " " <<  nodes[index].at[mode][FALL] << " "
+//	 << nodes[index].slew[mode][RISE] << " " <<  nodes[index].slew[mode][FALL] << endl;
 	// LOG(CERR) << "at rise: " << nodes[index].at[mode][RISE] << " " <<  "at fall: " << nodes[index].at[mode][LATE] << " " << endl;
 	// LOG(CERR) << "slew rise: " << nodes[index].slew[mode][RISE] << " " <<  "slew fall: " << nodes[index].slew[mode][LATE] << " " << endl << endl;
 }
 
-void Graph::calculate_at(Mode mode) {
+void Graph::calculate_at() {
 	/* Calculate arrival times and slews of all the vertices in this graph */
 	vector<bool> visit(this->nodes.size());
 	std::fill(visit.begin(), visit.end(), false);
 	for (int i=0; i<(int)this->nodes.size(); i++) {
 		if (!visit[i]) {
 			visit[i] = true;
-			at_dfs(i, mode, visit);
+			this->at_dfs(i, visit);
+		}
+	}
+}
+
+// ---------------- Required Arrival Time Calculation -------------------------
+
+void Graph::rat_arc_update(int from, int to, TimingArc *arc, Mode mode) {
+	/* Use "to" update "from" through "arc" */
+	Node &node_from = this->nodes[from], &node_to = this->nodes[to];
+	
+	for (int i=0; i<2; i++) {
+		for (int j=0; j<2; j++) {
+			Transition_Type type_from = TYPES[i], type_to = TYPES[j];
+			// No ++ in Transition_Type
+			if (!arc->is_transition_defined(type_from, type_to)) continue;
+			float cap_load = node_to.tree->get_downstream(mode, node_to.name);
+			float input_slew = node_from.slew[mode][type_from];
+			/* Try to update rat */
+			if (node_to.rat[mode][type_from] != UNDEFINED_RAT[mode]) {
+				float delay = arc->get_delay(type_from, type_to, input_slew, cap_load);
+				float new_rat = node_to.rat[mode][type_to] - delay;
+				float &rat = node_from.rat[mode][type_from];
+				if (rat == UNDEFINED_RAT[mode] || rat_worse_than(new_rat, rat, mode)) {
+					// Always choose worst rat.
+					rat = new_rat;
+				}
+			}
+		}
+	}
+}
+
+void Graph::rat_update(Edge *eptr) {
+	// IMPORTANT. Use eptr->to to relax eptr->from
+	int from = eptr->from, to = eptr->to;
+	if (eptr->type == IN_CELL) {
+		/* Update from in-cell timing arc */
+		for (int i=0; i<2; i++) {
+			Mode mode = MODES[i];
+			for (TimingArc *arc : eptr->arcs[mode]) {
+				rat_arc_update(from, to, arc, mode);
+			}
+		}
+	}
+	else {
+		/* Update from RC tree */
+		Node &node_from = this->nodes[from], &node_to = this->nodes[to];
+
+		for (int i=0; i<2; i++) {
+			Mode mode = MODES[i];  // No + operator for Mode nor Transition_type
+			float delay = eptr->tree->get_delay(mode, node_to.name);
+			for (int j=0; j<2; j++) {
+				Transition_Type type = TYPES[j];
+				if (node_to.rat[mode][type] != UNDEFINED_RAT[mode]) {
+					float &rat = node_from.rat[mode][type], new_rat = node_to.rat[mode][type] - delay;
+					if ( rat == UNDEFINED_RAT[mode] || rat_worse_than(new_rat, rat, mode) ) {
+						// Always choose worst rat
+						rat = new_rat;
+					}
+				}
+			}
+		}
+	}
+}
+
+void Graph::rat_dfs(int index, vector<bool> &visit) {
+	// This function defines top-down DP structure for rat calculation.
+	// IMPORTANT. It assumes at, slew of all vertices are ready before called
+	// And rat of target vertex (indicated by index) will be ready after this function return.
+	for (const auto &adj_pair : this->adj[index]) {
+		Edge *eptr = adj_pair.second;
+		int from = eptr->from, to = eptr->to;
+		ASSERT(from == index);
+		if (!visit[to]) {
+			visit[to] = true;
+			rat_dfs(to, visit);
+		}
+		this->rat_update(eptr);
+	}
+	
+	Node &nd = nodes[index];
+	for (int i=0; i<2; i++) {
+		Transition_Type type  = TYPES[i];
+		nd.slack[EARLY][type] = nd.at[EARLY][type] - nd.rat[EARLY][type];
+		nd.slack[LATE ][type] = nd.rat[LATE][type] - nd.at[LATE][type];
+	}
+}
+
+void Graph::init_rat_from_constraint() {
+	// As its name, initialize rat from constraint
+	// For each constraint timing arc, it defines how a clock imposes constraint to a data pin
+	//     - rat-early (hold) = at(CLK,late) + hold
+	//     - rat-late (setup) = T + at(CLK,early) - setup
+	// Sounds reasonable
+	
+	for (auto it = this->constraints.begin(); it != this->constraints.end(); ++it) {
+		const Constraint &cons = *it;
+		ASSERT(cons.arc->is_constraint());
+		
+		for (int i=0; i<2; i++) {
+			for (int j=0; j<2; j++) {
+				// A timing arc defines how a clock pin imposes constraint to an data pin
+				Node &clk = this->nodes[cons.from], &data_pin = this->nodes[cons.to];
+				Transition_Type type_clk = TYPES[i], type_data = TYPES[j];
+				Mode mode = cons.mode;
+				if (!cons.arc->is_transition_defined(type_clk, type_data)) continue; // This also checks what clock edge to be used
+
+				float delay = cons.arc->get_constraint(type_clk, type_data, clk.slew[mode][type_clk], data_pin.slew[mode][type_data]);
+				if (mode == EARLY) {
+					data_pin.rat[EARLY][type_data] = clk.at[LATE][type_clk] + delay;
+				} else {
+					data_pin.rat[LATE][type_data] = this->clock_T + clk.at[EARLY][type_clk] - delay;
+				}
+			}
+		}
+	}
+}
+
+void Graph::calculate_rat() {
+	// Calculate arrival times and slews of all the vertices in this graph
+	// You MUST call calculate_at before calling calculate_rat function.
+	// That is, required arrival time requires arrival time to be calculated first.
+	
+	/* Set the value of basic case in DP */
+	this->init_rat_from_constraint();
+	
+	/* DFS each point if it hasn't been visited */
+	vector<bool> visit(this->nodes.size());
+	std::fill(visit.begin(), visit.end(), false);
+	for (int i=0; i<(int)this->nodes.size(); i++) {
+		if (!visit[i]) {
+			visit[i] = true;
+			this->rat_dfs(i, visit);
 		}
 	}
 }

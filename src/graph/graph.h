@@ -52,9 +52,9 @@ public:
 
 	struct Constraint {
 		Mode mode;
-		int src, sink;
+		int from, to;
 		TimingArc *arc;
-		Constraint(int src, int sink, TimingArc *arc, Mode mode);
+		Constraint(int from, int to, TimingArc *arc, Mode mode);
 	};
 
 	// Node related
@@ -73,7 +73,8 @@ public:
 	float get_rat(const string &pin_name, Mode mode, Transition_Type transition);
 	float get_slew(const string &pin_name, Mode mode, Transition_Type transition);
 	float get_slack(const string &pin_name, Mode mode, Transition_Type transition);
-	/* unimplement */
+	
+	/* unimplemented */
 	void set_load(const string& pin_name, float cap);
 	void set_clock(const string& pin_name,float period, float low);
 	void report_worst_paths(const string& pin, int num_path);
@@ -101,7 +102,10 @@ public:
 
 	// Graph related
 	void build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_lib); // Build this graph from a verilog file.
-	void calculate_at(Mode mode);
+	void calculate_at();   // Calculate arrival time of all vertices in the graph
+	void calculate_rat();  // Calculate required arrival time of all vertices.
+	                       // You MUST call calculate_at before calling calculate_rat function.
+	                       // That is, required arrival time requires arrival time to be calculated first.
 
 private:
 	int next_id;
@@ -117,8 +121,12 @@ private:
 
 	// Graph related
 	void at_arc_update(int from, int to, TimingArc *arc, Mode mode);
-	void at_update(Edge *eptr, Mode mode);
-	void at_dfs(int index, Mode mode, vector<bool> &visit);
+	void at_update(Edge *eptr);
+	void at_dfs(int index, vector<bool> &visit);
+	void rat_arc_update(int from, int to, TimingArc *arc, Mode mode);
+	void rat_update(Edge *eptr);
+	void rat_dfs(int index, vector<bool> &visit);
+	void init_rat_from_constraint();
 
 	// "wire_mapping":
 	// key  = wire name

@@ -58,4 +58,7 @@ const float UNDEFINED_SLEW[2] = { 987654.0 , -987654.0 };  // Early/late
 const float UNDEFINED_RAT[2]  = { -987654.0, 987654.0  };  // Early/late
 const float UNDEFINED_AT[2]   = { 987654.0 , -987654.0 };  // Early/late
 
+const Transition_Type TYPES[2] = { RISE, FALL };
+const Mode MODES[2] = { EARLY, LATE };
+
 #endif /* end HEADER_H */

@@ -22,7 +22,7 @@ public:
 	template <class T>
 	Logger& operator<<(const T &to_log) {
 		if (on) {
-			(*cur_stream) << to_log;
+			(*cur_stream) << to_log << std::flush;
 		}
 		return *this;
 	}
