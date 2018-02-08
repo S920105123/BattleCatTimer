@@ -39,6 +39,8 @@ void RCTree::build_tree(){
             if(root!=-1) LOG(ERROR) << "[RC_Tree][build_tree] net = "
                             << spefnet->get_name() << " can't get root" << endl;
             root = spefnet->get_pin_id(name);
+            // don't add cap of root pin
+            continue;
         }
         if(type=="P") continue;
 
@@ -162,8 +164,8 @@ int main()
     Spef* spef = new Spef();
     Verilog* verilog = new Verilog();
     CellLib* lib[2];
-    lib[EARLY] = new CellLib();
-    lib[LATE] = new CellLib();
+    lib[EARLY] = new CellLib(EARLY);
+    lib[LATE] = new CellLib(LATE);
 
     // string testcase[5] ={ "s1196", "systemcdes", "usb_funct", "vga_lcd"};
     // for(int i=0; i<4; i++){
@@ -186,10 +188,13 @@ int main()
     //
     // }
 
-    spef->open("simple/simple.spef");
-    verilog->open("simple/simple.v");
-    lib[EARLY]->open("simple/simple_Early.lib");
-    lib[LATE]->open("simple/simple_Late.lib");
+    string testcase ;
+    cout << "enter testcase: ";
+    cin >> testcase;
+    spef->open("testcase_v1.2/" + testcase + "/" + testcase + ".spef");
+    verilog->open("testcase_v1.2/" + testcase + "/" + testcase + ".v");
+    lib[EARLY]->open("testcase_v1.2/" + testcase + "/" + testcase + "_Early.lib");
+    lib[LATE]->open("testcase_v1.2/" + testcase + "/" + testcase + "_Late.lib");
     string name;
     cout << "enter net name or exit: ";
     while(cin>>name){
@@ -201,6 +206,8 @@ int main()
         }
         spef->print_net(name);
         RCTree rc(spefnet, verilog, lib);
+        rc.build_tree();
+        rc.cal();
         rc.print();
     }
     Logger::create()->~Logger();

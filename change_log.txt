@@ -103,8 +103,11 @@
 - at/slew is ok in simple testcase
 - modify Transition_Type order in enum.h
 
-2018/2/8: 
+2018/2/8:
 - What? previous commit at 2/9!? It is 2/8 10:19 right now!?
 - Logger now flush its stream after called
 - Rat calculation (Bug nest version)
 - Add a lot of really useless comment to decorate the code.
+
+2018/2/9: remove root of rc_tree pin capacitance from liberty, pass c17 at/rat/slew/slack
+- add testcase to ignore

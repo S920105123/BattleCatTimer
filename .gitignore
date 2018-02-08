@@ -6,3 +6,4 @@
 *.pch
 *.clang_complete
 .ycm_extra_conf.py
+testcase_v1.2/

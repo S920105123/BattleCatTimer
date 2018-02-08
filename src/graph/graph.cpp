@@ -419,7 +419,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 void Graph::at_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 	/* Use "from" update "to" through "arc" */
 	Node &node_from = this->nodes[from], &node_to = this->nodes[to];
-	
+
 	for (int i=0; i<2; i++) {
 		for (int j=0; j<2; j++) {
 			Transition_Type type_from = TYPES[i], type_to = TYPES[j];
@@ -437,7 +437,7 @@ void Graph::at_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 					at = new_at;
 				}
 			}
-	
+
 			/* Try to update slew */
 			if (input_slew != UNDEFINED_SLEW[mode]) {
 				float new_slew = arc->get_slew(type_from, type_to, input_slew, cap_load);
@@ -493,9 +493,9 @@ void Graph::at_update(Edge *eptr) {
 }
 
 void Graph::at_dfs(int index, vector<bool> &visit) {
-	// Top-down DP structrue 
+	// Top-down DP structrue
 	// Assuming slew and at are both ready after calling this function
-	
+
 	for (const auto &adj_pair : this->rev_adj[index]) {
 		Edge *eptr = adj_pair.second;
 		int from = eptr->from, to = eptr->to;
@@ -530,7 +530,7 @@ void Graph::calculate_at() {
 void Graph::rat_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 	/* Use "to" update "from" through "arc" */
 	Node &node_from = this->nodes[from], &node_to = this->nodes[to];
-	
+
 	for (int i=0; i<2; i++) {
 		for (int j=0; j<2; j++) {
 			Transition_Type type_from = TYPES[i], type_to = TYPES[j];
@@ -599,7 +599,7 @@ void Graph::rat_dfs(int index, vector<bool> &visit) {
 		}
 		this->rat_update(eptr);
 	}
-	
+
 	Node &nd = nodes[index];
 	for (int i=0; i<2; i++) {
 		Transition_Type type  = TYPES[i];
@@ -614,11 +614,11 @@ void Graph::init_rat_from_constraint() {
 	//     - rat-early (hold) = at(CLK,late) + hold
 	//     - rat-late (setup) = T + at(CLK,early) - setup
 	// Sounds reasonable
-	
+
 	for (auto it = this->constraints.begin(); it != this->constraints.end(); ++it) {
 		const Constraint &cons = *it;
 		ASSERT(cons.arc->is_constraint());
-		
+
 		for (int i=0; i<2; i++) {
 			for (int j=0; j<2; j++) {
 				// A timing arc defines how a clock pin imposes constraint to an data pin
@@ -642,10 +642,10 @@ void Graph::calculate_rat() {
 	// Calculate arrival times and slews of all the vertices in this graph
 	// You MUST call calculate_at before calling calculate_rat function.
 	// That is, required arrival time requires arrival time to be calculated first.
-	
+
 	/* Set the value of basic case in DP */
 	this->init_rat_from_constraint();
-	
+
 	/* DFS each point if it hasn't been visited */
 	vector<bool> visit(this->nodes.size());
 	std::fill(visit.begin(), visit.end(), false);

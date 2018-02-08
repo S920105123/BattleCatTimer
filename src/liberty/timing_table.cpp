@@ -52,10 +52,12 @@ int TimingTable::getValuesIndex(int i,int j){
 
 // idx: input_val : var1, idy: output_val : var2
 float TimingTable::get_value(float input_val,float output_val){
-    // if(values.size()==1 and index1.size()==0 and index2.size()==0) return values[0];
-    // LOG(CERR) << "input_val: " << input_val << ", output_val: " << output_val << endl;
-    // LOG(CERR) << "Using table: \n";
-    // print("  ");
+    #ifdef SHOW_TIMINGTABLE
+        if(values.size()==1 and index1.size()==0 and index2.size()==0) return values[0];
+        LOG(CERR) << "input_val: " << input_val << ", output_val: " << output_val << endl;
+        LOG(CERR) << "Using table: \n";
+        print("  ");
+    #endif
     if(label_name=="scalar") return values[0];
     LuTableTemplate* tu = cell_lib->get_table_template(label_name);
     /* INPUT_NET_TRANSITION(input_val) and TOTAL_OUTPUT_NET_CAP(output_val)  or
