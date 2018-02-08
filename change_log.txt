@@ -97,3 +97,8 @@
 - add_node: rev_adj
 - build: add tree->cal() here, but it should be called after read .timing( after `load` )
 - modify iterator Transition_Type in for loop(at_dfs, at_update)
+
+2018/2/9: set_load function at graph
+- add outpu_load in graph
+- at/slew is ok in simple testcase
+- modify Transition_Type order in enum.h

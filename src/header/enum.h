@@ -28,8 +28,8 @@ enum Timing_Type {
 };
 
 enum Transition_Type {
-    FALL = 0,
-    RISE
+    RISE = 0,
+    FALL
 };
 
 enum Direction_type {

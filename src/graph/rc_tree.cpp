@@ -68,6 +68,11 @@ void RCTree::build_tree(){
 
 void RCTree::cal(){
     ASSERT(root != -1);
+    for(size_t i=0; i<nodes.size(); i++){
+        nodes[i].delay[EARLY] = nodes[i].delay[LATE] = 0;
+        nodes[i].downstream[EARLY] = nodes[i].downstream[LATE] = 0;
+        nodes[i].impluse[EARLY] = nodes[i].impluse[LATE] = 0;
+    }
     cal_downstream(root, -1);
     cal_delay(root, -1);
     // cal_impluse(root, -1);
