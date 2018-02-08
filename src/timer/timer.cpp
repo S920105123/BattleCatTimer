@@ -20,10 +20,10 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
     output.open(output_file);
     open_timing(timing); // init graph
     LOG(CERR) << "graph init ok! \n";
-    LOG(CERR) << "graph calculate at early... ";
-    graph->calculate_at(EARLY);
-    LOG(CERR) << "ok! \ngraph calculate_at late... ";
-    graph->calculate_at(LATE);
+    LOG(CERR) << "graph calculate at... ";
+    graph->calculate_at();
+    LOG(CERR) << "ok! \ngraph calculate_rat... ";
+    graph->calculate_rat();
     LOG(CERR) << "ok! \nexecuting .ops\n";
     // graph->cal();
     open_ops(ops);
