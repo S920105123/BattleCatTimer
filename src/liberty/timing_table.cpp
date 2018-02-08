@@ -104,11 +104,11 @@ float TimingTable::liner_polation(float v1, float v2, float indx1, float indx2, 
     else if(x==indx2) return v2;
     else if(indx1<x and x<indx2) return v1 + (x-indx1)*(v2-v1)/(indx2-indx1);
     else if(x<indx1){
-        LOG(WARNING) << "[TimingTable][liner_polation] using extra polation.";
+        // LOG(WARNING) << "[TimingTable][liner_polation] using extra polation.";
         return v1 - (indx1-x)*(v2-v1)/(indx2-indx1);
     }
     else if(x>indx2){
-        LOG(WARNING) << "[TimingTable][liner_polation] using extra polation.";
+        // LOG(WARNING) << "[TimingTable][liner_polation] using extra polation.";
         return v2 + (x-indx2)*(v2-v1)/(indx2-indx1);
     }
     else ASSERT_NOT_REACHED();

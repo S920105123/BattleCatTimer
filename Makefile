@@ -108,6 +108,7 @@ test_main: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) rc_tree.o
 main: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) rc_tree.o graph.o timer.o
 	$(GCCFLAG) $(HEADER_OBJECT) $(DATA_OBEJCT) rc_tree.o file_reader.o graph.o timer.o main.cpp  -o main
 	main simple/simple.tau2015 simple/simple.timing simple/simple.ops simple/myoutput
+	# main testcase_v1.2/s1196/s1196.tau2015 testcase_v1.2/s1196/s1196.timing testcase_v1.2/s1196/s1196.ops testcase_v1.2/s1196/myoutput
 
 clean:
 	del *.o
