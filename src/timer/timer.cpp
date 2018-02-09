@@ -191,7 +191,7 @@ void Timer::open_ops(const string& ops){
                     through.emplace_back(RISE, pin);
                     through.emplace_back(FALL, pin);
                 }
-                else if(op=="-max_pahts") max_pahts = (int)stof(in.next_token());
+                else if(op=="-max_paths") max_pahts = (int)stof(in.next_token());
                 else if(op=="-nworst")   nworst = (int)stof(in.next_token());
                 else if(op[0]=='-'){
                     LOG(CERR) << "[Timer][open_ops] unknown parameter in report_timing: " << op << endl;

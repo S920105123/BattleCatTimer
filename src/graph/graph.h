@@ -9,12 +9,14 @@
 #include "cell_lib.h"
 #include "timing_arc.h"
 #include "rc_tree.h"
+#include "cppr.h"
 
 typedef enum { RC_TREE, IN_CELL } Edge_type;
 typedef enum { PRIMARY_IN, PRIMARY_OUT, INTERNAL} Node_type;
 const string INPUT_PREFIX  = "primary_in";
 const string OUTPUT_PREFIX = "primary_out";
 
+class CPPR;
 class Graph {
 
 public:
@@ -57,6 +59,8 @@ public:
 		Constraint(int from, int to, TimingArc *arc, Mode mode);
 	};
 
+	Graph();
+	~Graph();
 	// Node related
 	int get_index(const string &name);                 // "name" should follow this format: <Cell name>:<Pin name>, insert one if not found.
 	const string& get_name(int index) const;           // Get name from index.
@@ -109,8 +113,10 @@ public:
 	                       // You MUST call calculate_at before calling calculate_rat function.
 	                       // That is, required arrival time requires arrival time to be calculated first.
 
+	void init_graph();    // initial graph information,  call it after build a graph
 private:
 	int next_id;
+	int clock_id;
 	int clock_T;                                 // clock period from .timing
 	unordered_map<string, float> out_load;		 // out_load from .timing
 	unordered_map<string,int> trans;             // Transform name to index.
@@ -135,6 +141,9 @@ private:
 	// src  = output pin index (source pin)
 	// sink = vector of input pin index (sink pins)
 	unordered_map<string, Wire_mapping*> wire_mapping;
+	CPPR *cppr;
+
+	friend class CPPR;
 };
 
 #endif

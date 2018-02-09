@@ -149,6 +149,7 @@ void Graph::set_slew(const string &pin_name, float early_slew[2], float late_sle
 void Graph::set_clock(const string& pin_name,float period, float low){
 	LOG(CERR) << "set_clock " << pin_name << " " << period << " " << low << endl;
 	clock_T = period;
+	clock_id = get_index(pin_name);
 }
 
 void Graph::set_load(const string& pin_name, float cap){
@@ -285,6 +286,15 @@ Graph::Wire_mapping* Graph::get_wire_mapping(const string &wire_name) const {
 }
 
 // ------------------ Graph related ----------------------
+
+Graph::Graph(){
+	clock_id = -1;
+	cppr = NULL;
+}
+
+Graph::~Graph(){
+	if(cppr) delete cppr;
+}
 
 void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_lib) {
 	/* Build a graph via above list of terrible files */
@@ -655,6 +665,15 @@ void Graph::calculate_rat() {
 			this->rat_dfs(i, visit);
 		}
 	}
+}
+
+void Graph::init_graph(){
+	if(clock_id == -1){
+		LOG(ERROR) << "[Graph][init_graph] don't set clock pin\n";
+	}
+	cppr = new CPPR(this, clock_id);
+
+	cppr->build();
 }
 
 /* unimplement */
