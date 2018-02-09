@@ -16,6 +16,9 @@ public:
     void run(const string& tau, const string& timing, const string& ops, const string&output);
 
 private:
+    void clear_Timer();
+    void init_timer();
+
     void open_tau(const string& tau);
     void open_timing(const string& timing);
     void open_ops(const string& ops);

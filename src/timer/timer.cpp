@@ -2,11 +2,8 @@
 
 
 Timer::~Timer(){
-    if(verilog) delete verilog;
-    if(spef) delete spef;
-    if(lib[0]) delete lib[0];
-    if(lib[1]) delete lib[1];
-    if(graph) delete graph;
+
+    clear_Timer();
 
     Logger::create()->~Logger();
     output.close();
@@ -17,17 +14,27 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
     graph = new Graph();
     graph->build(*verilog, *spef, *lib[EARLY], *lib[LATE]);
 
+    open_timing(timing);
+
+    // init graph
+    init_timer();
+
     output.open(output_file);
-    open_timing(timing); // init graph
-    LOG(CERR) << "graph init ok! \n";
-    LOG(CERR) << "graph calculate at... ";
-    graph->calculate_at();
-    LOG(CERR) << "ok! \ngraph calculate_rat... ";
-    graph->calculate_rat();
-    LOG(CERR) << "ok! \nexecuting .ops\n";
-    // graph->cal();
     open_ops(ops);
-    LOG(CERR) << "ok!\nFinished!\n";
+    output.close();
+}
+
+void Timer::clear_Timer(){
+    if(verilog) delete verilog;
+    if(spef) delete spef;
+    if(lib[0]) delete lib[0];
+    if(lib[1]) delete lib[1];
+    if(graph) delete graph;
+}
+
+void Timer::init_timer(){
+    graph->calculate_at();
+    graph->calculate_rat();
 }
 
 void Timer::open_tau(const string& tau){
@@ -120,8 +127,8 @@ void Timer::open_timing(const string& timing){
 void Timer::read_pin_name(File_Reader& in, string &name){
     name = in.next_token();
     string tmp = in.next_token();
-    if(tmp==":"){
-        name += ':';
+    if(tmp==":" or tmp=="/"){
+        name += ":";
         name += in.next_token();
     }
     else in.put_back(tmp);
@@ -156,11 +163,48 @@ void Timer::open_ops(const string& ops){
     Mode mode;
     float val;
     int num_path;
+
     do{
         cmd = in.next_token();
         if(cmd=="") break;
+        /* tau 2018 */
+        if(cmd=="report_timing"){
+            string op, from, to, pin;
+            vector<pair<Transition_Type, string>> through;
+            int max_pahts = 1, nworst = 1;
+            from = "", to = "";
+            do{
+                op = in.next_token();
+                if(op=="") break;
+                if(op=="-from") read_pin_name(in, from);
+                else if(op=="-to") read_pin_name(in, to);
+                else if(op=="-rise_through"){
+                    read_pin_name(in, pin);
+                    through.emplace_back(RISE, pin);
+                }
+                else if(op=="-fall_through"){
+                    read_pin_name(in, pin);
+                    through.emplace_back(FALL, pin);
+                }
+                else if(op=="-through"){
+                    read_pin_name(in, pin);
+                    through.emplace_back(RISE, pin);
+                    through.emplace_back(FALL, pin);
+                }
+                else if(op=="-max_pahts") max_pahts = (int)stof(in.next_token());
+                else if(op=="-nworst")   nworst = (int)stof(in.next_token());
+                else if(op[0]=='-'){
+                    LOG(CERR) << "[Timer][open_ops] unknown parameter in report_timing: " << op << endl;
+                    output.close();
+                    my_exit();
+                }
+                else break;
+            }while(true);
+            if(op.size()) in.put_back(op);
+            graph->report_timing(from, through, to, max_pahts, nworst);
+        }
         /* Timing assertions */
-        if(cmd=="set_at"){
+        else if(cmd=="set_at"){
             read_timing_assertion_option(in, name, mode, transition, val);
             graph->set_at(name, mode, transition, val);
         }
