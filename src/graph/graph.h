@@ -20,7 +20,7 @@ class Graph {
 public:
 
 	struct Node {
-		bool exist;
+		bool exist, is_clock;
 		int index;
 		string name;
 		Node_type node_type;
@@ -127,6 +127,7 @@ private:
 	void rat_update(Edge *eptr);
 	void rat_dfs(int index, vector<bool> &visit);
 	void init_rat_from_constraint();
+	void rat_relax(float &target, float new_rat, Mode mode);
 
 	// "wire_mapping":
 	// key  = wire name

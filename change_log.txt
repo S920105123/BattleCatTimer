@@ -111,3 +111,7 @@
 
 2018/2/9: remove root of rc_tree pin capacitance from liberty, pass c17 at/rat/slew/slack
 - add testcase to ignore
+
+2018/2/9: Simple AC and is_clock checking
+- Pass simple testcase
+- Node now store whether it is clock
