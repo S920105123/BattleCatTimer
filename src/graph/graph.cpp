@@ -3,11 +3,12 @@
 // ------------------ Node related ----------------------
 
 Graph::Node::Node(int index, const string &name, Node_type type) {
-	this->exist = true;
-	this->name  = name;
-	this->index = index;
-	this->tree  = NULL;
-	node_type   = type;
+	this->exist     = true;
+	this->name      = name;
+	this->index     = index;
+	this->tree      = NULL;
+	this->node_type = type;
+	this->is_clock  = false; // Assume it is false at first, manually set later.
 
 	// These undefined values is defined in header.h
 	this->slew[EARLY][RISE] = this->slew[EARLY][FALL] = UNDEFINED_SLEW[EARLY];
@@ -28,6 +29,8 @@ int Graph::add_node(const string &name, Node_type type) {
 }
 
 int Graph::get_index(const string &name) {
+	// Get index of a cell:pin name
+	// If it is not exist, automatically add one
 	auto it = this->trans.find(name);
 	if (it == this->trans.end()) {
 		return this->add_node(name, INTERNAL);
@@ -338,6 +341,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 			} else {
 				// Check for constraint edges
 				int sink = this->get_index( cell_pin_concat(cell_name, pin_name) );
+				this->nodes[sink].is_clock = lib.get_pin_is_clock(cell_type, pin_name);
 				for (int mode=EARLY; mode<=LATE; mode++) {
 					vector<TimingArc*> *arcs = lib_arr[mode]->get_pin_total_TimingArc(cell_type, pin_name);
 					for (TimingArc *arc : *arcs) {
@@ -618,6 +622,12 @@ void Graph::rat_dfs(int index, vector<bool> &visit) {
 	}
 }
 
+void Graph::rat_relax(float &target, float new_rat, Mode mode) {
+	if (target == UNDEFINED_RAT[mode] || rat_worse_than(new_rat, target, mode)) {
+		target = new_rat;
+	}
+}
+
 void Graph::init_rat_from_constraint() {
 	// As its name, initialize rat from constraint
 	// For each constraint timing arc, it defines how a clock imposes constraint to a data pin
@@ -639,9 +649,21 @@ void Graph::init_rat_from_constraint() {
 
 				float delay = cons.arc->get_constraint(type_clk, type_data, clk.slew[mode][type_clk], data_pin.slew[mode][type_data]);
 				if (mode == EARLY) {
-					data_pin.rat[EARLY][type_data] = clk.at[LATE][type_clk] + delay;
+					// Hold test
+					float &data_rat = data_pin.rat[EARLY][type_data];
+					float &clk_rat = clk.rat[LATE][type_clk];
+					float new_data_rat = clk.at[LATE][type_clk] + delay;
+					float new_clk_rat = data_pin.at[EARLY][type_data] - delay;
+					rat_relax(data_rat, new_data_rat, EARLY);
+					rat_relax(clk_rat, new_clk_rat, LATE);
 				} else {
-					data_pin.rat[LATE][type_data] = this->clock_T + clk.at[EARLY][type_clk] - delay;
+					// Setup test
+					float &data_rat = data_pin.rat[LATE][type_data];
+					float &clk_rat = clk.rat[EARLY][type_clk];
+					float new_data_rat = this->clock_T + clk.at[EARLY][type_clk] - delay;
+					float new_clk_rat = data_pin.at[LATE][type_data] + delay - clock_T;
+					rat_relax(data_rat, new_data_rat, LATE);
+					rat_relax(clk_rat, new_clk_rat, EARLY);
 				}
 			}
 		}
