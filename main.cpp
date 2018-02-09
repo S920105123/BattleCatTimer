@@ -19,6 +19,5 @@ int main(){
     argv[4] = "testcase_v1.2/" + testcase + "/" + testcase + "myoutput";
     Timer timer;
     timer.run(string(argv[1]), string(argv[2]), string(argv[3]), string(argv[4]));
-    cout << "myoutput is under testcase_v1.2/" << testcase << endl;
-    cout << "88\n";
+    // cout << "myoutput is under testcase_v1.2/" << testcase << endl;
 }

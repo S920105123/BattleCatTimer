@@ -718,6 +718,23 @@ void Graph::repower_gate(const string& inst_name, const string& cell_type){
 }
 
 
+void Graph::report_timing(const string& from, vector<pair<Transition_Type, string>>& through,
+					const string& to, int max_paths, int nworst)
+{
+	LOG(CERR) << "report_timing " << "-from " << from << " ";
+	LOG(CERR) << "-to " << to << " ";
+	LOG(CERR) << "-max_pahts " << max_paths << " ";
+	LOG(CERR) << "-nworst " << nworst << " ";
+	for(auto i:through){
+		if(i.first==Transition_Type::FALL){
+			LOG(CERR) << "-fall_through " << i.second << " ";
+		}
+		if(i.first==Transition_Type::RISE){
+			LOG(CERR) << "-rise_through " << i.second << " ";
+		}
+	}
+	LOG(CERR) << endl;
+}
 
 // ------------ For Testing ----------------
 

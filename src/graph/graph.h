@@ -73,7 +73,7 @@ public:
 	float get_rat(const string &pin_name, Mode mode, Transition_Type transition);
 	float get_slew(const string &pin_name, Mode mode, Transition_Type transition);
 	float get_slack(const string &pin_name, Mode mode, Transition_Type transition);
-	
+
 	/* unimplemented */
 	void set_load(const string& pin_name, float cap);
 	void set_clock(const string& pin_name,float period, float low);
@@ -86,6 +86,8 @@ public:
 	void insert_net(const string& net_name);
 	void insert_gate(const string& inst_name, const string& cell_type);
 	void repower_gate(const string& inst_name, const string& cell_type);
+	void report_timing(const string& from, vector<pair<Transition_Type, string>>& through,
+					    const string& to, int max_pahts, int nworst);
 
 	int add_node(const string &name, Node_type type);
 
