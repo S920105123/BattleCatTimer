@@ -117,3 +117,7 @@
 2018/2/9: Simple AC and is_clock checking
 - Pass simple testcase
 - Node now store whether it is clock
+
+2018/2/12: Graph little change
+- launching clock of each node
+- Something I forgot

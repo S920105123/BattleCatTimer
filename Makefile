@@ -102,7 +102,7 @@ graph.o: $(GRAPH_SRC)
 	$(GCCFLAG) -c $(GRAPH_SRC) -o graph.o
 
 test_main: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) rc_tree.o
-	$(GCCFLAG) $(HEADER_OBJECT) $(DATA_OBEJCT) rc_tree.o file_reader.o test_main.cpp  -o main
+	$(GCCFLAG) $(HEADER_OBJECT) $(DATA_OBEJCT) rc_tree.o file_reader.o test_main.cpp  -o main 
 	main.exe
 
 main: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) rc_tree.o graph.o timer.o

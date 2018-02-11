@@ -30,6 +30,7 @@ public:
 		float rat[2][2]; // Required arrival time.
 		float slew[2][2];
 		float slack[2][2];
+		int launching_clk[2][2];
 
 		Node(int index, const string& name, Node_type type);
 	};
