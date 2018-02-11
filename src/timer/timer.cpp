@@ -33,8 +33,8 @@ void Timer::clear_Timer(){
 }
 
 void Timer::init_timer(){
-    graph->calculate_at();
-    graph->calculate_rat();
+    graph->init_graph();
+    // graph->print_graph();
 }
 
 void Timer::open_tau(const string& tau){
@@ -203,6 +203,24 @@ void Timer::open_ops(const string& ops){
             if(op.size()) in.put_back(op);
             graph->report_timing(from, through, to, max_pahts, nworst);
         }
+        else if(cmd=="report_cppr_credit"){
+            string pin1, pin2;
+            Transition_Type type1, type2;
+            mode = EARLY;
+            type1 = type2 = RISE;
+            do{
+                op = in.next_token();
+                if(op=="") break;
+                else if(op=="-pin1") read_pin_name(in, pin1);
+                else if(op=="-pin2") read_pin_name(in, pin2);
+                else if(op=="-fall1") type1 = FALL;
+                else if(op=="-fall2") type2 = FALL;
+                else if(op=="-late") mode = LATE;
+                else break;
+            }while(true);
+            if(op.size()) in.put_back(op);
+            output << std::fixed << std::setprecision(6) << graph->get_cppr_credit(pin1, pin2, type1, type2, mode) << endl;
+        }
         /* Timing assertions */
         else if(cmd=="set_at"){
             read_timing_assertion_option(in, name, mode, transition, val);
@@ -229,19 +247,19 @@ void Timer::open_ops(const string& ops){
         /* Timing queryies */
         else if(cmd=="report_at"){
             read_timing_assertion_option(in, name, mode, transition, val);
-            output << std::fixed << std::setprecision(3) << graph->get_at(name, mode, transition) << endl;
+            output << std::fixed << std::setprecision(6) << graph->get_at(name, mode, transition) << endl;
         }
         else if(cmd=="report_rat"){
             read_timing_assertion_option(in, name, mode, transition, val);
-            output << std::fixed << std::setprecision(3) << graph->get_rat(name, mode, transition) << endl;
+            output << std::fixed << std::setprecision(6) << graph->get_rat(name, mode, transition) << endl;
         }
         else if(cmd=="report_slack"){
             read_timing_assertion_option(in, name, mode, transition, val);
-            output << std::fixed << std::setprecision(3) << graph->get_slack(name, mode, transition) << endl;
+            output << std::fixed << std::setprecision(6) << graph->get_slack(name, mode, transition) << endl;
         }
         else if(cmd=="report_slew"){
             read_timing_assertion_option(in, name, mode, transition, val);
-            output << std::fixed << std::setprecision(3) << graph->get_slew(name, mode, transition) << endl;
+            output << std::fixed << std::setprecision(6) << graph->get_slew(name, mode, transition) << endl;
         }
         else if(cmd=="report_worst_paths"){
             name = "";

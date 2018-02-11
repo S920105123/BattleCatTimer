@@ -77,6 +77,7 @@ public:
 	float get_rat(const string &pin_name, Mode mode, Transition_Type transition);
 	float get_slew(const string &pin_name, Mode mode, Transition_Type transition);
 	float get_slack(const string &pin_name, Mode mode, Transition_Type transition);
+	float get_cppr_credit(const string& pin1, const string& pin2, Transition_Type type1, Transition_Type typ2, Mode mode);
 
 	/* unimplemented */
 	void set_load(const string& pin_name, float cap);
@@ -114,6 +115,7 @@ public:
 	                       // That is, required arrival time requires arrival time to be calculated first.
 
 	void init_graph();    // initial graph information,  call it after build a graph
+	void print_graph();
 private:
 	int next_id;
 	int clock_id;

@@ -58,8 +58,8 @@ const string& Graph::get_name(int index) const {
 }
 
 void Graph::set_at(const string &pin_name, float early_at[], float late_at[]) {
-	LOG(CERR) << "set_at(timing) " << pin_name << " " << early_at[RISE] << " " << early_at[FALL]
-	<< " " << late_at[RISE] << " " << late_at[FALL] << early_at << " " << late_at << endl;
+	// LOG(CERR) << "set_at(timing) " << pin_name << " " << early_at[RISE] << " " << early_at[FALL]
+	// << " " << late_at[RISE] << " " << late_at[FALL] << endl;
 	// string handle = cell_pin_concat( INPUT_PREFIX, pin_name );
 	string handle = pin_name;
 	if (!in_graph(handle)) {
@@ -74,8 +74,8 @@ void Graph::set_at(const string &pin_name, float early_at[], float late_at[]) {
 }
 
 void Graph::set_rat(const string &pin_name, float early_rat[2], float late_rat[2]) {
-	LOG(CERR) << "set_rat " << pin_name << " " << early_rat[RISE] << " " << early_rat[LATE]
-	<< " " << late_rat[RISE] << " " << late_rat[LATE] << endl;
+	// LOG(CERR) << "set_rat " << pin_name << " " << early_rat[RISE] << " " << early_rat[LATE]
+	// << " " << late_rat[RISE] << " " << late_rat[LATE] << endl;
 
 	// string handle = cell_pin_concat( OUTPUT_PREFIX, pin_name );
 	string handle = pin_name;
@@ -91,8 +91,8 @@ void Graph::set_rat(const string &pin_name, float early_rat[2], float late_rat[2
 }
 
 void Graph::set_at(const string &pin_name, Mode mode, Transition_Type transition, float val){
-	LOG(CERR) << "set_at " << pin_name << " " << get_mode_string(mode) << " "
-	<< get_transition_string(transition) << " " << val << endl;
+	// LOG(CERR) << "set_at " << pin_name << " " << get_mode_string(mode) << " "
+	// << get_transition_string(transition) << " " << val << endl;
 
 	// string handle = cell_pin_concat( INPUT_PREFIX, pin_name );
 	string handle = pin_name;
@@ -105,8 +105,8 @@ void Graph::set_at(const string &pin_name, Mode mode, Transition_Type transition
 }
 
 void Graph::set_rat(const string &pin_name, Mode mode, Transition_Type transition, float val){
-	LOG(CERR) << "set_rat " << pin_name << " " << get_mode_string(mode) << " "
-	<< get_transition_string(transition) << " " << val << endl;
+	// LOG(CERR) << "set_rat " << pin_name << " " << get_mode_string(mode) << " "
+	// << get_transition_string(transition) << " " << val << endl;
 
 	// string handle = cell_pin_concat( OUTPUT_PREFIX, pin_name );
 	string handle = pin_name;
@@ -119,8 +119,8 @@ void Graph::set_rat(const string &pin_name, Mode mode, Transition_Type transitio
 }
 
 void Graph::set_slew(const string &pin_name, Mode mode, Transition_Type transition, float val){
-	LOG(CERR) << "set_slew " << pin_name << " " << get_mode_string(mode) << " "
-	<< get_transition_string(transition) << " " << val << endl;
+	// LOG(CERR) << "set_slew " << pin_name << " " << get_mode_string(mode) << " "
+	// << get_transition_string(transition) << " " << val << endl;
 
 	// string handle = cell_pin_concat( INPUT_PREFIX, pin_name );
 	string handle = pin_name;
@@ -133,8 +133,8 @@ void Graph::set_slew(const string &pin_name, Mode mode, Transition_Type transiti
 }
 
 void Graph::set_slew(const string &pin_name, float early_slew[2], float late_slew[2]){
-	LOG(CERR) << "set_slew " << pin_name << " " << early_slew[RISE] << " " << early_slew[FALL]
-	<< " " << late_slew[RISE] << " " << late_slew[FALL] << endl;
+	// LOG(CERR) << "set_slew " << pin_name << " " << early_slew[RISE] << " " << early_slew[FALL]
+	// << " " << late_slew[RISE] << " " << late_slew[FALL] << endl;
 
 	// string handle = cell_pin_concat( INPUT_PREFIX, pin_name );
 	string handle = pin_name;
@@ -150,13 +150,15 @@ void Graph::set_slew(const string &pin_name, float early_slew[2], float late_sle
 }
 
 void Graph::set_clock(const string& pin_name,float period, float low){
-	LOG(CERR) << "set_clock " << pin_name << " " << period << " " << low << endl;
+	// LOG(CERR) << "set_clock " << pin_name << " " << period << " " << low << endl;
+
 	clock_T = period;
 	clock_id = get_index(pin_name);
 }
 
 void Graph::set_load(const string& pin_name, float cap){
-	LOG(CERR) << "set_load " << pin_name << " " << cap << endl;
+	// LOG(CERR) << "set_load " << pin_name << " " << cap << endl;
+
 	int id = get_index(pin_name);
 	if(!in_graph(id)){
 		LOG(CERR) << "[Graph][set_load] no such pin: " << pin_name << endl;
@@ -169,8 +171,8 @@ void Graph::set_load(const string& pin_name, float cap){
 }
 
 float Graph::get_at(const string &pin_name, Mode mode, Transition_Type transition){
-	LOG(CERR) << "report_at " << pin_name << " " << get_mode_string(mode) << " " <<
-	get_transition_string(transition) << endl;
+	// LOG(CERR) << "report_at " << pin_name << " " << get_mode_string(mode) << " " <<
+	// get_transition_string(transition) << endl;
 
 	if (!in_graph(pin_name)){
 		LOG(WARNING) << "[Graph][get_at] pin no exist , pin: " << pin_name << endl;
@@ -181,8 +183,8 @@ float Graph::get_at(const string &pin_name, Mode mode, Transition_Type transitio
 }
 
 float Graph::get_rat(const string &pin_name, Mode mode, Transition_Type transition){
-	LOG(CERR) << "report_rat " << pin_name << " " << get_mode_string(mode) << " " <<
-	get_transition_string(transition) << endl;
+	// LOG(CERR) << "report_rat " << pin_name << " " << get_mode_string(mode) << " " <<
+	// get_transition_string(transition) << endl;
 
 	if (!in_graph(pin_name)){
 		LOG(WARNING) << "[Graph][get_rat] pin no exist , pin: " << pin_name << endl;
@@ -193,8 +195,8 @@ float Graph::get_rat(const string &pin_name, Mode mode, Transition_Type transiti
 }
 
 float Graph::get_slew(const string &pin_name, Mode mode, Transition_Type transition){
-	LOG(CERR) << "report_slew " << pin_name << " " << get_mode_string(mode) << " " <<
-	get_transition_string(transition) << endl;
+	// LOG(CERR) << "report_slew " << pin_name << " " << get_mode_string(mode) << " " <<
+	// get_transition_string(transition) << endl;
 
 	if (!in_graph(pin_name)){
 		LOG(WARNING) << "[Graph][get_slew] pin no exist , pin: " << pin_name << endl;
@@ -205,8 +207,8 @@ float Graph::get_slew(const string &pin_name, Mode mode, Transition_Type transit
 }
 
 float Graph::get_slack(const string &pin_name, Mode mode, Transition_Type transition){
-	LOG(CERR) << "report_slack " << pin_name << " " << get_mode_string(mode) << " " <<
-	get_transition_string(transition) << endl;
+	// LOG(CERR) << "report_slack " << pin_name << " " << get_mode_string(mode) << " " <<
+	// get_transition_string(transition) << endl;
 
 	if (!in_graph(pin_name)){
 		LOG(WARNING) << "[Graph][get_slack] pin no exist , pin: " << pin_name << endl;
@@ -214,6 +216,12 @@ float Graph::get_slack(const string &pin_name, Mode mode, Transition_Type transi
 	}
 	int index = this->get_index(pin_name);
 	return this->nodes[index].slack[mode][transition];
+}
+
+float Graph::get_cppr_credit(const string& pin1, const string& pin2, Transition_Type type1, Transition_Type type2, Mode mode){
+	int id1 = get_index(pin1);
+	int id2 = get_index(pin2);
+	return cppr->cppr_credit(mode, id1, type1, id2, type2);
 }
 // ------------------ Edge related ----------------------
 
@@ -690,50 +698,51 @@ void Graph::calculate_rat() {
 }
 
 void Graph::init_graph(){
+    calculate_at();
 	if(clock_id == -1){
 		LOG(ERROR) << "[Graph][init_graph] don't set clock pin\n";
 	}
 	cppr = new CPPR(this, clock_id);
-
-	cppr->build();
+	cppr->build_tree();
+    calculate_rat();
 }
 
 /* unimplement */
 
 void Graph::report_worst_paths(const string& pin, int num_path){
-	LOG(CERR) << "report_worst_paths " << pin << " " << num_path << endl;
+	//LOG(CERR) << "report_worst_paths " << pin << " " << num_path << endl;
 }
 
 void Graph::disconnect_pin(const string& pin){
-	LOG(CERR) << "disconnect_pin " << pin << endl;
+	//LOG(CERR) << "disconnect_pin " << pin << endl;
 }
 
 void Graph::connect_pin(const string& pin, const string& net){
-	LOG(CERR) << "connect_pin " << pin << " " << net << endl;
+	//LOG(CERR) << "connect_pin " << pin << " " << net << endl;
 }
 
 void Graph::remove_net(const string& net){
-	LOG(CERR) << "remove_net " << net << endl;
+	//LOG(CERR) << "remove_net " << net << endl;
 }
 
 void Graph::update_spef(const string& filename){
-	cout << "update " << filename << endl;
+	// cout << "update " << filename << endl;
 }
 
 void Graph::remove_gate(const string& inst_name){
-	LOG(CERR) << "remove_gate " << inst_name << endl;
+	//LOG(CERR) << "remove_gate " << inst_name << endl;
 }
 
 void Graph::insert_net(const string& net_name){
-	LOG(CERR) << "inst_name " << net_name << endl;
+	//LOG(CERR) << "inst_name " << net_name << endl;
 }
 
 void Graph::insert_gate(const string& inst_name, const string& cell_type){
-	LOG(CERR) << "insert_gate " << inst_name << " " << cell_type << endl;
+	//LOG(CERR) << "insert_gate " << inst_name << " " << cell_type << endl;
 }
 
 void Graph::repower_gate(const string& inst_name, const string& cell_type){
-	LOG(CERR) << "repower_gate " << inst_name << " " << cell_type << endl;
+	//LOG(CERR) << "repower_gate " << inst_name << " " << cell_type << endl;
 }
 
 
@@ -755,6 +764,32 @@ void Graph::report_timing(const string& from, vector<pair<Transition_Type, strin
 	LOG(CERR) << endl;
 }
 
+void Graph::print_graph(){
+	for(size_t i=0; i<nodes.size(); i++){
+		for(auto it:adj[i]){
+			int to = it.first;
+			Edge *e = it.second;
+			if(e->type==IN_CELL){
+				for(size_t j=0; j<e->arcs[LATE].size(); j++){
+					TimingArc* arc = e->arcs[LATE][j];
+					for(int ii=0; ii<2; ii++){
+						for(int jj=0; jj<2; jj++){
+							if(!arc->is_transition_defined(TYPES[ii], TYPES[jj])) continue;
+
+							cout << get_name(i) << ":" << get_transition_string(TYPES[ii]) << " -> ";
+							cout << get_name(to) << ":" << get_transition_string(TYPES[jj]) << " ";
+							cout << arc->get_delay(TYPES[ii], TYPES[jj], nodes[i].slew[LATE][TYPES[ii]], nodes[to].tree->get_downstream(LATE, get_name(to))) << endl;
+						}
+					}
+				}
+			}
+			else {
+				cout << get_name(i) << ":Rise -> " << get_name(to) << ":R " << e->tree->get_delay(LATE, get_name(to)) << endl;
+				cout << get_name(i) << ":Fall -> " << get_name(to) << ":F " << e->tree->get_delay(LATE, get_name(to)) << endl;
+			}
+		}
+	}
+}
 // ------------ For Testing ----------------
 
 #ifdef TEST_GRAPH
