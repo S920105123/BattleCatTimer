@@ -247,19 +247,19 @@ void Timer::open_ops(const string& ops){
         /* Timing queryies */
         else if(cmd=="report_at"){
             read_timing_assertion_option(in, name, mode, transition, val);
-            output << std::fixed << std::setprecision(6) << graph->get_at(name, mode, transition) << endl;
+            output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_at(name, mode, transition) << endl;
         }
         else if(cmd=="report_rat"){
             read_timing_assertion_option(in, name, mode, transition, val);
-            output << std::fixed << std::setprecision(6) << graph->get_rat(name, mode, transition) << endl;
+            output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_rat(name, mode, transition) << endl;
         }
         else if(cmd=="report_slack"){
             read_timing_assertion_option(in, name, mode, transition, val);
-            output << std::fixed << std::setprecision(6) << graph->get_slack(name, mode, transition) << endl;
+            output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_slack(name, mode, transition) << endl;
         }
         else if(cmd=="report_slew"){
             read_timing_assertion_option(in, name, mode, transition, val);
-            output << std::fixed << std::setprecision(6) << graph->get_slew(name, mode, transition) << endl;
+            output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_slew(name, mode, transition) << endl;
         }
         else if(cmd=="report_worst_paths"){
             name = "";

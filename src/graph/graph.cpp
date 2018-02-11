@@ -11,12 +11,18 @@ Graph::Node::Node(int index, const string &name, Node_type type) {
 	this->is_clock  = false; // Assume it is false at first, manually set later.
 
 	// These undefined values is defined in header.h
-	this->slew[EARLY][RISE] = this->slew[EARLY][FALL] = UNDEFINED_SLEW[EARLY];
-	this->slew[LATE][RISE]  = this->slew[LATE][FALL]  = UNDEFINED_SLEW[LATE];
-	this->rat[EARLY][RISE]  = this->rat[EARLY][FALL]  = UNDEFINED_RAT[EARLY];
-	this->rat[LATE][RISE]   = this->rat[LATE][FALL]   = UNDEFINED_RAT[LATE];
-	this->at[EARLY][RISE]   = this->at[EARLY][FALL]   = UNDEFINED_AT[EARLY];
-	this->at[LATE][RISE]    = this->at[LATE][FALL]    = UNDEFINED_AT[LATE];
+	for (int i=0; i<2; i++) {
+		for (int j=0; j<2; j++) {
+			Mode mode = MODES[i];
+			Transition_Type type = TYPES[j];
+			
+			this->slack[mode][type] = UNDEFINED_SLACK[mode];
+			this->slew[mode][type]  = UNDEFINED_SLEW[mode];
+			this->rat[mode][type]   = UNDEFINED_RAT[mode];
+			this->at[mode][type]    = UNDEFINED_AT[mode];
+			this->launching_clk[mode][type] = -1; // Undefined
+		}
+	}
 }
 
 int Graph::add_node(const string &name, Node_type type) {
@@ -349,7 +355,11 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 			} else {
 				// Check for constraint edges
 				int sink = this->get_index( cell_pin_concat(cell_name, pin_name) );
-				this->nodes[sink].is_clock = lib.get_pin_is_clock(cell_type, pin_name);
+				if (lib.get_pin_is_clock(cell_type, pin_name)) {
+					this->nodes[sink].is_clock = true;
+					this->nodes[sink].launching_clk[EARLY][RISE] = this->nodes[sink].launching_clk[EARLY][FALL] =
+					this->nodes[sink].launching_clk[LATE][RISE]  = this->nodes[sink].launching_clk[LATE][FALL]  = sink; 
+				}
 				for (int mode=EARLY; mode<=LATE; mode++) {
 					vector<TimingArc*> *arcs = lib_arr[mode]->get_pin_total_TimingArc(cell_type, pin_name);
 					for (TimingArc *arc : *arcs) {
@@ -457,6 +467,9 @@ void Graph::at_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 				if (at == UNDEFINED_AT[mode] || at_worse_than(new_at, at, mode)) {
 					// Always choose worst at.
 					at = new_at;
+					if (node_to.launching_clk[mode][type_to] == -1) {
+						node_to.launching_clk[mode][type_to] = node_from.launching_clk[mode][type_from];
+					}
 				}
 			}
 
@@ -507,6 +520,9 @@ void Graph::at_update(Edge *eptr) {
 					if ( at == UNDEFINED_AT[mode] || at_worse_than(new_at, at, mode) ) {
 						// Always choose worst at
 						at = new_at;
+						if (node_to.launching_clk[mode][type]==-1) {
+							node_to.launching_clk[mode][type] = node_from.launching_clk[mode][type];
+						}
 					}
 				}
 			}
@@ -544,6 +560,11 @@ void Graph::calculate_at() {
 			visit[i] = true;
 			this->at_dfs(i, visit);
 		}
+		if (nodes[i].launching_clk[0][0]==-1) {
+			cout<<nodes[i].name<<" launching from -1"<<endl;
+		} else {
+			cout<<nodes[i].name<<" launching from "<<nodes[nodes[i].launching_clk[0][0]].name<<endl;
+		}
 	}
 }
 
@@ -561,7 +582,7 @@ void Graph::rat_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 			float cap_load = node_to.tree->get_downstream(mode, node_to.name);
 			float input_slew = node_from.slew[mode][type_from];
 			/* Try to update rat */
-			if (node_to.rat[mode][type_from] != UNDEFINED_RAT[mode]) {
+			if (node_to.rat[mode][type_to] != UNDEFINED_RAT[mode]) {
 				float delay = arc->get_delay(type_from, type_to, input_slew, cap_load);
 				float new_rat = node_to.rat[mode][type_to] - delay;
 				float &rat = node_from.rat[mode][type_from];
@@ -625,8 +646,12 @@ void Graph::rat_dfs(int index, vector<bool> &visit) {
 	Node &nd = nodes[index];
 	for (int i=0; i<2; i++) {
 		Transition_Type type  = TYPES[i];
-		nd.slack[EARLY][type] = nd.at[EARLY][type] - nd.rat[EARLY][type];
-		nd.slack[LATE ][type] = nd.rat[LATE][type] - nd.at[LATE][type];
+		if (nd.at[EARLY][type] != UNDEFINED_AT[EARLY] && nd.rat[EARLY][type] != UNDEFINED_RAT[EARLY]) {
+			nd.slack[EARLY][type] = nd.at[EARLY][type] - nd.rat[EARLY][type];
+		}
+		if (nd.at[LATE][type] != UNDEFINED_AT[LATE] && nd.rat[LATE][type] != UNDEFINED_RAT[LATE]) {
+			nd.slack[LATE][type] = nd.rat[LATE][type] - nd.at[LATE][type];
+		}
 	}
 }
 
@@ -654,24 +679,24 @@ void Graph::init_rat_from_constraint() {
 				Transition_Type type_clk = TYPES[i], type_data = TYPES[j];
 				Mode mode = cons.mode;
 				if (!cons.arc->is_transition_defined(type_clk, type_data)) continue; // This also checks what clock edge to be used
-
-				float delay = cons.arc->get_constraint(type_clk, type_data, clk.slew[mode][type_clk], data_pin.slew[mode][type_data]);
 				if (mode == EARLY) {
 					// Hold test
+					float delay = cons.arc->get_constraint(type_clk, type_data, clk.slew[LATE][type_clk], data_pin.slew[EARLY][type_data]);
 					float &data_rat = data_pin.rat[EARLY][type_data];
 					float &clk_rat = clk.rat[LATE][type_clk];
 					float new_data_rat = clk.at[LATE][type_clk] + delay;
 					float new_clk_rat = data_pin.at[EARLY][type_data] - delay;
-					rat_relax(data_rat, new_data_rat, EARLY);
-					rat_relax(clk_rat, new_clk_rat, LATE);
+					if (clk.at[LATE][type_clk] != UNDEFINED_AT[LATE]) rat_relax(data_rat, new_data_rat, EARLY);
+					if (data_pin.at[EARLY][type_data] != UNDEFINED_AT[EARLY]) rat_relax(clk_rat, new_clk_rat, LATE);
 				} else {
 					// Setup test
+					float delay = cons.arc->get_constraint(type_clk, type_data, clk.slew[EARLY][type_clk], data_pin.slew[LATE][type_data]);
 					float &data_rat = data_pin.rat[LATE][type_data];
 					float &clk_rat = clk.rat[EARLY][type_clk];
 					float new_data_rat = this->clock_T + clk.at[EARLY][type_clk] - delay;
 					float new_clk_rat = data_pin.at[LATE][type_data] + delay - clock_T;
-					rat_relax(data_rat, new_data_rat, LATE);
-					rat_relax(clk_rat, new_clk_rat, EARLY);
+					if (clk.at[EARLY][type_clk] != UNDEFINED_AT[EARLY]) rat_relax(data_rat, new_data_rat, LATE);
+					if (data_pin.at[LATE][type_data] != UNDEFINED_AT[LATE]) rat_relax(clk_rat, new_clk_rat, EARLY);
 				}
 			}
 		}

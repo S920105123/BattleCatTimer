@@ -120,3 +120,7 @@
 
 2018/2/11: cppr done
 - cppr done
+
+2018/2/12: Graph little change
+- launching clock of each node
+- Something I forgot
