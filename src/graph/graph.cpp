@@ -904,7 +904,7 @@ void Graph::gen_test(string type, string filename){
 				}
 			}
 		}
-		fclose(fp);
+		fout.close();
 	}
 	else{
 		ofstream fout;
