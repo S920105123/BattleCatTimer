@@ -124,3 +124,6 @@
 2018/2/12: Graph little change
 - launching clock of each node
 - Something I forgot
+
+2018/2/12: Auto wire version
+- Undeclared wire will automatically be added now.

@@ -80,8 +80,8 @@ TEST_RCTREE: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT)
 	$(GCCFLAG) file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(RCTREE_SRC) -o rc_tree2 -DTEST_RCTREE
 	rc_tree2.exe
 
-TEST_GRAPH: file_reader.o rc_tree.o $(HEADER_OBJECT) $(DATA_OBEJCT)
-	$(GCCFLAG) file_reader.o rc_tree.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_SRC) -o graph -DTEST_GRAPH
+TEST_GRAPH: file_reader.o rc_tree.o cppr.o $(HEADER_OBJECT) $(DATA_OBEJCT)
+	$(GCCFLAG) file_reader.o rc_tree.o cppr.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_SRC) -o graph -DTEST_GRAPH
 	graph.exe
 
 $(HEADER_OBJECT): $(HEADER_SRC)
