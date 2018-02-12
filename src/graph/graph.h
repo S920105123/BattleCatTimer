@@ -106,7 +106,7 @@ public:
 	void add_constraint(int src, int dest, TimingArc *arc, Mode mode);// Add a constraint, src must be a clock
 
 	// Wire related
-	Wire_mapping* get_wire_mapping(const string &wire_name) const;
+	Wire_mapping* get_wire_mapping(const string &wire_name);
 
 	// Graph related
 	void build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_lib); // Build this graph from a verilog file.

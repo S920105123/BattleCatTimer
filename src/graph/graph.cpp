@@ -296,9 +296,13 @@ Graph::Wire_mapping::Wire_mapping() {
 	this->src=-1;
 }
 
-Graph::Wire_mapping* Graph::get_wire_mapping(const string &wire_name) const {
+Graph::Wire_mapping* Graph::get_wire_mapping(const string &wire_name) {
 	auto it = this->wire_mapping.find(wire_name);
-	if (it == wire_mapping.end()) return NULL;
+	if (it == wire_mapping.end()) {
+		Wire_mapping *mapping = new Wire_mapping();
+		this->wire_mapping.emplace(wire_name, mapping);
+		return mapping;
+	}
 	return it->second;
 }
 
@@ -325,7 +329,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 	for (const string &wire_name : vlog.wire) {
 		Wire_mapping *mapping = new Wire_mapping;
 		mapping->src=-1;
-		this->wire_mapping.insert( make_pair(wire_name, mapping) );
+		this->wire_mapping.emplace( wire_name, mapping );
 	}
 
 	/* Append each pin to the wire and construct internal timing arc  */
@@ -815,6 +819,9 @@ void Graph::print_graph(){
 		}
 	}
 }
+
+
+
 // ------------ For Testing ----------------
 
 #ifdef TEST_GRAPH
