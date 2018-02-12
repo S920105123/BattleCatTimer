@@ -3,6 +3,7 @@
 Logger* Logger::logger_instance = NULL;
 int Logger::error_num = 0;
 int Logger::warning_num = 0;
+vector<pair<string,int>> Logger::timestamp;
 
 Logger* Logger::create() {
 	if(logger_instance == NULL){
@@ -26,8 +27,19 @@ Logger::~Logger() {
 	char *tstr = ctime(&now);
 	flog << "\n\n[Log] - "<<tstr<<"- ";
 	flog << "close log files\n";
+	int pre = 0, total = 0;
+	for(auto p:timestamp){
+		if(pre==0) pre = p.second;
+		total += p.second-pre;
+		std::cerr << std::setw(16) << p.first << "| delay: " << std::setw(3) << p.second - pre << "| total: " << std::setw(3) << total << endl;
+		pre = p.second;
+	}
 	std::cerr << "Log error : " << error_num << ", warning : " << warning_num << endl;
 	flog.close();
+}
+
+void Logger::add_timestamp(const string& event){
+	timestamp.emplace_back(event, time(NULL));
 }
 
 Logger& Logger::Log(Log_type type, bool prefix) {

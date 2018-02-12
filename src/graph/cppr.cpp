@@ -58,7 +58,7 @@ void CPPR::build_sparse(){
     for(size_t i=0; i<level.size(); i++) T[i].resize(len+2);
     for(size_t i=0; i<level.size(); i++) T[i][0] = i;
 
-    for(size_t i=1; i<=len; i++){
+    for(int i=1; i<=len; i++){
         for(size_t j=0; j+(1<<i)-1<level.size(); j++){
             if(level[ T[j][i-1] ] > level[ T[j+(1<<(i-1))][i-1] ])
                 T[j][i] = T[j+(1<<(i-1))][i-1];

@@ -130,3 +130,7 @@
 
 2018/2/12: Systemcdes AC
 - yoooooo
+
+2018/2/12: build bc map
+- build bc map
+- add timestamp in logger

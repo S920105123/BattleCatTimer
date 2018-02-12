@@ -10,6 +10,7 @@
 #include "timing_arc.h"
 #include "rc_tree.h"
 #include "cppr.h"
+#include "bc_map.h"
 
 typedef enum { RC_TREE, IN_CELL } Edge_type;
 typedef enum { PRIMARY_IN, PRIMARY_OUT, INTERNAL} Node_type;
@@ -17,6 +18,7 @@ const string INPUT_PREFIX  = "";
 const string OUTPUT_PREFIX = "";
 
 class CPPR;
+class BC_map;
 class Graph {
 
 public:
@@ -119,9 +121,9 @@ public:
 	void init_graph();    // initial graph information,  call it after build a graph
 	void print_graph();
 	void gen_test(string type, string filename);
-	
+
 private:
-	
+
 	int next_id;
 	int clock_id;
 	int clock_T;                                 // clock period from .timing
@@ -151,8 +153,10 @@ private:
 	// sink = vector of input pin index (sink pins)
 	unordered_map<string, Wire_mapping*> wire_mapping;
 	CPPR *cppr;
+	BC_map* bc_map;
 
 	friend class CPPR;
+	friend class BC_map;
 };
 
 #endif

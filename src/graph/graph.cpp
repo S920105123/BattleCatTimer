@@ -356,7 +356,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 				this->nodes[sink].launching_clk[LATE][RISE]  = this->nodes[sink].launching_clk[LATE][FALL]  = sink;
 				this->clocks.push_back(sink);
 			}
-			
+
 			Direction_type direction = lib.get_pin_direction(cell_type, pin_name);
 			if (direction == OUTPUT) {
 				// Construct in-cell timing arc.
@@ -417,7 +417,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 		Wire_mapping *mapping = wire_pair.second;
 		int from = mapping->src;
 		if (from == -1) continue; // Isolated node.
-		
+
 		SpefNet *net = spef.get_spefnet_ptr(wire_name, 0);
 		RCTree *tree = NULL;
 		if (net!=NULL) tree = new RCTree(net, &vlog, lib_arr);
@@ -454,7 +454,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 			eptr->tree = tree;
 		}
 	}
-	
+
 	/* Now all the arcs are constructed, set the rising/falling edge of each clock nodes */
 	std::sort(clocks.begin(), clocks.end());
 	for (vector<int>::iterator it = this->clocks.begin(); it != this->clocks.end(); ++it) {
@@ -715,7 +715,7 @@ void Graph::init_rat_from_constraint() {
 					float &clk_rat = clk.rat[LATE][type_clk];
 					float new_data_rat = clk.at[LATE][type_clk] + delay;
 					float new_clk_rat = data_pin.at[EARLY][type_data] - delay;
-					
+
 					// CPPR credit, slack must < 0
 					int lnch_clk = data_pin.launching_clk[EARLY][type_data];
 					if (lnch_clk != -1 && data_pin.at[EARLY][type_data] - new_data_rat < 0) {
@@ -726,7 +726,7 @@ void Graph::init_rat_from_constraint() {
 						float credit = this->cppr->cppr_credit(EARLY, lnch_clk, this->nodes[lnch_clk].clk_edge, clk.index, type_clk);
 						new_clk_rat  += credit;
 					}
-					
+
 					if (clk.at[LATE][type_clk] != UNDEFINED_AT[LATE]) rat_relax(data_rat, new_data_rat, EARLY);
 					if (data_pin.at[EARLY][type_data] != UNDEFINED_AT[EARLY]) rat_relax(clk_rat, new_clk_rat, LATE);
 				} else {
@@ -736,7 +736,7 @@ void Graph::init_rat_from_constraint() {
 					float &clk_rat = clk.rat[EARLY][type_clk];
 					float new_data_rat = this->clock_T + clk.at[EARLY][type_clk] - delay;
 					float new_clk_rat = data_pin.at[LATE][type_data] + delay - clock_T;
-					
+
 					// CPPR credit, slack must < 0
 					int lnch_clk = data_pin.launching_clk[LATE][type_data];
 					if (lnch_clk != -1 && new_data_rat - data_pin.at[LATE][type_data] < 0) {
@@ -747,7 +747,7 @@ void Graph::init_rat_from_constraint() {
 						float credit = this->cppr->cppr_credit(LATE, lnch_clk, this->nodes[lnch_clk].clk_edge, clk.index, type_clk);
 						new_clk_rat  -= credit;
 					}
-					
+
 					if (clk.at[EARLY][type_clk] != UNDEFINED_AT[EARLY]) rat_relax(data_rat, new_data_rat, LATE);
 					if (data_pin.at[LATE][type_data] != UNDEFINED_AT[LATE]) rat_relax(clk_rat, new_clk_rat, EARLY);
 				}
@@ -777,12 +777,19 @@ void Graph::calculate_rat() {
 
 void Graph::init_graph(){
     calculate_at();
+	Logger::add_timestamp("at ok");
 	if(clock_id == -1){
 		LOG(ERROR) << "[Graph][init_graph] don't set clock pin\n";
 	}
 	cppr = new CPPR(this, clock_id);
 	cppr->build_tree();
+	Logger::add_timestamp("cppr ok");
+	bc_map = new BC_map(this);
+	bc_map->build();
+	Logger::add_timestamp("bc ok");
+
     calculate_rat();
+	Logger::add_timestamp("rat ok");
 }
 
 // ******************************************************

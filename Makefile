@@ -24,9 +24,13 @@ LIBERTY_SRC    += src/liberty/cell.cpp
 LIBERTY_SRC    += src/liberty/pin.cpp
 LIBERTY_SRC    += src/liberty/timing_arc.cpp
 LIBERTY_SRC    += src/liberty/timing_table.cpp
-RCTREE_SRC      = src/graph/rc_tree.cpp
+# RCTREE_SRC      = src/graph/rc_tree.cpp
 GRAPH_SRC       = src/graph/graph.cpp
-CPPR_SRC        = src/graph/cppr.cpp
+GRAPH_SRC      += src/graph/rc_tree.cpp
+GRAPH_SRC      += src/graph/cppr.cpp
+GRAPH_SRC      += src/graph/bc_map.cpp
+# CPPR_SRC        = src/graph/cppr.cpp
+# BCMAP_SRC       = src/graph/bc_map.cpp
 TIMER_SRC       = src/timer/timer.cpp
 
 DATA_SRC        = $(SPEF_SRC) $(VERILOG_SRC) $(LIBERTY_SRC)
@@ -34,7 +38,7 @@ DATA_SRC        = $(SPEF_SRC) $(VERILOG_SRC) $(LIBERTY_SRC)
 HEADER_OBJECT   = logger.o debug.o func.o
 LIBERTY_OBJECT  = cell_lib.o lu_table_template.o pin.o timing_arc.o timing_table.o cell.o
 DATA_OBEJCT     = verilog.o spef.o $(LIBERTY_OBJECT)
-GRAPH_OBJECT    = graph.o rc_tree.o cppr.o
+GRAPH_OBJECT    = graph.o rc_tree.o cppr.o bc_map.o
 
 TEST_LOGGER:
 	$(GCCFLAG) src/debug/logger.cpp -DTEST_LOGGER -o logger
@@ -90,6 +94,9 @@ $(HEADER_OBJECT): $(HEADER_SRC)
 $(DATA_OBEJCT): $(DATA_SRC)
 	$(GCCFLAG) -c $(DATA_SRC)
 
+$(GRAPH_OBJECT): $(GRAPH_SRC)
+	$(GCCFLAG) -c $(GRAPH_SRC)
+
 file_reader.o: $(FILE_READER_SRC)
 	$(GCCFLAG) -c $(FILE_READER_SRC) -o file_reader.o
 
@@ -99,18 +106,21 @@ rc_tree.o: $(RCTREE_SRC)
 timer.o: $(TIMER_SRC)
 	$(GCCFLAG) -c $(TIMER_SRC) -o timer.o
 
-graph.o: $(GRAPH_SRC) cppr.o
-	$(GCCFLAG) -c $(GRAPH_SRC) -o graph.o
-
-cppr.o: $(CPPR_SRC)
-	$(GCCFLAG) -c $(CPPR_SRC) -o cppr.o
+# graph.o: $(GRAPH_SRC) cppr.o
+# 	$(GCCFLAG) -c $(GRAPH_SRC) -o graph.o
+#
+# cppr.o: $(CPPR_SRC)
+# 	$(GCCFLAG) -c $(CPPR_SRC) -o cppr.o
+#
+# bc_map.o: $(BCMAP_SRC)
+# 	$(GCCFLAG) -c $(BCMAP_SRC) -o bc_map.o
 
 test_main: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) rc_tree.o
 	$(GCCFLAG) $(HEADER_OBJECT) $(DATA_OBEJCT) rc_tree.o file_reader.o test_main.cpp  -o main
 	main.exe
 
-main: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) rc_tree.o graph.o timer.o cppr.o
-	$(GCCFLAG) $(HEADER_OBJECT) $(DATA_OBEJCT) rc_tree.o file_reader.o graph.o timer.o cppr.o main.cpp  -o main
+main: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_OBJECT) timer.o
+	$(GCCFLAG) $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_SRC) file_reader.o timer.o  main.cpp  -o main
 	main
 
 clean:
