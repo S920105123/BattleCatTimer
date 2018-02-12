@@ -66,8 +66,8 @@ const string& Graph::get_name(int index) const {
 }
 
 void Graph::set_at(const string &pin_name, float early_at[], float late_at[]) {
-	// LOG(CERR) << "set_at(timing) " << pin_name << " " << early_at[RISE] << " " << early_at[FALL]
-	// << " " << late_at[RISE] << " " << late_at[FALL] << endl;
+	 // LOG(CERR) << "set_at(timing) " << pin_name << " " << early_at[RISE] << " " << early_at[FALL]
+	 // << " " << late_at[RISE] << " " << late_at[FALL] << endl;
 	// string handle = cell_pin_concat( INPUT_PREFIX, pin_name );
 	string handle = pin_name;
 	if (!in_graph(handle)) {
@@ -82,8 +82,8 @@ void Graph::set_at(const string &pin_name, float early_at[], float late_at[]) {
 }
 
 void Graph::set_rat(const string &pin_name, float early_rat[2], float late_rat[2]) {
-	// LOG(CERR) << "set_rat " << pin_name << " " << early_rat[RISE] << " " << early_rat[LATE]
-	// << " " << late_rat[RISE] << " " << late_rat[LATE] << endl;
+	 // LOG(CERR) << "set_rat " << pin_name << " " << early_rat[RISE] << " " << early_rat[LATE]
+	 // << " " << late_rat[RISE] << " " << late_rat[LATE] << endl;
 
 	// string handle = cell_pin_concat( OUTPUT_PREFIX, pin_name );
 	string handle = pin_name;
@@ -99,8 +99,8 @@ void Graph::set_rat(const string &pin_name, float early_rat[2], float late_rat[2
 }
 
 void Graph::set_at(const string &pin_name, Mode mode, Transition_Type transition, float val){
-	// LOG(CERR) << "set_at " << pin_name << " " << get_mode_string(mode) << " "
-	// << get_transition_string(transition) << " " << val << endl;
+	 // LOG(CERR) << "set_at " << pin_name << " " << get_mode_string(mode) << " "
+	 // << get_transition_string(transition) << " " << val << endl;
 
 	// string handle = cell_pin_concat( INPUT_PREFIX, pin_name );
 	string handle = pin_name;
@@ -174,6 +174,7 @@ void Graph::set_load(const string& pin_name, float cap){
 	}
 	out_load[pin_name] = cap;
 	RCTree* tree = nodes[id].tree;
+	if(tree==NULL) return;
 	tree->add_pin_cap(pin_name, cap);
 	tree->cal();
 }
@@ -396,10 +397,6 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 		int src = this->get_index( in_pin  );
 		nodes[src].node_type = PRIMARY_IN;
 		Wire_mapping *mapping = this->get_wire_mapping(in_pin);
-		if(mapping==NULL){
-			cout << get_name(src) << " " << in_pin << endl;
-			continue;
-		}
 		ASSERT(mapping != NULL);
 		ASSERT(mapping->src == -1);
 		mapping->src = src;
@@ -420,6 +417,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 		Wire_mapping *mapping = wire_pair.second;
 		int from = mapping->src;
 		if (from == -1) continue; // Isolated node.
+		
 		SpefNet *net = spef.get_spefnet_ptr(wire_name, 0);
 		RCTree *tree = NULL;
 		if (net!=NULL) tree = new RCTree(net, &vlog, lib_arr);
@@ -873,7 +871,62 @@ void Graph::print_graph(){
 	}
 }
 
+void Graph::gen_test(string type, string filename){
+	if(type=="cppr"){
+		vector<int> clocks;
+		for(size_t i=0; i<nodes.size(); i++) if(nodes[i].is_clock){
+			clocks.push_back(i);
+		}
+		cout << "total clocks = " << clocks.size() << endl;
 
+		ofstream fout;
+		fout.open(filename);
+
+		string base = "report_cppr_credit ";
+		string option[][2] = { {"-fall1", ""}, {"-fall2",""}, {"", "-late"}};
+		int numcase = 100000;
+		srand(time(NULL));
+		while(numcase--){
+			string cmd2 = base;
+			cmd2 += " -pin1 " + get_name( clocks[ rand()%clocks.size() ] );
+			cmd2 += " -pin2 " + get_name( clocks[ rand()%clocks.size() ] );
+			for(int i=0; i<2; i++){
+				string cmd3;
+				cmd3 = cmd2 + " " + option[0][i];
+				for(int j=0; j<2; j++){
+					string cmd4;
+					cmd4 = cmd3 + " " + option[1][j];
+					for(int k=0; k<2; k++){
+						string cmd5;
+						cmd5 += cmd4 + " " + option[2][k] + "\n";
+						fout << cmd5;
+					}
+				}
+			}
+		}
+		fclose(fp);
+	}
+	else{
+		ofstream fout;
+		fout.open(filename);
+		string cmds[] = {"report_at ", "report_rat ", "report_slack ", "report_slew "};
+		string nonesense = "-pin ";
+		string modes[] = {"-early ", "-late "};
+		string types[] = {"-rise ", "-fall "};
+
+		cout << " total nodes = " << nodes.size() << endl;
+		for (auto &nd : nodes) {
+			for (auto &cmd : cmds) {
+				for (auto &type : types) {
+					for (auto mode : modes) {
+						fout<<cmd<<nonesense<<nd.name<<" "<<mode<<type<<endl;
+					}
+				}
+			}
+		}
+		fout.close();
+	}
+}
 
 // ------------ For Testing ----------------
 

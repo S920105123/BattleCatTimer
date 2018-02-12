@@ -9,12 +9,22 @@ Timer::~Timer(){
     output.close();
 }
 
+void Timer::gen_test(const string& type, const string& tau, const string& output){
+    open_tau(tau);
+    graph = new Graph();
+    graph->build(*verilog, *spef, *lib[EARLY], *lib[LATE]);
+    cout << "graph build ok\n";
+    graph->gen_test(output, type);
+}
+
 void Timer::run(const string& tau, const string& timing, const string& ops, const string&output_file){
     open_tau(tau);
     graph = new Graph();
     graph->build(*verilog, *spef, *lib[EARLY], *lib[LATE]);
 
+    cout << "graph build ok\n";
     open_timing(timing);
+    cout << "timing ok\n";
 
     // init graph
     init_timer();
