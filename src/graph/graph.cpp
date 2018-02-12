@@ -1,6 +1,8 @@
 #include "graph.h"
 
-// ------------------ Node related ----------------------
+// ******************************************************
+// ***                 Node related                   ***
+// ******************************************************
 
 Graph::Node::Node(int index, const string &name, Node_type type) {
 	this->exist     = true;
@@ -177,8 +179,8 @@ void Graph::set_load(const string& pin_name, float cap){
 }
 
 float Graph::get_at(const string &pin_name, Mode mode, Transition_Type transition){
-	// LOG(CERR) << "report_at " << pin_name << " " << get_mode_string(mode) << " " <<
-	// get_transition_string(transition) << endl;
+//	 LOG(CERR) << "report_at " << pin_name << " " << get_mode_string(mode) << " " <<
+//	 get_transition_string(transition) << endl;
 
 	if (!in_graph(pin_name)){
 		LOG(WARNING) << "[Graph][get_at] pin no exist , pin: " << pin_name << endl;
@@ -229,7 +231,10 @@ float Graph::get_cppr_credit(const string& pin1, const string& pin2, Transition_
 	int id2 = get_index(pin2);
 	return cppr->cppr_credit(mode, id1, type1, id2, type2);
 }
-// ------------------ Edge related ----------------------
+
+// ******************************************************
+// ***                 Edge related                   ***
+// ******************************************************
 
 Graph::Edge::Edge(int src, int dest, Edge_type type) {
 	this->from = src;
@@ -290,7 +295,9 @@ const vector< unordered_map< int, Graph::Edge* > >& Graph::adj_list() const {
 	return this->adj;
 }
 
-// ------------------ Wire related ----------------------
+// ******************************************************
+// ***                 Wire related                   ***
+// ******************************************************
 
 Graph::Wire_mapping::Wire_mapping() {
 	this->src=-1;
@@ -306,7 +313,9 @@ Graph::Wire_mapping* Graph::get_wire_mapping(const string &wire_name) {
 	return it->second;
 }
 
-// ------------------ Graph related ----------------------
+// ******************************************************
+// ***                Graph related                   ***
+// ******************************************************
 
 Graph::Graph(){
 	clock_id = -1;
@@ -338,11 +347,18 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 		const string &cell_type = gt->cell_type, cell_name = gt->cell_name;
 		for (const pair<string,string> &io_pair : gt->param) {
 			const string &pin_name = io_pair.first, &wire_name = io_pair.second;
-			// Following lines should be changed to enum value.
+			// Check is clock.
+			int sink = this->get_index( cell_pin_concat(cell_name, pin_name) );
+			if (lib.get_pin_is_clock(cell_type, pin_name)) {
+				this->nodes[sink].is_clock = true;
+				this->nodes[sink].launching_clk[EARLY][RISE] = this->nodes[sink].launching_clk[EARLY][FALL] =
+				this->nodes[sink].launching_clk[LATE][RISE]  = this->nodes[sink].launching_clk[LATE][FALL]  = sink;
+				this->clocks.push_back(sink);
+			}
+			
 			Direction_type direction = lib.get_pin_direction(cell_type, pin_name);
 			if (direction == OUTPUT) {
 				// Construct in-cell timing arc.
-				int sink = this->get_index( cell_pin_concat(cell_name, pin_name) );
 				for (int mode=EARLY; mode<=LATE; mode++) {
 					vector<TimingArc*> *arcs = lib_arr[mode]->get_pin_total_TimingArc(cell_type, pin_name);
 					for (TimingArc *arc : *arcs) {
@@ -358,12 +374,6 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 				mapping->src = sink;
 			} else {
 				// Check for constraint edges
-				int sink = this->get_index( cell_pin_concat(cell_name, pin_name) );
-				if (lib.get_pin_is_clock(cell_type, pin_name)) {
-					this->nodes[sink].is_clock = true;
-					this->nodes[sink].launching_clk[EARLY][RISE] = this->nodes[sink].launching_clk[EARLY][FALL] =
-					this->nodes[sink].launching_clk[LATE][RISE]  = this->nodes[sink].launching_clk[LATE][FALL]  = sink;
-				}
 				for (int mode=EARLY; mode<=LATE; mode++) {
 					vector<TimingArc*> *arcs = lib_arr[mode]->get_pin_total_TimingArc(cell_type, pin_name);
 					for (TimingArc *arc : *arcs) {
@@ -399,9 +409,8 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 	for (const string &out_pin : vlog.output) {
 		// int sink = this->get_index( cell_pin_concat( OUTPUT_PREFIX, out_pin ) );
 		int sink = this->get_index( out_pin );
-		nodes[sink].node_type = PRIMARY_OUT;			// set node type
+		nodes[sink].node_type = PRIMARY_OUT;  // set node type
 		Wire_mapping *mapping = this->get_wire_mapping(out_pin);
-		ASSERT(mapping != NULL);
 		mapping->sinks.emplace_back(sink);
 	}
 
@@ -410,7 +419,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 		const string &wire_name = wire_pair.first;
 		Wire_mapping *mapping = wire_pair.second;
 		int from = mapping->src;
-		ASSERT(from != -1);
+		if (from == -1) continue; // Isolated node.
 		SpefNet *net = spef.get_spefnet_ptr(wire_name, 0);
 		RCTree *tree = NULL;
 		if (net!=NULL) tree = new RCTree(net, &vlog, lib_arr);
@@ -447,14 +456,26 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 			eptr->tree = tree;
 		}
 	}
+	
+	/* Now all the arcs are constructed, set the rising/falling edge of each clock nodes */
+	std::sort(clocks.begin(), clocks.end());
+	for (vector<int>::iterator it = this->clocks.begin(); it != this->clocks.end(); ++it) {
+		int clk = *it;
+		ASSERT(!this->adj[clk].empty());
+		Edge *eptr = this->adj[clk].begin()->second;
+		ASSERT(!eptr->arcs[1].empty());
+		if (eptr->arcs[1][0]->is_rising_triggered()) {
+			this->nodes[clk].clk_edge = RISE;
+		} else {
+			ASSERT(eptr->arcs[1][0]->is_falling_triggered());
+			this->nodes[clk].clk_edge = FALL;
+		}
+	}
 }
 
-// --------------------------------------------------------------------
-// ----------------- Dynamic Programming Fiesta !! --------------------
-// ---------------- Show your love for DP to pass ---------------------
-// --------------------------------------------------------------------
-
-//  ------------------ Arrival time calculation -----------------------
+// ******************************************************
+// ***                 Arrival Time                   ***
+// ******************************************************
 
 void Graph::at_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 	/* Use "from" update "to" through "arc" */
@@ -475,7 +496,7 @@ void Graph::at_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 				if (at == UNDEFINED_AT[mode] || at_worse_than(new_at, at, mode)) {
 					// Always choose worst at.
 					at = new_at;
-					if (node_to.launching_clk[mode][type_to] == -1) {
+					if (!node_to.is_clock) {
 						node_to.launching_clk[mode][type_to] = node_from.launching_clk[mode][type_from];
 					}
 				}
@@ -528,7 +549,7 @@ void Graph::at_update(Edge *eptr) {
 					if ( at == UNDEFINED_AT[mode] || at_worse_than(new_at, at, mode) ) {
 						// Always choose worst at
 						at = new_at;
-						if (node_to.launching_clk[mode][type]==-1) {
+						if (!node_to.is_clock) {
 							node_to.launching_clk[mode][type] = node_from.launching_clk[mode][type];
 						}
 					}
@@ -576,7 +597,9 @@ void Graph::calculate_at() {
 	}
 }
 
-// ---------------- Required Arrival Time Calculation -------------------------
+// ******************************************************
+// ***              Required Arrival                  ***
+// ******************************************************
 
 void Graph::rat_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 	/* Use "to" update "from" through "arc" */
@@ -670,11 +693,11 @@ void Graph::rat_relax(float &target, float new_rat, Mode mode) {
 }
 
 void Graph::init_rat_from_constraint() {
-	// As its name, initialize rat from constraint
+	// As its name, initialize rat from constraint, yield pre-CPPR rat
 	// For each constraint timing arc, it defines how a clock imposes constraint to a data pin
 	//     - rat-early (hold) = at(CLK,late) + hold
 	//     - rat-late (setup) = T + at(CLK,early) - setup
-	// Sounds reasonable
+	// Then get CPPR credit, and add/sub to/from rat
 
 	for (auto it = this->constraints.begin(); it != this->constraints.end(); ++it) {
 		const Constraint &cons = *it;
@@ -694,6 +717,18 @@ void Graph::init_rat_from_constraint() {
 					float &clk_rat = clk.rat[LATE][type_clk];
 					float new_data_rat = clk.at[LATE][type_clk] + delay;
 					float new_clk_rat = data_pin.at[EARLY][type_data] - delay;
+					
+					// CPPR credit, slack must < 0
+					int lnch_clk = data_pin.launching_clk[EARLY][type_data];
+					if (lnch_clk != -1 && data_pin.at[EARLY][type_data] - new_data_rat < 0) {
+						float credit = this->cppr->cppr_credit(EARLY, lnch_clk, this->nodes[lnch_clk].clk_edge, clk.index, type_clk);
+						new_data_rat -= credit;
+					}
+					if (lnch_clk != -1 && new_clk_rat - clk.at[LATE][type_clk] < 0) {
+						float credit = this->cppr->cppr_credit(EARLY, lnch_clk, this->nodes[lnch_clk].clk_edge, clk.index, type_clk);
+						new_clk_rat  += credit;
+					}
+					
 					if (clk.at[LATE][type_clk] != UNDEFINED_AT[LATE]) rat_relax(data_rat, new_data_rat, EARLY);
 					if (data_pin.at[EARLY][type_data] != UNDEFINED_AT[EARLY]) rat_relax(clk_rat, new_clk_rat, LATE);
 				} else {
@@ -703,6 +738,18 @@ void Graph::init_rat_from_constraint() {
 					float &clk_rat = clk.rat[EARLY][type_clk];
 					float new_data_rat = this->clock_T + clk.at[EARLY][type_clk] - delay;
 					float new_clk_rat = data_pin.at[LATE][type_data] + delay - clock_T;
+					
+					// CPPR credit, slack must < 0
+					int lnch_clk = data_pin.launching_clk[LATE][type_data];
+					if (lnch_clk != -1 && new_data_rat - data_pin.at[LATE][type_data] < 0) {
+						float credit = this->cppr->cppr_credit(LATE, lnch_clk, this->nodes[lnch_clk].clk_edge, clk.index, type_clk);
+						new_data_rat += credit;
+					}
+					if (lnch_clk != -1 && clk.at[EARLY][type_clk] - new_clk_rat < 0) {
+						float credit = this->cppr->cppr_credit(LATE, lnch_clk, this->nodes[lnch_clk].clk_edge, clk.index, type_clk);
+						new_clk_rat  -= credit;
+					}
+					
 					if (clk.at[EARLY][type_clk] != UNDEFINED_AT[EARLY]) rat_relax(data_rat, new_data_rat, LATE);
 					if (data_pin.at[LATE][type_data] != UNDEFINED_AT[LATE]) rat_relax(clk_rat, new_clk_rat, EARLY);
 				}
@@ -740,7 +787,9 @@ void Graph::init_graph(){
     calculate_rat();
 }
 
-/* unimplement */
+// ******************************************************
+// ***                Unimplemented                   ***
+// ******************************************************
 
 void Graph::report_worst_paths(const string& pin, int num_path){
 	//LOG(CERR) << "report_worst_paths " << pin << " " << num_path << endl;

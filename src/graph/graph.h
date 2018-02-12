@@ -13,8 +13,8 @@
 
 typedef enum { RC_TREE, IN_CELL } Edge_type;
 typedef enum { PRIMARY_IN, PRIMARY_OUT, INTERNAL} Node_type;
-const string INPUT_PREFIX  = "primary_in";
-const string OUTPUT_PREFIX = "primary_out";
+const string INPUT_PREFIX  = "";
+const string OUTPUT_PREFIX = "";
 
 class CPPR;
 class Graph {
@@ -23,6 +23,7 @@ public:
 
 	struct Node {
 		bool exist, is_clock;
+		Transition_Type clk_edge; // Only set when is_clock==true
 		int index;
 		string name;
 		Node_type node_type;
@@ -117,7 +118,9 @@ public:
 
 	void init_graph();    // initial graph information,  call it after build a graph
 	void print_graph();
+	
 private:
+	
 	int next_id;
 	int clock_id;
 	int clock_T;                                 // clock period from .timing
@@ -127,6 +130,7 @@ private:
 	vector< unordered_map<int, Edge*> > adj;     // Adjacency list of all nodes.
 	vector< unordered_map<int, Edge*> > rev_adj; // Reverse adjacency list.
 	vector< Constraint > constraints;            // Conatraint edges
+	vector< int > clocks;                        // Clock nodes
 
 
 
