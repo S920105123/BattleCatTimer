@@ -14,6 +14,7 @@ class Timer{
 public:
     ~Timer();
     void run(const string& tau, const string& timing, const string& ops, const string&output);
+    void gen_test(const string& type, const string& tau, const string& outfile);
 
 private:
     void clear_Timer();

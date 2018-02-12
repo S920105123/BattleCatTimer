@@ -117,6 +117,7 @@ public:
 
 	void init_graph();    // initial graph information,  call it after build a graph
 	void print_graph();
+	void gen_test(string type, string filename);
 private:
 	int next_id;
 	int clock_id;

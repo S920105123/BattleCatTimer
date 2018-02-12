@@ -3,11 +3,14 @@
 
 #include <algorithm>
 #include <utility>
+#include <time.h>
 
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 #include <sstream>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include <string>
 #include <vector>
