@@ -382,10 +382,6 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 		int src = this->get_index( in_pin  );
 		nodes[src].node_type = PRIMARY_IN;
 		Wire_mapping *mapping = this->get_wire_mapping(in_pin);
-		if(mapping==NULL){
-			cout << get_name(src) << " " << in_pin << endl;
-			continue;
-		}
 		ASSERT(mapping != NULL);
 		ASSERT(mapping->src == -1);
 		mapping->src = src;
