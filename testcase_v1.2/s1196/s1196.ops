@@ -13,7 +13,7 @@ report_cppr_credit -pin1 inst_563:CK -pin2 inst_562:CK  -fall2  -late
 report_cppr_credit -pin1 inst_563:CK -pin2 inst_562:CK -fall1
 report_cppr_credit -pin1 inst_563:CK -pin2 inst_562:CK -fall1   -late
 report_cppr_credit -pin1 inst_563:CK -pin2 inst_562:CK -fall1  -fall2
-report_cppr_credit -pin1 inst_563:CK -pin2 inst_562:CK -fall1  -fall2  -late 
+report_cppr_credit -pin1 inst_563:CK -pin2 inst_562:CK -fall1  -fall2  -late
 report_cppr_credit -pin1 inst_563:CK -pin2 inst_556:CK
 report_cppr_credit -pin1 inst_563:CK -pin2 inst_556:CK   -late
 report_cppr_credit -pin1 inst_563:CK -pin2 inst_556:CK  -fall2

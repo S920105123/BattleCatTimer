@@ -81,15 +81,30 @@ float CPPR::cppr_credit(Mode mode, int u, Transition_Type type_u, int v, Transit
         // LOG(CERR) << " lca type is different " << graph->nodes[u].name << " " << graph->nodes[v].name << endl;
         return 0;
     }
+    Transition_Type root_type = type_u;
+    if(negation[tree_u]&1) root_type = root_type==RISE? FALL:RISE;
 
     lca = to_node_id[lca];
     // cout << "lca = " << graph->nodes[lca].name << endl;
+    // cout << "root = " << get_transition_string( root_type ) << endl;
+    // cout << "lca = " << get_transition_string( type_u ) << endl;
+    // cout << graph->nodes[root].at[LATE][RISE]  << " " ;
+    // cout << graph->nodes[root].at[LATE][FALL]  << " " ;
+    // cout << graph->nodes[root].at[EARLY][RISE] << " " ;
+    // cout << graph->nodes[root].at[EARLY][FALL] << " "  << endl;
+    //
+    // cout << graph->nodes[lca].at[LATE][RISE]  << " " ;
+    // cout << graph->nodes[lca].at[LATE][FALL]  << " " ;
+    // cout << graph->nodes[lca].at[EARLY][RISE] << " " ;
+    // cout << graph->nodes[lca].at[EARLY][FALL] << " "  << endl;
     if(mode==Mode::EARLY){ // hold
         return graph->nodes[lca].at[LATE][type_u] - graph->nodes[lca].at[EARLY][type_u];
     }
     else{
-        return graph->nodes[lca].at[LATE][type_u] - graph->nodes[lca].at[EARLY][type_u] -
-            - (graph->nodes[root].at[LATE][type_u] - graph->nodes[root].at[LATE][type_u]);
+        float root_credit = graph->nodes[root].at[LATE][root_type] - graph->nodes[root].at[EARLY][root_type];
+        // cout << "root credit = " << root_credit << endl;
+        return graph->nodes[lca].at[LATE][type_u] - graph->nodes[lca].at[EARLY][type_u]
+            - (root_credit);
     }
 }
 

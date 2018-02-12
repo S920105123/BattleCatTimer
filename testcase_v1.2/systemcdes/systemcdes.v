@@ -399,6 +399,14 @@ output x287;
 output x159;
 
 // Start wires
+wire x42206;
+wire x42204;
+wire x42209;
+wire x42207;
+wire x42202;
+wire x42203; 
+wire x42208;
+wire x42205;
 wire net_2388;
 wire net_2449;
 wire net_1317;

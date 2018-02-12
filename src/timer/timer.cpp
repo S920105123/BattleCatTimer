@@ -219,7 +219,7 @@ void Timer::open_ops(const string& ops){
                 else break;
             }while(true);
             if(op.size()) in.put_back(op);
-            output << std::fixed << std::setprecision(6) << graph->get_cppr_credit(pin1, pin2, type1, type2, mode) << endl;
+            output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_cppr_credit(pin1, pin2, type1, type2, mode) << endl;
         }
         /* Timing assertions */
         else if(cmd=="set_at"){

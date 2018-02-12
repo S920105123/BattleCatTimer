@@ -19,7 +19,7 @@ at G12 0 0 0 0
 slew G12 5 5 5 5
 at G2 0 0 0 0
 slew G2 5 5 5 5
-at blif_clk_net 0 0 0 0
+at blif_clk_net 0 1 2 3
 slew blif_clk_net 5 5 5 5
 at G7 0 0 0 0
 slew G7 5 5 5 5
