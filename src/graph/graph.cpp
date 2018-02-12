@@ -15,7 +15,7 @@ Graph::Node::Node(int index, const string &name, Node_type type) {
 		for (int j=0; j<2; j++) {
 			Mode mode = MODES[i];
 			Transition_Type type = TYPES[j];
-			
+
 			this->slack[mode][type] = UNDEFINED_SLACK[mode];
 			this->slew[mode][type]  = UNDEFINED_SLEW[mode];
 			this->rat[mode][type]   = UNDEFINED_RAT[mode];
@@ -358,7 +358,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 				if (lib.get_pin_is_clock(cell_type, pin_name)) {
 					this->nodes[sink].is_clock = true;
 					this->nodes[sink].launching_clk[EARLY][RISE] = this->nodes[sink].launching_clk[EARLY][FALL] =
-					this->nodes[sink].launching_clk[LATE][RISE]  = this->nodes[sink].launching_clk[LATE][FALL]  = sink; 
+					this->nodes[sink].launching_clk[LATE][RISE]  = this->nodes[sink].launching_clk[LATE][FALL]  = sink;
 				}
 				for (int mode=EARLY; mode<=LATE; mode++) {
 					vector<TimingArc*> *arcs = lib_arr[mode]->get_pin_total_TimingArc(cell_type, pin_name);
@@ -382,6 +382,10 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 		int src = this->get_index( in_pin  );
 		nodes[src].node_type = PRIMARY_IN;
 		Wire_mapping *mapping = this->get_wire_mapping(in_pin);
+		if(mapping==NULL){
+			cout << get_name(src) << " " << in_pin << endl;
+			continue;
+		}
 		ASSERT(mapping != NULL);
 		ASSERT(mapping->src == -1);
 		mapping->src = src;
@@ -561,9 +565,9 @@ void Graph::calculate_at() {
 			this->at_dfs(i, visit);
 		}
 		if (nodes[i].launching_clk[0][0]==-1) {
-			cout<<nodes[i].name<<" launching from -1"<<endl;
+			// cout<<nodes[i].name<<" launching from -1"<<endl;
 		} else {
-			cout<<nodes[i].name<<" launching from "<<nodes[nodes[i].launching_clk[0][0]].name<<endl;
+			// cout<<nodes[i].name<<" launching from "<<nodes[nodes[i].launching_clk[0][0]].name<<endl;
 		}
 	}
 }

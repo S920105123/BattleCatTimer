@@ -54,7 +54,7 @@ using std::min;
 using std::sqrt;
 using std::swap;
 
-const int OUTPUT_PRECISION = 6;
+const int OUTPUT_PRECISION = 3;
 
 const float UNDEFINED_SLEW[2] = { 987654.0 , -987654.0 };  // Early/late
 const float UNDEFINED_RAT[2]  = { -987654.0, 987654.0  };  // Early/late
