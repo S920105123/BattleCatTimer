@@ -6,6 +6,10 @@ BC_map::BC_map(Graph* graph){
 }
 
 int BC_map::get_index(Mode mode, Transition_Type type, int node_id){
+    if(node_id >= (int)to_map_id[mode][type].size()){
+        LOG(CERR) << graph->get_name(node_id) << " no exist\n";
+        ASSERT(false);
+    }
     return to_map_id[mode][type][node_id];
 }
 
@@ -29,7 +33,7 @@ string BC_map::get_node_name(int map_id){
 }
 void BC_map::add_edge(int from, int to, float delay){
     G[from].emplace_back(from, to, delay);
-    Gr[to].emplace_back(from, to, delay);
+    Gr[to].emplace_back(to, from, delay);
     in[to]++;
 }
 
@@ -52,17 +56,17 @@ void BC_map::build(){
 
     // dfs build map
     vector<int> clocks;
-    for(size_t i=0; i<graph->nodes.size(); i++){
+    for(size_t i=0; i<graph->nodes.size(); i++)if(i!=graph->clock_id){
         Graph::Node &node = graph->nodes[i];
         if(node.is_clock){
             clocks.push_back(i);
         }
         if(node.node_type==PRIMARY_IN or node.is_clock){
             build_map(i);
-            add_edge(superSource, get_index(EARLY, RISE, i), 0);
-            add_edge(superSource, get_index(EARLY, FALL, i), 0);
-            add_edge(superSource, get_index(LATE, RISE, i), 0);
-            add_edge(superSource, get_index(LATE, FALL, i), 0);
+            // add_edge(superSource, get_index(EARLY, RISE, i), 0);
+            // add_edge(superSource, get_index(EARLY, FALL, i), 0);
+            // add_edge(superSource, get_index(LATE, RISE, i), 0);
+            // add_edge(superSource, get_index(LATE, FALL, i), 0);
         }
     }
 

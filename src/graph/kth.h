@@ -35,6 +35,7 @@ public:
 private:
     void mark_through(const vector<pair<Transition_Type,int>>&);
     bool forward_build(int now, int next_object);
+    bool backward_build(int now, int next_object);
     int add_node(int bc_node_id);
     void add_edge(int from, int to, float delay);                    // from , to in bc map
     void add_edge(int from, int to, float delay, float clock_delay); // from , to in bc map

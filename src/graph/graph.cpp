@@ -11,6 +11,7 @@ Graph::Node::Node(int index, const string &name, Node_type type) {
 	this->tree      = NULL;
 	this->node_type = type;
 	this->is_clock  = false; // Assume it is false at first, manually set later.
+	this->constrained_clk = -1;
 
 	// These undefined values is defined in header.h
 	for (int i=0; i<2; i++) {
@@ -846,6 +847,16 @@ void Graph::report_timing(const vector<pair<Transition_Type,string>>&from,
 	LOG(CERR) << endl;
 
 	if(to.size()){
+		Kth kth(bc_map, cppr);
+		int to_id = get_index(to[0].second);
+		bool specify = to.size()==2? false:true;
+
+		int to_map_id = bc_map->get_index(EARLY, to[0].first, to_id);
+		vector<pair<Transition_Type,int>> _through;
+		for(auto x:through){
+			_through.emplace_back(x.first, bc_map->get_index(EARLY, x.first, get_index(x.second)));
+		}
+		kth.build_from_dest(_through, to_map_id, specify);
 	}
 	else if(from.size()){
 		Kth kth(bc_map, cppr);
