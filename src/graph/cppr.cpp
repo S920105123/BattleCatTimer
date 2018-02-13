@@ -52,14 +52,14 @@ void CPPR::build_sparse(){
     // for(int i=0; i<num; i++) cout << graph->nodes[ to_node_id[i] ].name << ": " << in[i] << "\n"; cout << endl;
 
     int len = 0;
-    for(size_t i=0; (1<<i)<=level.size(); i++) len++;
+    for(int i=0; (1<<i)<=(int)level.size(); i++) len++;
 
     T.resize(level.size()+2);
     for(size_t i=0; i<level.size(); i++) T[i].resize(len+2);
     for(size_t i=0; i<level.size(); i++) T[i][0] = i;
 
-    for(size_t i=1; i<=len; i++){
-        for(size_t j=0; j+(1<<i)-1<level.size(); j++){
+    for(int i=1; i<=len; i++){
+        for(int j=0; j+(1<<i)-1<(int)level.size(); j++){
             if(level[ T[j][i-1] ] > level[ T[j+(1<<(i-1))][i-1] ])
                 T[j][i] = T[j+(1<<(i-1))][i-1];
             else T[j][i] = T[j][i-1];

@@ -11,6 +11,7 @@ Timer::~Timer(){
 
 void Timer::gen_test(const string& type, const string& tau, const string& output){
     open_tau(tau);
+    cout << "read file ok\n";
     graph = new Graph();
     graph->build(*verilog, *spef, *lib[EARLY], *lib[LATE]);
     cout << "graph build ok\n";
@@ -18,16 +19,18 @@ void Timer::gen_test(const string& type, const string& tau, const string& output
 }
 
 void Timer::run(const string& tau, const string& timing, const string& ops, const string&output_file){
+    Logger::add_timestamp("start");
     open_tau(tau);
+    Logger::add_timestamp("open_tau ok");
     graph = new Graph();
     graph->build(*verilog, *spef, *lib[EARLY], *lib[LATE]);
 
-    cout << "graph build ok\n";
+    Logger::add_timestamp("graph build ok");
     open_timing(timing);
-    cout << "timing ok\n";
 
     // init graph
     init_timer();
+    Logger::add_timestamp("init_timer ok");
 
     output.open(output_file);
     open_ops(ops);
