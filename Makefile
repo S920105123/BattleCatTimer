@@ -89,6 +89,10 @@ TEST_GRAPH: file_reader.o rc_tree.o cppr.o $(HEADER_OBJECT) $(DATA_OBEJCT)
 	$(GCCFLAG) file_reader.o rc_tree.o cppr.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_SRC) -o graph -DTEST_GRAPH
 	graph.exe
 
+TEST_KTH: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) graph.o rc_tree.o cppr.o bc_map.o
+	$(GCCFLAG) $(HEADER_OBJECT) $(DATA_OBEJCT) graph.o rc_tree.o cppr.o bc_map.o file_reader.o src/graph/kth.cpp -DTEST_KTH -o kth
+	kth.exe
+
 $(HEADER_OBJECT): $(HEADER_SRC)
 	$(GCCFLAG) -c $(HEADER_SRC)
 
