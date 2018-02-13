@@ -36,6 +36,7 @@ public:
 		float slew[2][2];
 		float slack[2][2];
 		int launching_clk[2][2];
+		int constrained_clk;
 
 		Node(int index, const string& name, Node_type type);
 	};
