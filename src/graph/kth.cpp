@@ -47,20 +47,20 @@ void Kth::mark_through(const vector<pair<Transition_Type,int>>& through){
         mark[map_id] = 1;
         // level.emplace_back(map->level[map_id]);
         level.emplace_back(map->level[map_id], map_id);
-        // cout << map->get_node_name(map_id) << " " << map->level[map_id] << endl;
+        // LOG(CERR) << map->get_node_name(map_id) << " " << map->level[map_id] << endl;
 
         map_id = map->get_index(LATE, through[i].first, graph_id);
         mark[map_id] = 1;
         // level.emplace_back(map->level[map_id]);
         level.emplace_back(map->level[map_id], map_id);
-        // cout << map->get_node_name(map_id) << " " << map->level[map_id] << endl;
+        // LOG(CERR) << map->get_node_name(map_id) << " " << map->level[map_id] << endl;
 
     }
     sort(level.begin(), level.end());
 
-    // for(auto x:level){
-    //     cout << map->get_node_name(x.second) << " level = " << x.first << endl;
-    // }
+    for(auto x:level){
+        LOG(CERR) << map->get_node_name(x.second) << " level = " << x.first << endl;
+    }
     if(level.size()) object.emplace_back(level[0].first);
     for(int i=1; i<(int)level.size(); i++){
         if(level[i].first != object.back()){
@@ -90,12 +90,15 @@ void Kth::build_from_src(const vector<pair<Transition_Type,int>>& through, int s
                 Mode mode = MODES[i];
                 Transition_Type type = TYPES[j];
                 map_id = map->get_index(mode, type, graph_id);
-                clock_at = map->graph->nodes[graph_id].at[mode][type];
+                if(map->graph->nodes[graph_id].is_clock)
+                    clock_at = map->graph->nodes[graph_id].at[mode][type];
+                else clock_at = 0;
                 add_edge(source_kth, get_kth_id(map_id), 0, clock_at);
-                // cout << "connect " << get_node_name(source_kth) << " to " << get_node_name(get_kth_id(map_id)) << endl;
+                // LOG(CERR) << "connect " << get_node_name(source_kth) << " to " << get_node_name(get_kth_id(map_id)) << endl;
                 forward_build(map_id, 0);
             }
         }
+        LOG(CERR) << "dfs ok\n";
     }
     else{
         // just specify Transition_Type, so it has two mode
@@ -105,12 +108,16 @@ void Kth::build_from_src(const vector<pair<Transition_Type,int>>& through, int s
             Mode mode = MODES[i];
             float clock_at = map->graph->nodes[map->get_graph_id(src)].at[mode][type];
             int map_id = map->get_index(mode, type, graph_id);
+            if(!map->graph->nodes[map->get_graph_id(src)].is_clock) clock_at = 0;
             add_edge(source_kth, get_kth_id(map_id) , clock_at);
-            // cout << "*connect " << get_node_name(source_kth) << " to " << get_node_name(get_kth_id(map_id)) << endl;
+            // LOG(CERR) << "*connect " << get_node_name(source_kth) << " to " << get_node_name(get_kth_id(map_id)) << endl;
             forward_build(map_id, 0);
         }
     }
 
+    for(auto x:all_leave ){
+        LOG(CERR) << "leaf : " << map->get_node_name(x) << endl;
+    }
     // build all ff:d to desk_kth
     for(auto x:all_leave){
         int src_clk_id = map->get_graph_id( src ); // clk id in graph
@@ -141,10 +148,11 @@ string Kth::get_node_name(int kth_id){
 
 }
 void Kth::print(){
+    LOG(CERR) << num_node << " " << G.size() << endl;
     for(int i=0; i<num_node; i++){
         for(auto x:G[i]){
             int to = x.to;
-            cout << get_node_name(i) << " -> " << get_node_name(to) << endl;
+            LOG(CERR) << get_node_name(i) << " -> " << get_node_name(to) << " " << x.delay << endl;
         }
     }
 }
@@ -153,11 +161,14 @@ bool Kth::forward_build(int now, int next_object){
     if(vis[now]) return is_good[now];
     vis[now] = 1;
 
-    // cout << "dfs: " << map->get_node_name(now) << " my level: " << map->level[now]
-    // << " next level: " << object[next_object] << endl;
+    LOG(CERR) << "dfs: " << map->get_node_name(now) << " my level: " << map->level[now]
+    << " next level: " << object[next_object] << endl;
     if(map->G[now].size()==0){ // at primary out or ff:d
-        all_leave.emplace_back(now);
-        return true;
+        if(next_object==(int)object.size()){
+            all_leave.emplace_back(now);
+            return true;
+        }
+        else return false;
     }
 
     for(int i=0; i<(int)map->G[now].size(); i++){
