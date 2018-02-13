@@ -380,6 +380,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 					for (TimingArc *arc : *arcs) {
 						int src = this->get_index( cell_pin_concat(cell_name, arc->get_related_pin()) );
 						this->add_constraint(src, sink, arc, (Mode)mode);
+						this->nodes[sink].constrained_clk = src;
 					}
 				}
 
@@ -457,7 +458,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 
 	/* Now all the arcs are constructed, set the rising/falling edge of each clock nodes */
 	std::sort(clocks.begin(), clocks.end());
-	for (vector<int>::iterator it = this->clocks.begin(); it != this->clocks.end(); ++it) {
+	for (auto it = this->clocks.begin(); it != this->clocks.end(); ++it) {
 		int clk = *it;
 		ASSERT(!this->adj[clk].empty());
 		Edge *eptr = this->adj[clk].begin()->second;
@@ -596,7 +597,7 @@ void Graph::calculate_at() {
 }
 
 // ******************************************************
-// ***              Required Arrival                  ***
+// **               Required Arrival                   **
 // ******************************************************
 
 void Graph::rat_arc_update(int from, int to, TimingArc *arc, Mode mode) {
@@ -695,7 +696,8 @@ void Graph::init_rat_from_constraint() {
 	// For each constraint timing arc, it defines how a clock imposes constraint to a data pin
 	//     - rat-early (hold) = at(CLK,late) + hold
 	//     - rat-late (setup) = T + at(CLK,early) - setup
-	// Then get CPPR credit, and add/sub to/from rat
+	// Here all rats are block-based, CPPR credit hasn't been considered.
+	// That is, rats are pre-CPPR rats, slacks are pre-CPPR slacks.
 
 	for (auto it = this->constraints.begin(); it != this->constraints.end(); ++it) {
 		const Constraint &cons = *it;
@@ -716,17 +718,6 @@ void Graph::init_rat_from_constraint() {
 					float new_data_rat = clk.at[LATE][type_clk] + delay;
 					float new_clk_rat = data_pin.at[EARLY][type_data] - delay;
 
-					// CPPR credit, slack must < 0
-					int lnch_clk = data_pin.launching_clk[EARLY][type_data];
-					if (lnch_clk != -1 && data_pin.at[EARLY][type_data] - new_data_rat < 0) {
-						float credit = this->cppr->cppr_credit(EARLY, lnch_clk, this->nodes[lnch_clk].clk_edge, clk.index, type_clk);
-						new_data_rat -= credit;
-					}
-					if (lnch_clk != -1 && new_clk_rat - clk.at[LATE][type_clk] < 0) {
-						float credit = this->cppr->cppr_credit(EARLY, lnch_clk, this->nodes[lnch_clk].clk_edge, clk.index, type_clk);
-						new_clk_rat  += credit;
-					}
-
 					if (clk.at[LATE][type_clk] != UNDEFINED_AT[LATE]) rat_relax(data_rat, new_data_rat, EARLY);
 					if (data_pin.at[EARLY][type_data] != UNDEFINED_AT[EARLY]) rat_relax(clk_rat, new_clk_rat, LATE);
 				} else {
@@ -736,17 +727,6 @@ void Graph::init_rat_from_constraint() {
 					float &clk_rat = clk.rat[EARLY][type_clk];
 					float new_data_rat = this->clock_T + clk.at[EARLY][type_clk] - delay;
 					float new_clk_rat = data_pin.at[LATE][type_data] + delay - clock_T;
-
-					// CPPR credit, slack must < 0
-					int lnch_clk = data_pin.launching_clk[LATE][type_data];
-					if (lnch_clk != -1 && new_data_rat - data_pin.at[LATE][type_data] < 0) {
-						float credit = this->cppr->cppr_credit(LATE, lnch_clk, this->nodes[lnch_clk].clk_edge, clk.index, type_clk);
-						new_data_rat += credit;
-					}
-					if (lnch_clk != -1 && clk.at[EARLY][type_clk] - new_clk_rat < 0) {
-						float credit = this->cppr->cppr_credit(LATE, lnch_clk, this->nodes[lnch_clk].clk_edge, clk.index, type_clk);
-						new_clk_rat  -= credit;
-					}
 
 					if (clk.at[EARLY][type_clk] != UNDEFINED_AT[EARLY]) rat_relax(data_rat, new_data_rat, LATE);
 					if (data_pin.at[LATE][type_data] != UNDEFINED_AT[LATE]) rat_relax(clk_rat, new_clk_rat, EARLY);
@@ -868,7 +848,7 @@ void Graph::report_timing(const vector<pair<Transition_Type,string>>&from,
 
 void Graph::print_graph(){
 	for(size_t i=0; i<nodes.size(); i++){
-		for(auto it:adj[i]){
+		for(auto it : adj[i]){
 			int to = it.first;
 			Edge *e = it.second;
 			if(e->type==IN_CELL){
