@@ -846,7 +846,7 @@ void Graph::report_timing(const string& from, vector<pair<Transition_Type, strin
 
 void Graph::print_graph(){
 	for(size_t i=0; i<nodes.size(); i++){
-		for(auto it:adj[i]){
+		for(auto it : adj[i]){
 			int to = it.first;
 			Edge *e = it.second;
 			if(e->type==IN_CELL){
