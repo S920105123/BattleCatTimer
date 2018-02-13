@@ -34,7 +34,12 @@ public:
 		// Explicit representation of a path
 		float dist;
 		vector<int> path;
+<<<<<<< HEAD
 
+=======
+		vector<float> delay;
+		
+>>>>>>> 1567d51c1bcd0f454314dd56bc77008683bbe0f3
 		void print();
 	};
 
@@ -51,8 +56,10 @@ public:
     void print();
     void print_path(const Path& path);
     string get_node_name(int kth_id);
+    
     Kth(){} /* Just for unit test */
 	vector<vector<Edge>>& getG(); /* Just for unit test */
+	void set_st(int s, int t);
 
 private:
     void mark_through(const vector<pair<Transition_Type,int>>&);

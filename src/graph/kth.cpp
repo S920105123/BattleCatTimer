@@ -351,17 +351,21 @@ bool Kth::backward_build(int now, int next_object){
 // *********************************************
 
 void Kth::single_dest_dfs(int v) {
-	/* Find dist[v], successor[v] after calling this function */
+	// Find dist[v], successor[v] after calling this function
+	// successor == -1: not visited, successor == -2: not reachable
 	cout<<"DFS "<<v<<endl<<std::flush;
 	for (auto it=G[v].begin(); it!=G[v].end(); ++it) {
 		const Edge &e = *it;
 		int to = e.to;
 		if (this->successor[to] == -1) single_dest_dfs(to);
+		if (this->successor[to] == -2) continue;
 
 		// Always choose "worst" path, that is, shortest dist, then smallest at
 		float relax = this->dist[to] + e.delay;
 		float new_at = this->at_dist[to] + e.at_delay;
+		cout<<"Use "<<relax<<" relax "<<v<<endl;
 		if (this->successor[v] == -1 || this->dist[v] > relax) {
+			cout<<"RELAX\n";
 			this->dist[v] = relax;
 			this->at_dist[v] = new_at;
 			this->successor[v] = to;
@@ -369,12 +373,15 @@ void Kth::single_dest_dfs(int v) {
 		}
 		else if (this->dist[v] == relax && this->at_dist[v] > new_at) {
 			// Tie breaker
+			cout<<"TIE RELAX\n";
 			this->dist[v] = relax;
 			this->at_dist[v] = new_at;
 			this->successor[v] = to;
 			this->use_edge[v] = e.id;
 		}
 	}
+	
+	if (this->successor[v] == -1) this->successor[v] = -2;
 }
 
 bool Kth::build_single_dest_tree(int dest) {
@@ -394,9 +401,11 @@ bool Kth::build_single_dest_tree(int dest) {
 		if (this->successor[i] == -1) {
 			this->single_dest_dfs(i);
 		}
+		cout<<"SUCC "<<successor[i]<<endl;
 	}
 
 	/* Return false if dest isn't reachable. */
+<<<<<<< HEAD
 	bool reach = false;
 	for (int i=0; i < (int)G.size(); i++) {
 		if (successor[i] == dest) {
@@ -406,6 +415,10 @@ bool Kth::build_single_dest_tree(int dest) {
 	}
 	if (!reach) return false;
 
+=======
+	if (this->successor[source_kth] == -2) return false;
+	
+>>>>>>> 1567d51c1bcd0f454314dd56bc77008683bbe0f3
 	/* For each edge e, compute its delta */
 	for (int i=0; i < (int)G.size(); i++) {
 		for (auto it = G[i].begin(); it!=G[i].end(); ++it) {
@@ -428,7 +441,7 @@ void Kth::extend(Prefix_node *path) {
 	while (v != this->dest_kth) {
 		for (auto it = G[v].begin(); it != G[v].end(); ++it) {
 			Edge &e = *it;
-			if (e.id == this->use_edge[v]) continue;
+			if (successor[e.to] == -2 || e.id == this->use_edge[v]) continue;
 			Prefix_node *next_path = new Prefix_node(path, &e); // IMPORTANT, one should delete this after pop.
 //			cout << "Use " << path << " to extend "<<next_path<<" eptr="<<path->eptr<<endl<<std::flush;
 			this->pq.push(next_path);
@@ -442,7 +455,7 @@ void Kth::get_explicit_path_helper(Path *exp_path, const Prefix_node *imp_path, 
 	// Recursive subroutine of get_explicit_path
 	// *** Assume dest havn't been pushed into path
 //	cout<<"NOW "<<imp_path<<" "<<imp_path->eptr<<endl<<std::flush;
-	int sz = exp_path->path.size(), v;
+	int sz = exp_path->path.size(), dsz = exp_path->delay.size(), v;
 	if (imp_path->eptr == NULL) {
 		// Root of prefix tree
 		v = this->source_kth;
@@ -450,16 +463,24 @@ void Kth::get_explicit_path_helper(Path *exp_path, const Prefix_node *imp_path, 
 	else {
 		// From where last sidetrack points to
 		v = imp_path->eptr->to;
+		exp_path->delay.emplace_back(imp_path->eptr->delay);
 	}
 
 	// Go through all vertices from v to dest
 	while (v != dest) {
 		exp_path->path.emplace_back(v);
+		exp_path->delay.emplace_back(dist[ v ] - this->dist[ this->successor[v] ]);
 		v = this->successor[v];
 	}
+	cout<<"PUSH "<<v<<endl<<std::flush;
 	exp_path->path.emplace_back(v);
 	std::reverse(exp_path->path.begin() + sz, exp_path->path.end());
+<<<<<<< HEAD
 
+=======
+	std::reverse(exp_path->delay.begin() + dsz, exp_path->delay.end());
+	
+>>>>>>> 1567d51c1bcd0f454314dd56bc77008683bbe0f3
 	if (imp_path->eptr != NULL) {
 		get_explicit_path_helper(exp_path, imp_path->parent, imp_path->eptr->from);
 	}
@@ -476,18 +497,29 @@ void Kth::get_explicit_path(Path *exp_path, const Prefix_node *imp_path) {
 }
 
 void Kth::k_shortest_path(int k, vector<Path> &container) {
+<<<<<<< HEAD
 	int src = this->source_kth;
 	int dest = this->dest_kth;
 	container.resize(k);
+=======
+>>>>>>> 1567d51c1bcd0f454314dd56bc77008683bbe0f3
 	cout<<"BUILD TREE START\n"<<std::flush;
-	this->build_single_dest_tree(dest);
+	if (!this->build_single_dest_tree(this->dest_kth)) {
+		container.clear();
+		return;
+	}
 	cout<<"BUILD TREE DONE\n"<<std::flush;
+<<<<<<< HEAD
 
+=======
+	container.resize(k);
+	
+>>>>>>> 1567d51c1bcd0f454314dd56bc77008683bbe0f3
 	// This loop and extend can be optimized by branch and bound method
 	Prefix_node *root = new Prefix_node(); // Empty set represent SP itself
 	this->pq.push(root);
 	for (int i=0; i<k; i++) {
-		cout<<"Extract "<<i<<" size = "<<pq.size()<<endl<<std::flush;
+		cout<<"Extract path"<<i<<endl<<std::flush;
 		if (pq.empty()) {
 			container.resize(i);
 			break;
@@ -537,16 +569,21 @@ void Kth::print_path(const Path& p){
 }
 
 void Kth::Path::print() {
-	LOG(CERR) << "Path: " << this->path[0];
+	LOG(CERR) << "Path:\nEnd at " << this->path[0] << endl;
 	for (int i=1; i<(int)path.size(); i++) {
-		LOG(CERR) << " <- " << this->path[i];
+		LOG(CERR) << "delay " << std::setw(6) << delay[i-1] << " from " << this->path[i] << endl;
 	}
-	LOG(CERR) << endl << "Length: " << this->dist << endl;;
+	LOG(CERR) << "Length: " << this->dist << "\n\n";
 }
 
 vector<vector<Kth::Edge>>& Kth::getG() {
 	/* Just for unit test */
 	return this->G;
+}
+
+void Kth::set_st(int s, int t) {
+	this->source_kth = s;
+	this->dest_kth = t;
 }
 
 // *************************************
@@ -583,19 +620,24 @@ int main() {
 	int V, E, s, t, k;
 	Kth algo;
 	auto &G = algo.getG();
+<<<<<<< HEAD
 
+=======
+	freopen("unit_test/kth.txt", "r", stdin);
+>>>>>>> 1567d51c1bcd0f454314dd56bc77008683bbe0f3
 	while (cin>>V>>E>>s>>t>>k) {
 		G.resize(V);
+		algo.set_st(s,t);
 		for (int i=0; i<V; i++) G[i].clear();
 		for (int i=0; i<E; i++) {
 			int fr, to;
 			float w;
 			cin>>fr>>to>>w;
-			algo.add_edge(fr, to, w);
+			algo.add_edge(fr, to, w, 1);
 		}
 
 		vector<Kth::Path> vp;
-		algo.k_shortest_path(s, t, k, vp);
+		algo.k_shortest_path(k, vp);
 		cout<<"------------------------------\n\n"<<vp.size()<<" paths found\n"<<std::flush;
 		for (int i=0; i<(int)vp.size(); i++) {
 			vp[i].print();
