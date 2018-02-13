@@ -6,6 +6,7 @@
 #include "graph.h"
 
 class Graph;
+class Kth;
 class BC_map {
 
 public:
@@ -33,5 +34,7 @@ private:
     int superSource;
 
     vector<vector<Edge>> G;
+
+    friend class Kth;
 };
 #endif /* BATTLE_CAT_MAP */
