@@ -380,7 +380,7 @@ void Kth::single_dest_dfs(int v) {
 			this->use_edge[v] = e.id;
 		}
 	}
-	
+
 	if (this->successor[v] == -1) this->successor[v] = -2;
 }
 
@@ -405,20 +405,8 @@ bool Kth::build_single_dest_tree(int dest) {
 	}
 
 	/* Return false if dest isn't reachable. */
-<<<<<<< HEAD
-	bool reach = false;
-	for (int i=0; i < (int)G.size(); i++) {
-		if (successor[i] == dest) {
-			reach = true;
-			break;
-		}
-	}
-	if (!reach) return false;
-
-=======
 	if (this->successor[source_kth] == -2) return false;
-	
->>>>>>> 1567d51c1bcd0f454314dd56bc77008683bbe0f3
+
 	/* For each edge e, compute its delta */
 	for (int i=0; i < (int)G.size(); i++) {
 		for (auto it = G[i].begin(); it!=G[i].end(); ++it) {
@@ -475,12 +463,8 @@ void Kth::get_explicit_path_helper(Path *exp_path, const Prefix_node *imp_path, 
 	cout<<"PUSH "<<v<<endl<<std::flush;
 	exp_path->path.emplace_back(v);
 	std::reverse(exp_path->path.begin() + sz, exp_path->path.end());
-<<<<<<< HEAD
-
-=======
 	std::reverse(exp_path->delay.begin() + dsz, exp_path->delay.end());
-	
->>>>>>> 1567d51c1bcd0f454314dd56bc77008683bbe0f3
+
 	if (imp_path->eptr != NULL) {
 		get_explicit_path_helper(exp_path, imp_path->parent, imp_path->eptr->from);
 	}
@@ -497,24 +481,15 @@ void Kth::get_explicit_path(Path *exp_path, const Prefix_node *imp_path) {
 }
 
 void Kth::k_shortest_path(int k, vector<Path> &container) {
-<<<<<<< HEAD
-	int src = this->source_kth;
-	int dest = this->dest_kth;
-	container.resize(k);
-=======
->>>>>>> 1567d51c1bcd0f454314dd56bc77008683bbe0f3
 	cout<<"BUILD TREE START\n"<<std::flush;
 	if (!this->build_single_dest_tree(this->dest_kth)) {
 		container.clear();
 		return;
 	}
 	cout<<"BUILD TREE DONE\n"<<std::flush;
-<<<<<<< HEAD
 
-=======
 	container.resize(k);
-	
->>>>>>> 1567d51c1bcd0f454314dd56bc77008683bbe0f3
+
 	// This loop and extend can be optimized by branch and bound method
 	Prefix_node *root = new Prefix_node(); // Empty set represent SP itself
 	this->pq.push(root);
@@ -620,11 +595,7 @@ int main() {
 	int V, E, s, t, k;
 	Kth algo;
 	auto &G = algo.getG();
-<<<<<<< HEAD
-
-=======
 	freopen("unit_test/kth.txt", "r", stdin);
->>>>>>> 1567d51c1bcd0f454314dd56bc77008683bbe0f3
 	while (cin>>V>>E>>s>>t>>k) {
 		G.resize(V);
 		algo.set_st(s,t);
