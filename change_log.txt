@@ -134,3 +134,6 @@
 2018/2/12: build bc map
 - build bc map
 - add timestamp in logger
+
+2018/2/13: Happy Chinese New Year
+- As title

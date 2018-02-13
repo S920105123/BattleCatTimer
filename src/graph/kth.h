@@ -14,30 +14,41 @@ public:
         Edge(){}
         Edge(int f,int t,float d):from(f), to(t), delay(d), clock_delay(d){}
     };
-
-    Kth(BC_map *_map, CPPR *_cppr);
+    
 	struct Prefix_node {
-		Prefix_node *parent;        // Parent in prefix path tree
-		Edge *eptr;                 // Last sidetrack in the path
-		float delta_dist, delta_at; // Cumulative delta
+		// Implicit representation of a path
+		Prefix_node *parent;   // Parent in prefix path tree
+		Edge *eptr;            // Last sidetrack in the path
+		float delta, at_delta; // Cumulative delta
+		
 		static bool compare(Prefix_node *n1, Prefix_node *n2);
+		Prefix_node(Prefix_node *p, Edge *e);
+	};
+	
+	struct Path {
+		// Explicit representation of a path
+		float dist;
+		vector<int> path;
 	};
 
+	Kth(BC_map *_map, CPPR *_cppr);
     void build_from_src(const vector<pair<Transition_Type,int>>&, int src, bool only_src);
     void build_from_dest(const vector<pair<Transition_Type,int>>&, int dest, bool only_dest);
-
     int get_kth_id(int map_id);
+    
+    // Kth algorithm implementation
+    void get_explicit_path(Path *exp_path, const Prefix_node *imp_path);
 
 private:
 
     void mark_through(BC_map* map, const vector<pair<Transition_Type,int>>&);
-
-private:
     void mark_through(const vector<pair<Transition_Type,int>>&);
     bool forward_build(int now, int next_object);
     int add_node(int bc_node_id);
     int add_edge(int from, int to, float delay);                    // from , to in bc map
     int add_edge(int from, int to, float delay, float clock_delay); // from , to in bc map
+    
+    // Kth algorithm implementation
 
     BC_map* map;
     CPPR* cppr;
@@ -54,11 +65,14 @@ private:
     vector<int> all_leave;      //
 
     vector<float> dist;         // Shortest distance to dest
-    vector<float> at;           // For tie breaking, not real at, it means "how bad the at is", smaller value is worse
+    vector<float> at_dist;      // For tie breaking, not real at, it means "how bad the at is", smaller value is worse
     vector<int> successor;      // Keep the shortest paht tree rooted to dest
     int source_kth, dest_kth;   // Source and dest;
+    
+    std::priority_queue<Prefix_node*, vector<Prefix_node*>, Prefix_node::compare> pq;
 
     void build_single_dest_tree(int dest);  // Build a single destination tree rooted at "dest" (destination)
-
+    void get_explicit_path_helper(Path *exp_path, const Prefix_node *imp_path, int dest);
+    void extend(Prefix_node *path);
 };
 #endif /* end KTH_H */

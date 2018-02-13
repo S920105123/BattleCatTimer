@@ -133,6 +133,10 @@ void Kth::build_from_dest(const vector<pair<Transition_Type,int>>& through, int 
     // backward_build(dest, 0);
 }
 
+// *********************************************
+// *       kth algorithm implementation        *
+// *********************************************
+
 void Kth::single_dest_dfs(int v) {
 	/* Find dist[v], successor[v] after calling this function */
 	for (auto it=G[v].begin(); it!=G[v].end(); ++it) {
@@ -157,7 +161,7 @@ void Kth::single_dest_dfs(int v) {
 	}
 }
 
-void Kth::build_single_dest_tree(int dest) {
+bool Kth::build_single_dest_tree(int dest) {
 	/* Initialization, successor also record visit or not, parent of root is root itself */
 	this->successor.resize( this->G.size() );
 	this->dist.resize( this->G.size() );
@@ -168,10 +172,106 @@ void Kth::build_single_dest_tree(int dest) {
 	for (int i=0; i<this->G.size; i++) {
 		this->single_dest_dfs(i);
 	}
+	
+	/* Return false if dest isn't reachable. */
+	bool reach = false;
+	for (int i=0; i<G.size(); i++) {
+		if (successor[i] == dest) {
+			reach = true;
+			break;
+		}
+	}
+	if (!reach) return false;
+	
+	/* For each edge e, compute its delta */
+	for (int i=0; i<G.size(); i++) {
+		for (auto it = G[i].begin(); it!=G[i].end(); ++it) {
+			const Edge &e = *it;
+			e.delta = e.delay + this->dist[e.to] - this->dist[e.from];
+			e.at_delta = e.at_delay + this->at_dist[e.to] - this->at_dist[e.from];
+		}
+	}
+	
+	return true;
+}
+
+void Kth::extend(Prefix_node *path) {
+	// From "path", extend its childs
+	// A child can only be obtained by adding a sidetrack edge, in which its "from" on the path after last sidetrack of this path
+	// All its children are longer than "path"
+	
+	// For every v from head of last sidetrack to t.
+	int v = path->eptr->to;
+	while (v != this->kth_dest) {
+		for (auto it = G[v].begin(); it != G[v].end(); ++it) {
+			const Edge &e = *it;
+			if (e.to == this->successor[v]) continue;
+			Prefix_node *next_path = new Prefix_node(path, &e); // IMPORTANT, need a mechanism to free these guys.
+			this->pq.push(next_path);
+		}
+		
+		v = successor[v];
+	}
+}
+
+void Kth::get_explicit_path_helper(Path *exp_path, const Prefix_node *imp_path, int dest) {
+	// Recursive subroutine of get_explicit_path
+	// *** Assume dest havn't been pushed into path
+	int sz = exp_path->path.size(), v;
+	if (imp_path->parent->eptr == NULL) {
+		// Root of prefix tree
+		v = this->kth_src;
+	}
+	else {
+		// from where last sidetrack points to
+		v = imp_path->eptr->to;
+	}
+	
+	// Go through all vertices from v to dest
+	while (v != dest) {
+		exp_path.push_back(v);
+		v = this->successor[v];
+	}
+	exp_path.push_back(v);
+	std::reverse(exp_path->path.begin() + sz, exp_path->path.end);
+	
+	if (imp_path->parent->eptr != NULL) {
+		exp_path.push_back(imp_path->eptr->to); // Don't push "eptr->from" because our assumption.
+		get_explicit_path_helper(exp_path, imp_path->parent, imp_path->eptr->from);
+	}
+}
+
+void Kth::get_explicit_path(Path *exp_path, const Prefix_node *imp_path) {
+	// Recover path from implicit representation to explicit representaion
+	// Store in exp_path, path will be reverse order.
+	exp_path->delay = this->dist[ this->kth_dest ] - imp_path->delta;
+	exp_path->path.clear();
+	get_explicit_path_helper(exp_path, imp_path, kth_dest);
+}
+
+// *************************************
+// *            Prefix_node            *
+// *************************************
+
+Kth::Prefix_node::Prefix_node(Prefix_node *p, Edge *e) {
+	this->parent = p;
+	this->eptr = e;
+	this->delta = p->delta + e->delta;
+	this->at_delta = p->at_delta + e->at_delta;
 }
 
 bool Kth::Prefix_node::compare(Prefix_node *n1, Prefix_node *n2) {
 	// This function is for comparison in std::priority_queue
 	// If we want to pick "worst" node, this comparison should return "is n1 better than n2"
-	// 
+	return (n1->delta > n2->delta) || ( n1->delta == n2->delta && n1->at_delta > n2->at_delta );
 }
+
+// ----------------- For Testing ---------------------------
+
+#ifdef TEST_KTH
+
+int main() {
+	
+}
+
+#endif
