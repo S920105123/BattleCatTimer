@@ -21,6 +21,12 @@ Transition_Type BC_map::get_graph_id_type(int map_id){
     return (map_id&1)? FALL:RISE;
 }
 
+string BC_map::get_node_name(int map_id){
+    int graph_id = get_graph_id(map_id);
+    Mode mode = get_graph_id_mode(map_id);
+    Transition_Type type = get_graph_id_type(map_id);
+    return graph->nodes[graph_id].name+":"+get_mode_string(mode)+":"+get_transition_string(type);
+}
 void BC_map::add_edge(int from, int to, float delay){
     G[from].emplace_back(from, to, delay);
     Gr[to].emplace_back(from, to, delay);

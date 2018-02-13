@@ -4,6 +4,8 @@
 #include "bc_map.h"
 #include "cppr.h"
 
+class CPPR;
+class BC_map;
 class Kth {
 
 public:
@@ -12,9 +14,9 @@ public:
         int from, to;
         float delay, at_delay, delta, at_delta;
         Edge(){}
-        Edge(int f,int t,float d):from(f), to(t), delay(d), clock_delay(d){}
+        Edge(int f,int t,float d):from(f), to(t), delay(d), at_delay(d){}
     };
-    
+
 	struct Prefix_node {
 		// Implicit representation of a path
 		Prefix_node *parent;   // Parent in prefix path tree
@@ -38,17 +40,15 @@ public:
     
     // Kth algorithm implementation
     void get_explicit_path(Path *exp_path, const Prefix_node *imp_path);
+    void print();
+    string get_node_name(int kth_id);
 
 private:
-
-    void mark_through(BC_map* map, const vector<pair<Transition_Type,int>>&);
     void mark_through(const vector<pair<Transition_Type,int>>&);
     bool forward_build(int now, int next_object);
     int add_node(int bc_node_id);
-    int add_edge(int from, int to, float delay);                    // from , to in bc map
-    int add_edge(int from, int to, float delay, float clock_delay); // from , to in bc map
-    
-    // Kth algorithm implementation
+    void add_edge(int from, int to, float delay);                    // from , to in bc map
+    void add_edge(int from, int to, float delay, float clock_delay); // from , to in bc map
 
     BC_map* map;
     CPPR* cppr;
@@ -74,5 +74,6 @@ private:
     void build_single_dest_tree(int dest);  // Build a single destination tree rooted at "dest" (destination)
     void get_explicit_path_helper(Path *exp_path, const Prefix_node *imp_path, int dest);
     void extend(Prefix_node *path);
+    void single_dest_dfs(int v);
 };
 #endif /* end KTH_H */
