@@ -22,19 +22,19 @@ public:
 		Prefix_node *parent;   // Parent in prefix path tree
 		Edge *eptr;            // Last sidetrack in the path
 		float delta, at_delta; // Cumulative delta
-		
+
 		struct Compare {
 			bool operator()(const Prefix_node *n1, const Prefix_node *n2);
 		};
 		Prefix_node(Prefix_node *p, Edge *e);
 		Prefix_node();
 	};
-	
+
 	struct Path {
 		// Explicit representation of a path
 		float dist;
 		vector<int> path;
-		
+
 		void print();
 	};
 
@@ -44,11 +44,12 @@ public:
     int get_kth_id(int map_id);
     void add_edge(int from, int to, float delay);                    // from , to in bc map
     void add_edge(int from, int to, float delay, float clock_delay); // from , to in bc map
-    
+
     // Kth algorithm implementation
-    void k_shortest_path(int src, int dest, int k, vector<Path> &container);
+    void k_shortest_path(int k, vector<Path> &container);
     void get_explicit_path(Path *exp_path, const Prefix_node *imp_path);
     void print();
+    void print_path(const Path& path);
     string get_node_name(int kth_id);
     Kth(){} /* Just for unit test */
 	vector<vector<Edge>>& getG(); /* Just for unit test */
@@ -78,7 +79,7 @@ private:
     vector<int> successor;      // Keep the shortest paht tree rooted to dest
     vector<int> use_edge;       // Keep edge id
     int source_kth, dest_kth;   // Source and dest;
-    
+
     std::priority_queue<Prefix_node*, vector<Prefix_node*>, Prefix_node::Compare> pq;
     vector<Prefix_node*> trash_can; // Store used prefix node
 

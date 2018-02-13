@@ -1,5 +1,5 @@
-report_timing  -rise_from inp2 -through u4:a -rise_through u4:o
-report_timing  -from inp2 -through u4:a -rise_through u4:o
-report_timing  -from f1:ck -through u4:b -rise_through u4:o
-report_timing  -from f1:ck -through u2:a
-report_timing  -to f1:d
+report_timing  -to f1:d -nworst 4
+report_timing  -from inp2
+report_timing  -fall_from inp2
+report_timing  -from inp1
+report_timing  -fall_from inp1

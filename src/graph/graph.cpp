@@ -857,6 +857,12 @@ void Graph::report_timing(const vector<pair<Transition_Type,string>>&from,
 			_through.emplace_back(x.first, bc_map->get_index(EARLY, x.first, get_index(x.second)));
 		}
 		kth.build_from_dest(_through, to_map_id, specify);
+
+		vector<Kth::Path> ans;
+		kth.k_shortest_path(nworst, ans);
+		for(auto& p:ans){
+			kth.print_path(p);
+		}
 	}
 	else if(from.size()){
 		Kth kth(bc_map, cppr);
@@ -872,7 +878,12 @@ void Graph::report_timing(const vector<pair<Transition_Type,string>>&from,
 			// _through.emplace_back(x.first, bc_map->get_index(LATE, x.first, get_index(x.second)));
 		}
 
+		vector<Kth::Path> ans;
 		kth.build_from_src(_through, from_map_id, specify);
+		kth.k_shortest_path(nworst, ans);
+		for(auto& p:ans){
+			kth.print_path(p);
+		}
 	}
 }
 

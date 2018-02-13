@@ -102,10 +102,9 @@ void Kth::build_from_src(const vector<pair<Transition_Type,int>>& through, int s
     // super dest, every ff:d will connect to this node, and the weight is cppr(src, ff:d) + slack(ff:d)
     dest_kth = add_node(-1);
     source_kth = add_node(-1);
-
     mark_through(through);
 
-    // source_kth to all may source(early, late, rise, fall), and dfs them
+    // source_kth to all likely source(early, late, rise, fall), and dfs them
     if(!specify){ // it has 4 src node in map
         // trun bc_map to graph id , then get bc_map id by specifing mode and transition
         int graph_id = map->get_graph_id(src);
@@ -117,11 +116,14 @@ void Kth::build_from_src(const vector<pair<Transition_Type,int>>& through, int s
                 Mode mode = MODES[i];
                 Transition_Type type = TYPES[j];
                 map_id = map->get_index(mode, type, graph_id);
-                if(map->graph->nodes[graph_id].is_clock)
-                    clock_at = map->graph->nodes[graph_id].at[mode][type];
-                else clock_at = 0;
-                add_edge(source_kth, get_kth_id(map_id), 0, clock_at);
-                // LOG(CERR) << "connect " << get_node_name(source_kth) << " to " << get_node_name(get_kth_id(map_id)) << endl;
+                clock_at = map->graph->nodes[graph_id].at[mode][type];
+
+                /*  source at time became delay*/
+                float delay = 0;
+                if(mode==EARLY) delay = map->graph->nodes[graph_id].at[mode][type];
+                else delay = -map->graph->nodes[graph_id].at[mode][type];
+
+                add_edge(source_kth, get_kth_id(map_id), delay, clock_at);
                 forward_build(map_id, 0);
             }
         }
@@ -135,16 +137,17 @@ void Kth::build_from_src(const vector<pair<Transition_Type,int>>& through, int s
             Mode mode = MODES[i];
             float clock_at = map->graph->nodes[map->get_graph_id(src)].at[mode][type];
             int map_id = map->get_index(mode, type, graph_id);
-            if(!map->graph->nodes[map->get_graph_id(src)].is_clock) clock_at = 0;
-            add_edge(source_kth, get_kth_id(map_id) , clock_at);
-            // LOG(CERR) << "*connect " << get_node_name(source_kth) << " to " << get_node_name(get_kth_id(map_id)) << endl;
+
+            /* source at time became delay */
+            float delay = 0;
+            if(mode==EARLY) delay = map->graph->nodes[graph_id].at[mode][type];
+            else delay = -map->graph->nodes[graph_id].at[mode][type];
+
+            add_edge(source_kth, get_kth_id(map_id), delay, clock_at);
             forward_build(map_id, 0);
         }
     }
 
-    for(auto x:all_leave ){
-        LOG(CERR) << "leaf : " << map->get_node_name(x) << endl;
-    }
     // build all ff:d to desk_kth
     for(auto x:all_leave){
         int src_id = map->get_graph_id(src);
@@ -168,9 +171,9 @@ void Kth::build_from_src(const vector<pair<Transition_Type,int>>& through, int s
         }
         else LOG(CERR) << " no cppr\n";
 
-        // cppr plus slack = Woffest
-        if(mode==EARLY) delay += leaf_node.at[mode][leaf_type] - leaf_node.rat[mode][leaf_type];
-        else delay +=  leaf_node.rat[mode][leaf_type] - leaf_node.at[mode][leaf_type];
+
+        if(mode==EARLY) delay += - leaf_node.rat[mode][leaf_type];
+        else delay += leaf_node.rat[mode][leaf_type];
 
         // connect to dest_kth
         add_edge(get_kth_id(x), dest_kth, delay);
@@ -182,8 +185,8 @@ bool Kth::forward_build(int now, int next_object){
     if(vis[now]) return is_good[now];
     vis[now] = 1;
 
-    LOG(CERR) << "dfs: " << map->get_node_name(now) << " my level: " << map->level[now]
-    << " next level: " << object[next_object] << endl;
+    // LOG(CERR) << "dfs: " << map->get_node_name(now) << " my level: " << map->level[now]
+    // << " next level: " << object[next_object] << endl;
     if(map->G[now].size()==0){ // at primary out or ff:d
         if(next_object==(int)object.size()){
             all_leave.emplace_back(now);
@@ -240,7 +243,11 @@ void Kth::build_from_dest(const vector<pair<Transition_Type,int>>& through, int 
 
                 map_id = map->get_index(mode, type, graph_id);
                 // LOG(CERR) << "connnect " << get_node_name(dest_kth) << " " << map->get_node_name(map_id) << endl;
-                add_edge(get_kth_id(map_id), dest_kth, 0);
+                float delay = 0;
+                if(mode==EARLY) delay = -map->graph->nodes[graph_id].rat[mode][type];
+                else delay = map->graph->nodes[graph_id].rat[mode][type];
+
+                add_edge(get_kth_id(map_id), dest_kth, delay);
                 backward_build(map_id, 0);
             }
         }
@@ -252,18 +259,24 @@ void Kth::build_from_dest(const vector<pair<Transition_Type,int>>& through, int 
             Mode mode = MODES[i];
             int map_id = map->get_index(mode, type, graph_id);
             // LOG(CERR) << "*connnect " << get_node_name(dest_kth) << " " << map->get_node_name(map_id) << endl;
-            add_edge(get_kth_id(map_id), dest, 0);
+
+            float delay = 0;
+            if(mode==EARLY) delay = -map->graph->nodes[graph_id].rat[mode][type];
+            else delay = map->graph->nodes[graph_id].rat[mode][type];
+
+            add_edge(get_kth_id(map_id), dest, delay);
             backward_build(map_id, 0);
         }
     }
 
-    // connect all leave to source_kth
+    // connect source_kth to all src
     for(auto x:all_leave){
         // int src_clk_id
         int dest_id = map->get_graph_id(dest);
         int leaf_id = map->get_graph_id(x);
         Mode mode = map->get_graph_id_mode(x);
         const auto & dest_node = map->graph->nodes[dest_id];
+        const auto & leaf_node = map->graph->nodes[leaf_id];
         Transition_Type dest_type = map->get_graph_id_type(dest);
         float delay = 0, at_clock = 0;
 
@@ -281,12 +294,12 @@ void Kth::build_from_dest(const vector<pair<Transition_Type,int>>& through, int 
         }
         else LOG(CERR) << " no cppr\n";
 
-        if(mode==EARLY) delay += dest_node.at[EARLY][dest_type]-dest_node.rat[EARLY][dest_type];
-        else delay += dest_node.rat[LATE][dest_type] - dest_node.at[LATE][dest_type];
+        /* src at time became delay */
+        if(mode==EARLY) delay += leaf_node.at[EARLY][dest_type]; // -leaf_id.rat[EARLY][dest_type];
+        else delay += -leaf_node.at[LATE][dest_type];
+        // else delay += dest_node.rat[LATE][dest_type] - dest_node.at[LATE][dest_type];
 
-        if(map->graph->nodes[leaf_id].is_clock){
-            at_clock = map->graph->nodes[leaf_id].at[mode][ map->get_graph_id_type(x) ];
-        }
+        at_clock = map->graph->nodes[leaf_id].at[mode][ map->get_graph_id_type(x) ];
         add_edge(source_kth, get_kth_id(x), delay, at_clock);
     }
 
@@ -297,10 +310,10 @@ bool Kth::backward_build(int now, int next_object){
     if(vis[now]) return is_good[now];
     vis[now] = 1;
 
-    LOG(CERR) << "dfs " << map->get_node_name(now) << " my level: " << map->level[now];
-    if(next_object<(int)object.size())
-        cout << " next_object level " << object[next_object] << endl;
-    else cout << " next_object level " << " ok\n";
+    // LOG(CERR) << "dfs " << map->get_node_name(now) << " my level: " << map->level[now];
+    // if(next_object<(int)object.size())
+    //     cout << " next_object level " << object[next_object] << endl;
+    // else cout << " next_object level " << " ok\n";
     if(map->Gr[now].size()==0){
         if(next_object>=(int)object.size()){
             all_leave.emplace_back(now);
@@ -382,7 +395,7 @@ bool Kth::build_single_dest_tree(int dest) {
 			this->single_dest_dfs(i);
 		}
 	}
-	
+
 	/* Return false if dest isn't reachable. */
 	bool reach = false;
 	for (int i=0; i < (int)G.size(); i++) {
@@ -392,7 +405,7 @@ bool Kth::build_single_dest_tree(int dest) {
 		}
 	}
 	if (!reach) return false;
-	
+
 	/* For each edge e, compute its delta */
 	for (int i=0; i < (int)G.size(); i++) {
 		for (auto it = G[i].begin(); it!=G[i].end(); ++it) {
@@ -401,7 +414,7 @@ bool Kth::build_single_dest_tree(int dest) {
 			e.at_delta = e.at_delay + this->at_dist[e.to] - this->at_dist[e.from];
 		}
 	}
-	
+
 	return true;
 }
 
@@ -409,7 +422,7 @@ void Kth::extend(Prefix_node *path) {
 	// From "path", extend its childs
 	// A child can only be obtained by adding a sidetrack edge, in which its "from" on the path after last sidetrack of this path
 	// All its children are longer than "path"
-	
+
 	// For every v from head of last sidetrack to t.
 	int v = path->eptr==NULL ? source_kth : path->eptr->to;
 	while (v != this->dest_kth) {
@@ -420,7 +433,7 @@ void Kth::extend(Prefix_node *path) {
 //			cout << "Use " << path << " to extend "<<next_path<<" eptr="<<path->eptr<<endl<<std::flush;
 			this->pq.push(next_path);
 		}
-		
+
 		v = successor[v];
 	}
 }
@@ -438,7 +451,7 @@ void Kth::get_explicit_path_helper(Path *exp_path, const Prefix_node *imp_path, 
 		// From where last sidetrack points to
 		v = imp_path->eptr->to;
 	}
-	
+
 	// Go through all vertices from v to dest
 	while (v != dest) {
 		exp_path->path.emplace_back(v);
@@ -446,7 +459,7 @@ void Kth::get_explicit_path_helper(Path *exp_path, const Prefix_node *imp_path, 
 	}
 	exp_path->path.emplace_back(v);
 	std::reverse(exp_path->path.begin() + sz, exp_path->path.end());
-	
+
 	if (imp_path->eptr != NULL) {
 		get_explicit_path_helper(exp_path, imp_path->parent, imp_path->eptr->from);
 	}
@@ -462,14 +475,14 @@ void Kth::get_explicit_path(Path *exp_path, const Prefix_node *imp_path) {
 	cout<<"FIND DONE\n"<<std::flush;
 }
 
-void Kth::k_shortest_path(int src, int dest, int k, vector<Path> &container) {
-	this->source_kth = src;
-	this->dest_kth = dest;
+void Kth::k_shortest_path(int k, vector<Path> &container) {
+	int src = this->source_kth;
+	int dest = this->dest_kth;
 	container.resize(k);
 	cout<<"BUILD TREE START\n"<<std::flush;
 	this->build_single_dest_tree(dest);
 	cout<<"BUILD TREE DONE\n"<<std::flush;
-	
+
 	// This loop and extend can be optimized by branch and bound method
 	Prefix_node *root = new Prefix_node(); // Empty set represent SP itself
 	this->pq.push(root);
@@ -482,11 +495,11 @@ void Kth::k_shortest_path(int src, int dest, int k, vector<Path> &container) {
 		Prefix_node *next_path = pq.top();
 		pq.pop();
 		get_explicit_path(&container[i], next_path);
-		container[i].print();
+		// container[i].print();
 		if (i+1 < k) this->extend(next_path);
 		this->trash_can.emplace_back(next_path);
 	}
-	
+
 	// clean nodes
 	for (auto it = this->trash_can.begin(); it != this->trash_can.end(); ++it) {
 		delete *it;
@@ -497,6 +510,30 @@ void Kth::k_shortest_path(int src, int dest, int k, vector<Path> &container) {
 		pq.pop();
 		delete next_path;
 	}
+}
+
+void Kth::print_path(const Path& p){
+
+    float total = 0, delay = 0;
+    int width = 10;
+    vector<int> path = p.path;
+    reverse(path.begin(), path.end());
+	LOG(CERR) << "Path: \n";
+    LOG(CERR) << get_node_name(path[0]) << std::setw(width) << 0 << std::setw(width) << 0 << endl;
+	for (int i=1; i<(int)path.size(); i++) {
+        int s = path[i-1];
+        int t = path[i];
+        for(int j=0; j<(int)G[s].size(); j++){
+            if(G[s][j].to == t){
+                delay = G[s][j].delay;
+                break;
+            }
+        }
+        total += delay;
+        LOG(CERR) << get_node_name(path[i]) << std::setw(width) << std::fixed << std::setprecision(3)
+        << delay << std::setw(width) << std::fixed << std::setprecision(3) << total << endl;
+	}
+	LOG(CERR) << endl << "Length: " << p.dist << endl;;
 }
 
 void Kth::Path::print() {
@@ -546,7 +583,7 @@ int main() {
 	int V, E, s, t, k;
 	Kth algo;
 	auto &G = algo.getG();
-	
+
 	while (cin>>V>>E>>s>>t>>k) {
 		G.resize(V);
 		for (int i=0; i<V; i++) G[i].clear();
@@ -556,7 +593,7 @@ int main() {
 			cin>>fr>>to>>w;
 			algo.add_edge(fr, to, w);
 		}
-		
+
 		vector<Kth::Path> vp;
 		algo.k_shortest_path(s, t, k, vp);
 		cout<<"------------------------------\n\n"<<vp.size()<<" paths found\n"<<std::flush;

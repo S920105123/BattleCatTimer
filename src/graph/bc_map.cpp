@@ -111,8 +111,8 @@ void BC_map::build_map(int root){
             add_edge(get_index(EARLY, FALL, root), get_index(EARLY, FALL, to), delay);
 
             delay = e->tree? e->tree->get_delay(LATE, graph->get_name(to)):0;
-            add_edge(get_index(LATE, RISE, root), get_index(LATE, RISE, to), delay);
-            add_edge(get_index(LATE, FALL, root), get_index(LATE, FALL, to), delay);
+            add_edge(get_index(LATE, RISE, root), get_index(LATE, RISE, to), -delay);
+            add_edge(get_index(LATE, FALL, root), get_index(LATE, FALL, to), -delay);
         }
         else{
             for(int mm=0; mm<2; mm++){
