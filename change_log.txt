@@ -50,7 +50,7 @@
 - rc tree done
 - show log message(#error, #warning )
 
-2018/2/3: liberty delay done
+2018/2/3: liberty delay don
 - add liberty.h
 - add get_delay/slew/constraint to timing_arc.cpp
 - add get_value to timing_table.cpp
@@ -138,5 +138,8 @@
 2018/2/13: Happy Chinese New Year
 - As title
 
-2018/2/14: k path added
+2018/2/14: k path simplest test passed
 - Assssssssss title
+
+2018/2/14: kth done
+- Maybe

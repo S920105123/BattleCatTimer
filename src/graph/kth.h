@@ -34,6 +34,7 @@ public:
 		// Explicit representation of a path
 		float dist;
 		vector<int> path;
+		vector<float> delay;
 		
 		void print();
 	};
@@ -46,12 +47,14 @@ public:
     void add_edge(int from, int to, float delay, float clock_delay); // from , to in bc map
     
     // Kth algorithm implementation
-    void k_shortest_path(int src, int dest, int k, vector<Path> &container);
+    void k_shortest_path(int k, vector<Path> &container);
     void get_explicit_path(Path *exp_path, const Prefix_node *imp_path);
     void print();
     string get_node_name(int kth_id);
+    
     Kth(){} /* Just for unit test */
 	vector<vector<Edge>>& getG(); /* Just for unit test */
+	void set_st(int s, int t);
 
 private:
     void mark_through(const vector<pair<Transition_Type,int>>&);
