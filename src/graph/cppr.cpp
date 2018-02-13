@@ -10,6 +10,7 @@ CPPR::~CPPR(){
 }
 
 void CPPR::build_tree(){
+    if(root==-1) return;
     dfs_build(root, 0, 0);
     build_sparse();
 }
@@ -69,6 +70,7 @@ void CPPR::build_sparse(){
 
 float CPPR::cppr_credit(Mode mode, int u, Transition_Type type_u, int v, Transition_Type type_v){
 
+    if(root==-1) return 0;
     // cout << graph->nodes[u].name << " " << graph->nodes[v].name << endl;
     int tree_u = to_tree_id[u], tree_v = to_tree_id[v];
     int lca = get_lca(in[tree_u], in[tree_v]);

@@ -15,6 +15,8 @@ public:
     void build();
     int get_index(Mode mode,Transition_Type type, int node_id);
     int get_graph_id(int map_id);      // map id to graph node id
+    Mode get_graph_id_mode(int map_id);
+    Transition_Type get_graph_id_type(int map_id);
 
     struct Edge{
         int from, to;
@@ -25,7 +27,7 @@ public:
 
 private:
     void add_edge(int from, int to, float delay);
-    void build_map(int root, int dep);
+    void build_map(int root);
     vector<int> to_map_id[2][2];       // graph node id to bc map id
     vector<int> level, vis, in;
     queue<int> q;
@@ -34,6 +36,7 @@ private:
     int superSource;
 
     vector<vector<Edge>> G;
+    vector<vector<Edge>> Gr;
 
     friend class Kth;
 };

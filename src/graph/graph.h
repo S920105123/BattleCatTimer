@@ -19,6 +19,7 @@ const string OUTPUT_PREFIX = "";
 
 class CPPR;
 class BC_map;
+class Kth;
 class Graph {
 
 public:
@@ -95,8 +96,9 @@ public:
 	void insert_net(const string& net_name);
 	void insert_gate(const string& inst_name, const string& cell_type);
 	void repower_gate(const string& inst_name, const string& cell_type);
-	void report_timing(const string& from, vector<pair<Transition_Type, string>>& through,
-					    const string& to, int max_pahts, int nworst);
+	void report_timing(const vector<pair<Transition_Type,string>>&from,
+					   const vector<pair<Transition_Type,string>>&through,
+					   const vector<pair<Transition_Type,string>>&to, int max_paths, int nworst);
 
 	int add_node(const string &name, Node_type type);
 
@@ -157,6 +159,7 @@ private:
 
 	friend class CPPR;
 	friend class BC_map;
+	friend class Kth;
 };
 
 #endif

@@ -182,26 +182,49 @@ void Timer::open_ops(const string& ops){
         if(cmd=="") break;
         /* tau 2018 */
         if(cmd=="report_timing"){
-            string op, from, to, pin;
-            vector<pair<Transition_Type, string>> through;
+            string op, pin;
+            vector<pair<Transition_Type, string>> through, from ,to;
             int max_pahts = 1, nworst = 1;
-            from = "", to = "";
             do{
                 op = in.next_token();
                 if(op=="") break;
-                if(op=="-from") read_pin_name(in, from);
-                else if(op=="-to") read_pin_name(in, to);
+                if(op=="-from"){
+                    read_pin_name(in, pin);
+                    from.emplace_back(RISE, pin);
+                    from.emplace_back(FALL, pin);
+                }
+                else if(op=="-rise_from"){
+                    read_pin_name(in, pin);
+                    from.emplace_back(RISE, pin);
+                }
+                else if(op=="-fall_from"){
+                    read_pin_name(in, pin);
+                    from.emplace_back(FALL, pin);
+                }
+                else if(op=="-to"){
+                    read_pin_name(in, pin);
+                    to.emplace_back(RISE, pin);
+                    to.emplace_back(FALL, pin);
+                }
+                else if(op=="-rise_to"){
+                    read_pin_name(in, pin);
+                    to.emplace_back(RISE, pin);
+                }
+                else if(op=="-fall_to"){
+                    read_pin_name(in, pin);
+                    to.emplace_back(FALL, pin);
+                }
+                else if(op=="-through"){
+                    read_pin_name(in, pin);
+                    through.emplace_back(RISE, pin);
+                    through.emplace_back(FALL, pin);
+                }
                 else if(op=="-rise_through"){
                     read_pin_name(in, pin);
                     through.emplace_back(RISE, pin);
                 }
                 else if(op=="-fall_through"){
                     read_pin_name(in, pin);
-                    through.emplace_back(FALL, pin);
-                }
-                else if(op=="-through"){
-                    read_pin_name(in, pin);
-                    through.emplace_back(RISE, pin);
                     through.emplace_back(FALL, pin);
                 }
                 else if(op=="-max_paths") max_pahts = (int)stof(in.next_token());

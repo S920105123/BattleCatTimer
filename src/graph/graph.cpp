@@ -778,12 +778,11 @@ void Graph::calculate_rat() {
 void Graph::init_graph(){
     calculate_at();
 	Logger::add_timestamp("at ok");
-	if(clock_id == -1){
-		LOG(ERROR) << "[Graph][init_graph] don't set clock pin\n";
-	}
+
 	cppr = new CPPR(this, clock_id);
 	cppr->build_tree();
 	Logger::add_timestamp("cppr ok");
+	
 	bc_map = new BC_map(this);
 	bc_map->build();
 	Logger::add_timestamp("bc ok");
@@ -833,19 +832,35 @@ void Graph::repower_gate(const string& inst_name, const string& cell_type){
 }
 
 
-void Graph::report_timing(const string& from, vector<pair<Transition_Type, string>>& through,
-					const string& to, int max_paths, int nworst)
+void Graph::report_timing(const vector<pair<Transition_Type,string>>&from,
+				   		  const vector<pair<Transition_Type,string>>&through,
+				   	      const vector<pair<Transition_Type,string>>&to, int max_paths, int nworst)
 {
-	LOG(CERR) << "report_timing " << "-from " << from << " ";
-	LOG(CERR) << "-to " << to << " ";
+	LOG(CERR) << "report_timing ";
 	LOG(CERR) << "-max_pahts " << max_paths << " ";
 	LOG(CERR) << "-nworst " << nworst << " ";
+	for(auto i:from){
+		if(i.first==Transition_Type::FALL){
+			LOG(CERR) << "-fall_from " << i.second << " ";
+		}
+		if(i.first==Transition_Type::RISE){
+			LOG(CERR) << "-rise_from " << i.second << " ";
+		}
+	}
 	for(auto i:through){
 		if(i.first==Transition_Type::FALL){
 			LOG(CERR) << "-fall_through " << i.second << " ";
 		}
 		if(i.first==Transition_Type::RISE){
 			LOG(CERR) << "-rise_through " << i.second << " ";
+		}
+	}
+	for(auto i:to){
+		if(i.first==Transition_Type::FALL){
+			LOG(CERR) << "-fall_to " << i.second << " ";
+		}
+		if(i.first==Transition_Type::RISE){
+			LOG(CERR) << "-rise_to " << i.second << " ";
 		}
 	}
 	LOG(CERR) << endl;

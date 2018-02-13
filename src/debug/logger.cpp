@@ -40,6 +40,8 @@ Logger::~Logger() {
 
 void Logger::add_timestamp(const string& event){
 	timestamp.emplace_back(event, time(NULL));
+
+	std::cerr << event << endl;
 }
 
 Logger& Logger::Log(Log_type type, bool prefix) {
