@@ -4,6 +4,8 @@
 #include "bc_map.h"
 #include "cppr.h"
 
+class CPPR;
+class BC_map;
 class Kth {
 
 public:
@@ -12,10 +14,9 @@ public:
         int from, to;
         float delay, at_delay, delta, at_delta;
         Edge(){}
-        Edge(int f,int t,float d):from(f), to(t), delay(d), clock_delay(d){}
+        Edge(int f,int t,float d):from(f), to(t), delay(d), at_delay(d){}
     };
 
-    Kth(BC_map *_map, CPPR *_cppr);
 	struct Prefix_node {
 		Prefix_node *parent;        // Parent in prefix path tree
 		Edge *eptr;                 // Last sidetrack in the path
@@ -23,21 +24,20 @@ public:
 		static bool compare(Prefix_node *n1, Prefix_node *n2);
 	};
 
+    Kth(BC_map *_map, CPPR *_cppr);
     void build_from_src(const vector<pair<Transition_Type,int>>&, int src, bool only_src);
     void build_from_dest(const vector<pair<Transition_Type,int>>&, int dest, bool only_dest);
 
     int get_kth_id(int map_id);
-
-private:
-
-    void mark_through(BC_map* map, const vector<pair<Transition_Type,int>>&);
+    void print();
+    string get_node_name(int kth_id);
 
 private:
     void mark_through(const vector<pair<Transition_Type,int>>&);
     bool forward_build(int now, int next_object);
     int add_node(int bc_node_id);
-    int add_edge(int from, int to, float delay);                    // from , to in bc map
-    int add_edge(int from, int to, float delay, float clock_delay); // from , to in bc map
+    void add_edge(int from, int to, float delay);                    // from , to in bc map
+    void add_edge(int from, int to, float delay, float clock_delay); // from , to in bc map
 
     BC_map* map;
     CPPR* cppr;
@@ -59,6 +59,6 @@ private:
     int source_kth, dest_kth;   // Source and dest;
 
     void build_single_dest_tree(int dest);  // Build a single destination tree rooted at "dest" (destination)
-
+    void single_dest_dfs(int v);
 };
 #endif /* end KTH_H */

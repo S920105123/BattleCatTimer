@@ -17,6 +17,7 @@ public:
     int get_graph_id(int map_id);      // map id to graph node id
     Mode get_graph_id_mode(int map_id);
     Transition_Type get_graph_id_type(int map_id);
+    string get_node_name(int map_id);
 
     struct Edge{
         int from, to;

@@ -762,7 +762,7 @@ void Graph::init_graph(){
 	cppr = new CPPR(this, clock_id);
 	cppr->build_tree();
 	Logger::add_timestamp("cppr ok");
-	
+
 	bc_map = new BC_map(this);
 	bc_map->build();
 	Logger::add_timestamp("bc ok");
@@ -844,6 +844,25 @@ void Graph::report_timing(const vector<pair<Transition_Type,string>>&from,
 		}
 	}
 	LOG(CERR) << endl;
+
+	if(to.size()){
+	}
+	else if(from.size()){
+		Kth kth(bc_map, cppr);
+		int from_id = get_index(from[0].second);
+		bool specify = from.size()==2? false:true; // only rise or fall ?
+
+		int from_map_id = bc_map->get_index(EARLY, from[0].first, from_id);
+		vector<pair<Transition_Type,int>> _through;
+		// turn throgh name to bc_map id
+		for(auto x:through){
+			_through.emplace_back(x.first, bc_map->get_index(EARLY, x.first, get_index(x.second)));
+			// LATE mode will be added in Kth::mark_through
+			// _through.emplace_back(x.first, bc_map->get_index(LATE, x.first, get_index(x.second)));
+		}
+
+		kth.build_from_src(_through, from_map_id, specify);
+	}
 }
 
 void Graph::print_graph(){

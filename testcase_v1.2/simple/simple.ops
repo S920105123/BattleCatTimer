@@ -1,1 +1,1 @@
-report_timing  -rise_from inp2 -through u4:a -rise_through u4:o -to f1:d
+report_timing  -rise_from inp2 -through u4:a -rise_through u4:o 
