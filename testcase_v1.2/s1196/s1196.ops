@@ -1,2 +1,5 @@
-report_worst_paths -numPaths 10 -pin inst_342:ZN
-report_timing -to inst_342:ZN -through inst_342:ZN
+report_worst_paths -numPaths 500 -pin inst_153:ZN
+report_worst_paths -numPaths 10 -pin G9
+report_timing -to G537 -nworst 10 -through inst_153:ZN
+report_timing -to G548 -nworst 10 -through inst_153:ZN
+report_timing -from G9 -nworst 10

@@ -111,17 +111,23 @@ void Kth::build_from_src(const vector<pair<Transition_Type,int>>& through, int s
         int map_id;
         float clock_at;
 
+        const auto& src_node = map->graph->nodes[graph_id];
+        if(!src_node.is_clock and src_node.node_type!=PRIMARY_IN){
+            LOG(CERR) << "from node: " << map->graph->nodes[graph_id].name << " is not clock or PRIMARY_IN\n";
+            return;
+        }
         for(int i=0; i<2; i++){
             for(int j=0; j<2; j++){
                 Mode mode = MODES[i];
                 Transition_Type type = TYPES[j];
                 map_id = map->get_index(mode, type, graph_id);
-                clock_at = map->graph->nodes[graph_id].at[mode][type];
+                clock_at = src_node.at[mode][type];
+                if(src_node.is_clock and type!=src_node.clk_edge) continue;
 
                 /*  source at time became delay*/
                 float delay = 0;
-                if(mode==EARLY) delay = map->graph->nodes[graph_id].at[mode][type];
-                else delay = -map->graph->nodes[graph_id].at[mode][type];
+                if(mode==EARLY) delay = src_node.at[mode][type];
+                else delay = -src_node.at[mode][type];
 
                 add_edge(source_kth, get_kth_id(map_id), delay, clock_at);
                 forward_build(map_id, 0);
@@ -148,6 +154,7 @@ void Kth::build_from_src(const vector<pair<Transition_Type,int>>& through, int s
         }
     }
 
+    print();
     // build all ff:d to desk_kth
     for(auto x:all_leave){
         int src_id = map->get_graph_id(src);
@@ -160,8 +167,12 @@ void Kth::build_from_src(const vector<pair<Transition_Type,int>>& through, int s
         LOG(CERR) << "cppr: " <<  map->get_node_name(src) << " " << map->get_node_name(x);
         if(map->graph->nodes[src_id].is_clock and map->graph->nodes[leaf_id].node_type!=PRIMARY_OUT){
             int leaf_clk_id= map->graph->nodes[leaf_id].constrained_clk; // ff:d's clk
-            if(leaf_clk_id==-1) LOG(ERROR) << "[kth][build_from_src] leaf'ck is -1, leaf: " << map->get_node_name(x) << endl;
-            ASSERT(leaf_clk_id!=-1);
+            if(leaf_clk_id==-1){
+                LOG(ERROR) << "[kth][build_from_src] leaf'ck is -1, leaf: " << map->get_node_name(x) << endl;
+                LOG(CERR) << "[kth][build_from_src] leaf'ck is -1, leaf: " << map->get_node_name(x) << endl;
+                continue;
+            }
+            // ASSERT(leaf_clk_id!=-1);
 
             Transition_Type src_clk_type = map->graph->nodes[src_id].clk_edge;       // clk trigger type
             Transition_Type leaf_clk_type = map->graph->nodes[leaf_clk_id].clk_edge;
@@ -178,7 +189,6 @@ void Kth::build_from_src(const vector<pair<Transition_Type,int>>& through, int s
         // connect to dest_kth
         add_edge(get_kth_id(x), dest_kth, delay);
     }
-    print();
 }
 
 bool Kth::forward_build(int now, int next_object){
@@ -275,7 +285,7 @@ void Kth::build_from_dest(const vector<pair<Transition_Type,int>>& through, int 
         int dest_id = map->get_graph_id(dest);
         int leaf_id = map->get_graph_id(x);
         Mode mode = map->get_graph_id_mode(x);
-        const auto & dest_node = map->graph->nodes[dest_id];
+        // const auto & dest_node = map->graph->nodes[dest_id];
         const auto & leaf_node = map->graph->nodes[leaf_id];
         Transition_Type dest_type = map->get_graph_id_type(dest);
         float delay = 0, at_clock = 0;
@@ -283,8 +293,12 @@ void Kth::build_from_dest(const vector<pair<Transition_Type,int>>& through, int 
         LOG(CERR) << "cppr: " <<  map->get_node_name(x) << " " << map->get_node_name(dest) ;
         if(map->graph->nodes[dest_id].node_type!=PRIMARY_OUT and map->graph->nodes[leaf_id].is_clock){
             int dest_ck_id = map->graph->nodes[dest_id].constrained_clk;
-            if(dest_ck_id==-1) LOG(ERROR) << "[kth][build_from_dest] dest'ck is -1, dest: " << map->get_node_name(dest) << endl;
-            ASSERT(dest_ck_id!=-1);
+            if(dest_ck_id==-1){
+                LOG(CERR) << "[kth][build_from_dest] dest'ck is not primary out or register/D, dest: " << map->get_node_name(dest) << endl;
+                LOG(ERROR) << "[kth][build_from_dest] dest'ck is not primary out or register/D, dest: " << map->get_node_name(dest) << endl;
+                continue;
+            }
+            // ASSERT(dest_ck_id!=-1);
 
             Transition_Type dest_ck_type = map->graph->nodes[dest_ck_id].clk_edge;
             Transition_Type leaf_ck_type = map->graph->nodes[leaf_id].clk_edge;
@@ -344,6 +358,7 @@ bool Kth::backward_build(int now, int next_object){
         }
         // to level is lower than now's obeject
     }
+    return is_good[now];
 }
 
 // *********************************************
@@ -524,18 +539,13 @@ void Kth::print_path(const Path& p){
     float total = 0, delay = 0;
     int width = 10;
     vector<int> path = p.path;
+    vector<float> pdelay = p.delay;
     reverse(path.begin(), path.end());
+    reverse(pdelay.begin(), pdelay.end());
 	LOG(CERR) << "Path: \n";
     LOG(CERR) << get_node_name(path[0]) << std::setw(width) << 0 << std::setw(width) << 0 << endl;
 	for (int i=1; i<(int)path.size(); i++) {
-        int s = path[i-1];
-        int t = path[i];
-        for(int j=0; j<(int)G[s].size(); j++){
-            if(G[s][j].to == t){
-                delay = G[s][j].delay;
-                break;
-            }
-        }
+        delay = pdelay[i-1];
         total += delay;
         LOG(CERR) << get_node_name(path[i]) << std::setw(width) << std::fixed << std::setprecision(3)
         << delay << std::setw(width) << std::fixed << std::setprecision(3) << total << endl;
