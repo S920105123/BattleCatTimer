@@ -8,6 +8,7 @@ Kth::Kth(BC_map *_map, CPPR *_cppr){
     is_good.resize( map->num_node );
     has_kth_id.resize( map->num_node );
     vis.resize( map->num_node );
+    mark.resize( map->num_node );
 }
 
 int Kth::add_node(int bc_node_id){
@@ -59,7 +60,6 @@ void Kth::print(){
 
 void Kth::mark_through(const vector<pair<Transition_Type,int>>& through){
 
-    mark.resize( map->num_node );
     if(through.size()==0) return;
 
     vector<pair<int,int>> level; // level , node_id
@@ -266,6 +266,7 @@ void Kth::build_from_dest(const vector<int>& dest){
         at_delay = node.at[mode][type];
         add_edge(source_kth, get_kth_id(x), delay, at_delay);
     }
+    print();
 }
 
 void Kth::build_from_dest(const vector<pair<Transition_Type,int>>& through, int dest, bool specify){
@@ -468,6 +469,7 @@ void Kth::single_dest_dfs(int v) {
 	// Find dist[v], successor[v] after calling this function
 	// successor == -1: not visited, successor == -2: not reachable
 	// cout<<"DFS "<<v<<endl<<std::flush;
+    // cout << "single " << get_node_name(v) << endl;
 	for (auto it=G[v].begin(); it!=G[v].end(); ++it) {
 		const Edge &e = *it;
 		int to = e.to;
@@ -660,32 +662,31 @@ void Kth::output_path(ostream &fout, const Path& p) {
 
     const vector<int> &path = p.path;
     const vector<float> &delay = p.delay;
-    int width = 7, n = path.size();
+    int width = 8, n = path.size();
     float rat = delay[0], slack = p.dist, at = rat - slack, total = -delay[n-2];
     const char *tab = "      ", *spline = "----------------------------------------", *type_ch[2] = {"^   ", "v   "};
 
-    cout << "hi\n";
     // path[0] is SuperDest, path[n-1] is SuperSrc
     fout << endl;
 	fout << "Endpoint:   " << get_node_name(path[1])   << endl;
 	fout << "Beginpoint: " << get_node_name(path[n-2]) << endl;
-	fout << "= Required Time              " << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << rat    << endl;
-	fout << "- Arrival Time               " << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << at     << endl;
-	fout << "= Slack Time                 " << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << rat-at << endl;
+	fout << "= Required Time              " << std::fixed << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << rat    << endl;
+	fout << "- Arrival Time               " << std::fixed << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << at     << endl;
+	fout << "= Slack Time                 " << std::fixed << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << rat-at << endl;
 	fout << tab << spline << endl;
-	fout << tab << "Delay    Arrival  Edge  Pin" << endl;
-	fout << tab << "         Time" << endl;
+	fout << tab << "Delay     Arrival    Edge  Pin" << endl;
+	fout << tab << "          Time" << endl;
 	fout << tab << spline << endl;
-	fout << tab << "-        " << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total
+	fout << tab << "-         " << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total
     << "  " << type_ch[this->get_type(path[n-2])] << "  " << get_node_name(path[n-2]);
-    if(mark[to_bc_id[path[n-2]]]) fout << " <--";
+    if(mark[to_bc_id[path[n-2]]]) fout << " ->";
     fout << endl;
 	for (int i = n-3; i>=1; i--) {
 		total -= delay[i]; // Delay is negative
 		fout << tab << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << -delay[i] << "  ";
 		fout        << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total << "  ";
 		fout << type_ch[this->get_type(path[i])] << "  " << get_node_name(path[i]);
-        if(mark[ to_bc_id[path[i]] ] ) fout << "  <--";
+        if(mark[ to_bc_id[path[i]] ] ) fout << " ->";
         fout << endl;
 	}
 	fout << tab << spline << endl << endl;

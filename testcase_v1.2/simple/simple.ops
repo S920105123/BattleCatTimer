@@ -6,4 +6,4 @@ report_timing  -fall_from inp1
 report_timing  -through u4:o
 report_timing  -rise_through u4:o
 report_timing  -fall_through u4:o
-report_timing  -nworst 5
+report_timing  -nworst 1

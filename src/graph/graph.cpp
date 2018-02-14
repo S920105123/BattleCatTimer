@@ -776,7 +776,7 @@ void Graph::init_graph(){
 		if(nodes[i].in_cppr) continue;
 		if(nodes[i].constrained_clk == -1 and nodes[i].node_type!=PRIMARY_OUT) continue;
 		// just pick ff:d and PRIMARY_OUT
-		// cout << get_name(i) << " added to slack\n";
+		cout << get_name(i) << " added to slack\n";
 		for(int mm=0; mm<2; mm++){
 			for(int jj=0; jj<2; jj++){
 				int map_id = bc_map->get_index(MODES[mm], TYPES[jj], i);
@@ -885,7 +885,6 @@ void Graph::report_timing(const vector<pair<Transition_Type,string>>&from,
 		kth.build_from_throgh(_through );
 	}
 	else{
-		Kth kth(bc_map, cppr);
 		vector<int> dest;
 		int lim = min((int)nodes_slack.size(), max_paths);
 		for(int i=0; i<lim; i++){
@@ -896,7 +895,6 @@ void Graph::report_timing(const vector<pair<Transition_Type,string>>&from,
 
 	vector<Kth::Path> ans;
 	kth.k_shortest_path(max_paths, ans);
-	cout << "k ok\n";
 	for(auto k:ans){
 		kth.output_path(std::cerr, k);
 	}
