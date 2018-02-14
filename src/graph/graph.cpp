@@ -875,8 +875,8 @@ void Graph::report_timing(const vector<pair<Transition_Type,string>>&from,
 
 		vector<Kth::Path> ans;
 		kth.k_shortest_path(nworst, ans);
-		for(auto& p:ans){
-			kth.print_path(p);
+		for (auto& p:ans) {
+			kth.output_path(cout, p);
 		}
 	}
 	else if(from.size()){
@@ -897,7 +897,7 @@ void Graph::report_timing(const vector<pair<Transition_Type,string>>&from,
 		kth.build_from_src(_through, from_map_id, specify);
 		kth.k_shortest_path(nworst, ans);
 		for(auto& p:ans){
-			kth.print_path(p);
+			kth.output_path(cout, p);
 		}
 	}
 	else if(through.size()){
