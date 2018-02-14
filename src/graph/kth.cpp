@@ -553,6 +553,40 @@ void Kth::print_path(const Path& p){
 	LOG(CERR) << endl << "Length: " << p.dist << endl;;
 }
 
+int Kth::get_type(int index) {
+	// Return 0 if rising, 1 if falling
+	return this->to_bc_id[index]&1;
+}
+
+void Kth::output_path(ostream &fout, const Path& p) {
+    
+    const vector<int> &path = p.path;
+    const vector<float> &delay = p.delay;
+    int width = 7, n = path.size();
+    float rat = delay[0], slack = p.dist, at = rat - slack, total = -delay[n-2];
+    const char *tab = "      ", *spline = "----------------------------------------", *type_ch[2] = {"^   ", "v   "};
+    
+    // path[0] is SuperDest, path[n-1] is SuperSrc
+    fout << endl;
+	fout << "Endpoint:   " << get_node_name(path[1])   << endl;
+	fout << "Beginpoint: " << get_node_name(path[n-2]) << endl;
+	fout << "= Required Time              " << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << rat    << endl;
+	fout << "- Arrival Time               " << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << at     << endl;
+	fout << "= Slack Time                 " << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << rat-at << endl;
+	fout << tab << spline << endl;
+	fout << tab << "Delay    Arrival  Edge  Pin" << endl;
+	fout << tab << "         Time" << endl;
+	fout << tab << spline << endl;
+	fout << tab << "-        " << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total << "  " << type_ch[this->get_type(path[n-2])] << "  " << get_node_name(path[n-2]) << endl;
+	for (int i = n-3; i>=1; i--) {
+		total -= delay[i]; // Delay is negative
+		fout << tab << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << -delay[i] << "  ";
+		fout        << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total << "  ";
+		fout << type_ch[this->get_type(path[i])] << "  " << get_node_name(path[i]) << endl;
+	}
+	fout << tab << spline << endl << endl;
+}
+
 void Kth::Path::print() {
 	LOG(CERR) << "Path:\nEnd at " << this->path[0] << endl;
 	for (int i=1; i<(int)path.size(); i++) {
@@ -621,7 +655,7 @@ int main() {
 		algo.k_shortest_path(k, vp);
 		cout<<"------------------------------\n\n"<<vp.size()<<" paths found\n"<<std::flush;
 		for (int i=0; i<(int)vp.size(); i++) {
-			vp[i].print();
+			this->output_path(cout, vp[i])
 		}
 	}
 }

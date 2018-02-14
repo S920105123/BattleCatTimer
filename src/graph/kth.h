@@ -45,6 +45,7 @@ public:
     int get_kth_id(int map_id);
     void add_edge(int from, int to, float delay);                    // from , to in bc map
     void add_edge(int from, int to, float delay, float clock_delay); // from , to in bc map
+    void output_path(ostream &fout, const Path& p);
 
     // Kth algorithm implementation
     void k_shortest_path(int k, vector<Path> &container);
@@ -90,5 +91,6 @@ private:
     void get_explicit_path_helper(Path *exp_path, const Prefix_node *imp_path, int dest);
     void extend(Prefix_node *path);
     void single_dest_dfs(int v);
+    int get_type(int index);
 };
 #endif /* end KTH_H */
