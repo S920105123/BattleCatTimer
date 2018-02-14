@@ -12,6 +12,7 @@ Graph::Node::Node(int index, const string &name, Node_type type) {
 	this->node_type = type;
 	this->is_clock  = false; // Assume it is false at first, manually set later.
 	this->constrained_clk = -1;
+	this->in_cppr   = false;
 
 	// These undefined values is defined in header.h
 	for (int i=0; i<2; i++) {
@@ -770,6 +771,20 @@ void Graph::init_graph(){
 
     calculate_rat();
 	Logger::add_timestamp("rat ok");
+
+	for(int i=0; i<(int)nodes.size(); i++){
+		if(nodes[i].in_cppr) continue;
+		if(nodes[i].constrained_clk == -1 and nodes[i].node_type!=PRIMARY_OUT) continue;
+		// just pick ff:d and PRIMARY_OUT
+		// cout << get_name(i) << " added to slack\n";
+		for(int mm=0; mm<2; mm++){
+			for(int jj=0; jj<2; jj++){
+				int map_id = bc_map->get_index(MODES[mm], TYPES[jj], i);
+				nodes_slack.emplace_back(nodes[i].slack[MODES[mm]][TYPES[jj]], map_id);
+			}
+		}
+	}
+	sort(nodes_slack.begin(), nodes_slack.end());
 }
 
 // ******************************************************
@@ -885,6 +900,37 @@ void Graph::report_timing(const vector<pair<Transition_Type,string>>&from,
 			kth.print_path(p);
 		}
 	}
+	else if(through.size()){
+		Kth kth(bc_map, cppr);
+		vector<pair<Transition_Type,int>> _through;
+		for(auto x:through){
+			_through.emplace_back(x.first, bc_map->get_index(EARLY, x.first, get_index(x.second)));
+		}
+		kth.build_from_throgh(_through );
+
+		vector<Kth::Path> ans;
+		kth.k_shortest_path(nworst, ans);
+		for(auto& p:ans){
+			kth.print_path(p);
+		}
+	}
+	else{
+		Kth kth(bc_map, cppr);
+		vector<int> dest;
+		for(int i=0; i<nworst; i++){
+			dest.emplace_back(nodes_slack[i].second);
+		}
+		kth.build_from_dest(dest);
+
+		vector<Kth::Path> ans;
+		kth.k_shortest_path(nworst, ans);
+		int id= 0;
+		for(auto& p:ans){
+			cout << "Path: " << id++ << endl;
+			kth.print_path(p);
+		}
+	}
+
 }
 
 void Graph::print_graph(){

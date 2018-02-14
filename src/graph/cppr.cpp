@@ -18,6 +18,7 @@ void CPPR::build_tree(){
 void CPPR::add_node(int node_id,int dep, int neg){
     to_node_id.push_back(node_id);
     to_tree_id[ node_id ] = to_node_id.size()-1;
+    graph->nodes[node_id].in_cppr = true;
     negation.push_back(neg);
     level.push_back(dep);
     who.push_back(to_node_id.size()-1);

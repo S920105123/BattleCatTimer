@@ -35,6 +35,7 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
     output.open(output_file);
     open_ops(ops);
     output.close();
+    Logger::add_timestamp("ops ok");
 }
 
 void Timer::clear_Timer(){

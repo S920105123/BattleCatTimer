@@ -56,7 +56,7 @@ void BC_map::build(){
 
     // dfs build map
     vector<int> clocks;
-    for(size_t i=0; i<graph->nodes.size(); i++)if(i!=graph->clock_id){
+    for(int i=0; i<(int)graph->nodes.size(); i++)if(i!=graph->clock_id){
         Graph::Node &node = graph->nodes[i];
         if(node.is_clock){
             clocks.push_back(i);

@@ -26,7 +26,7 @@ class Graph {
 public:
 
 	struct Node {
-		bool exist, is_clock;
+		bool exist, is_clock, in_cppr;
 		Transition_Type clk_edge; // Only set when is_clock==true
 		int index;
 		string name;
@@ -138,6 +138,7 @@ private:
 	vector< unordered_map<int, Edge*> > rev_adj; // Reverse adjacency list.
 	vector< Constraint > constraints;            // Conatraint edges
 	vector< int > clocks;                        // Clock nodes
+	vector<pair<float,int>> nodes_slack;         // slack of ff:d of primary_out <slack, map_id>
 
 
 

@@ -42,6 +42,8 @@ public:
 	Kth(BC_map *_map, CPPR *_cppr);
     void build_from_src(const vector<pair<Transition_Type,int>>&, int src, bool only_src);
     void build_from_dest(const vector<pair<Transition_Type,int>>&, int dest, bool only_dest);
+    void build_from_dest(const vector<int>& dest);
+    void build_from_throgh(const vector<pair<Transition_Type,int>>& through);
     int get_kth_id(int map_id);
     void add_edge(int from, int to, float delay);                    // from , to in bc map
     void add_edge(int from, int to, float delay, float clock_delay); // from , to in bc map
