@@ -657,13 +657,14 @@ int Kth::get_type(int index) {
 }
 
 void Kth::output_path(ostream &fout, const Path& p) {
-    
+
     const vector<int> &path = p.path;
     const vector<float> &delay = p.delay;
     int width = 7, n = path.size();
     float rat = delay[0], slack = p.dist, at = rat - slack, total = -delay[n-2];
     const char *tab = "      ", *spline = "----------------------------------------", *type_ch[2] = {"^   ", "v   "};
-    
+
+    cout << "hi\n";
     // path[0] is SuperDest, path[n-1] is SuperSrc
     fout << endl;
 	fout << "Endpoint:   " << get_node_name(path[1])   << endl;
@@ -675,12 +676,17 @@ void Kth::output_path(ostream &fout, const Path& p) {
 	fout << tab << "Delay    Arrival  Edge  Pin" << endl;
 	fout << tab << "         Time" << endl;
 	fout << tab << spline << endl;
-	fout << tab << "-        " << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total << "  " << type_ch[this->get_type(path[n-2])] << "  " << get_node_name(path[n-2]) << endl;
+	fout << tab << "-        " << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total
+    << "  " << type_ch[this->get_type(path[n-2])] << "  " << get_node_name(path[n-2]);
+    if(mark[to_bc_id[path[n-2]]]) fout << " <--";
+    fout << endl;
 	for (int i = n-3; i>=1; i--) {
 		total -= delay[i]; // Delay is negative
 		fout << tab << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << -delay[i] << "  ";
 		fout        << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total << "  ";
-		fout << type_ch[this->get_type(path[i])] << "  " << get_node_name(path[i]) << endl;
+		fout << type_ch[this->get_type(path[i])] << "  " << get_node_name(path[i]);
+        if(mark[ to_bc_id[path[i]] ] ) fout << "  <--";
+        fout << endl;
 	}
 	fout << tab << spline << endl << endl;
 }

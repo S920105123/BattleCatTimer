@@ -833,7 +833,7 @@ void Graph::report_timing(const vector<pair<Transition_Type,string>>&from,
 				   	      const vector<pair<Transition_Type,string>>&to, int max_paths, int nworst)
 {
 	LOG(CERR) << "report_timing ";
-	LOG(CERR) << "-max_pahts " << max_paths << " ";
+	LOG(CERR) << "-max_paths " << max_paths << " ";
 	LOG(CERR) << "-nworst " << nworst << " ";
 	for(auto i:from){
 		if(i.first==Transition_Type::FALL){
@@ -861,76 +861,45 @@ void Graph::report_timing(const vector<pair<Transition_Type,string>>&from,
 	}
 	LOG(CERR) << endl;
 
+	Kth kth(bc_map, cppr);
+	vector<pair<Transition_Type,int>> _through;
+	for(auto x:through){
+		_through.emplace_back(x.first, bc_map->get_index(EARLY, x.first, get_index(x.second)));
+	}
+
 	if(to.size()){
-		Kth kth(bc_map, cppr);
 		int to_id = get_index(to[0].second);
 		bool specify = to.size()==2? false:true;
 
 		int to_map_id = bc_map->get_index(EARLY, to[0].first, to_id);
-		vector<pair<Transition_Type,int>> _through;
-		for(auto x:through){
-			_through.emplace_back(x.first, bc_map->get_index(EARLY, x.first, get_index(x.second)));
-		}
 		kth.build_from_dest(_through, to_map_id, specify);
-
-		vector<Kth::Path> ans;
-		kth.k_shortest_path(nworst, ans);
-		for (auto& p:ans) {
-			kth.output_path(cout, p);
-		}
 	}
 	else if(from.size()){
-		Kth kth(bc_map, cppr);
 		int from_id = get_index(from[0].second);
 		bool specify = from.size()==2? false:true; // only rise or fall ?
 
 		int from_map_id = bc_map->get_index(EARLY, from[0].first, from_id);
-		vector<pair<Transition_Type,int>> _through;
-		// turn throgh name to bc_map id
-		for(auto x:through){
-			_through.emplace_back(x.first, bc_map->get_index(EARLY, x.first, get_index(x.second)));
-			// LATE mode will be added in Kth::mark_through
-			// _through.emplace_back(x.first, bc_map->get_index(LATE, x.first, get_index(x.second)));
-		}
-
-		vector<Kth::Path> ans;
 		kth.build_from_src(_through, from_map_id, specify);
-		kth.k_shortest_path(nworst, ans);
-		for(auto& p:ans){
-			kth.output_path(cout, p);
-		}
 	}
 	else if(through.size()){
-		Kth kth(bc_map, cppr);
-		vector<pair<Transition_Type,int>> _through;
-		for(auto x:through){
-			_through.emplace_back(x.first, bc_map->get_index(EARLY, x.first, get_index(x.second)));
-		}
 		kth.build_from_throgh(_through );
-
-		vector<Kth::Path> ans;
-		kth.k_shortest_path(nworst, ans);
-		for(auto& p:ans){
-			kth.print_path(p);
-		}
 	}
 	else{
 		Kth kth(bc_map, cppr);
 		vector<int> dest;
-		for(int i=0; i<nworst; i++){
+		int lim = min((int)nodes_slack.size(), max_paths);
+		for(int i=0; i<lim; i++){
 			dest.emplace_back(nodes_slack[i].second);
 		}
 		kth.build_from_dest(dest);
-
-		vector<Kth::Path> ans;
-		kth.k_shortest_path(nworst, ans);
-		int id= 0;
-		for(auto& p:ans){
-			cout << "Path: " << id++ << endl;
-			kth.print_path(p);
-		}
 	}
 
+	vector<Kth::Path> ans;
+	kth.k_shortest_path(max_paths, ans);
+	cout << "k ok\n";
+	for(auto k:ans){
+		kth.output_path(std::cerr, k);
+	}
 }
 
 void Graph::print_graph(){
