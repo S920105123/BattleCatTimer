@@ -45,7 +45,6 @@ string Kth::get_node_name(int kth_id){
     if(kth_id==dest_kth)   return "SuperDest";
     int map_id = to_bc_id[kth_id];
     return map->get_node_name(map_id);
-
 }
 
 void Kth::print(){
@@ -69,10 +68,12 @@ void Kth::mark_through(const vector<pair<Transition_Type,int>>& through){
         int map_id = through[i].second;
         int graph_id = map->get_graph_id(map_id);
 
+    #ifdef HOLD_MODE_TOO
         map_id = map->get_index(EARLY, through[i].first, graph_id);
         mark[map_id] = 1;
         // level.emplace_back(map->level[map_id]);
         level.emplace_back(map->level[map_id], map_id);
+    #endif
         // LOG(CERR) << map->get_node_name(map_id) << " " << map->level[map_id] << endl;
 
         map_id = map->get_index(LATE, through[i].first, graph_id);
@@ -84,9 +85,9 @@ void Kth::mark_through(const vector<pair<Transition_Type,int>>& through){
     }
     sort(level.begin(), level.end());
 
-    for(auto x:level){
-        LOG(CERR) << map->get_node_name(x.second) << " level = " << x.first << endl;
-    }
+    // for(auto x:level){
+    //     LOG(CERR) << map->get_node_name(x.second) << " level = " << x.first << endl;
+    // }
     if(level.size()) object.emplace_back(level[0].first);
     for(int i=1; i<(int)level.size(); i++){
         if(level[i].first != object.back()){
@@ -98,7 +99,7 @@ void Kth::mark_through(const vector<pair<Transition_Type,int>>& through){
 // src: in bc_map
 void Kth::build_from_src(const vector<pair<Transition_Type,int>>& through, int src, bool specify){
 
-    LOG(CERR) << "builf from src\n";
+    // LOG(CERR) << "builf from src\n";
     // super dest, every ff:d will connect to this node
     dest_kth = add_node(-1);
     source_kth = add_node(-1);
@@ -116,9 +117,11 @@ void Kth::build_from_src(const vector<pair<Transition_Type,int>>& through, int s
             LOG(CERR) << "from node: " << map->graph->nodes[graph_id].name << " is not clock or PRIMARY_IN\n";
             return;
         }
-        for(int i=0; i<2; i++){
+/* just setup check*/
+        for(int i=0; i<1; i++){
             for(int j=0; j<2; j++){
                 Mode mode = MODES[i];
+                mode = LATE;
                 Transition_Type type = TYPES[j];
                 map_id = map->get_index(mode, type, graph_id);
                 clock_at = src_node.at[mode][type];
@@ -138,8 +141,11 @@ void Kth::build_from_src(const vector<pair<Transition_Type,int>>& through, int s
         // just specify Transition_Type, so it has two mode
         int graph_id = map->get_graph_id(src);
         Transition_Type type = map->get_graph_id_type(src);
-        for(int i=0; i<2; i++){
+
+/* just setup check*/
+        for(int i=0; i<1; i++){
             Mode mode = MODES[i];
+            mode = LATE;
             float clock_at = map->graph->nodes[map->get_graph_id(src)].at[mode][type];
             int map_id = map->get_index(mode, type, graph_id);
 
@@ -242,6 +248,12 @@ void Kth::build_from_dest(const vector<int>& dest){
         int map_id = dest[i];
         const auto& node = map->graph->nodes[graph_id];
         Mode mode = map->get_graph_id_mode(map_id);
+
+/* just setup check*/
+        if(mode==EARLY){
+            LOG(ERROR) << "[Kth][build_from_dest] early mode in dest " << endl;
+            continue;
+        }
         Transition_Type type = map->get_graph_id_type(map_id);
 
         float delay = 0;
@@ -258,6 +270,11 @@ void Kth::build_from_dest(const vector<int>& dest){
         Mode mode = map->get_graph_id_mode(x);
         Transition_Type type = map->get_graph_id_type(x);
         const auto& node = map->graph->nodes[ map->get_graph_id(x) ];
+/* just setup check*/
+        if(mode==EARLY){
+            LOG(ERROR) << "[Kth][build_from_dest] early mode in dest " << endl;
+            continue;
+        }
 
         float delay = 0, at_delay = 0;
         if(mode==EARLY) delay = node.at[mode][type];
@@ -266,12 +283,12 @@ void Kth::build_from_dest(const vector<int>& dest){
         at_delay = node.at[mode][type];
         add_edge(source_kth, get_kth_id(x), delay, at_delay);
     }
-    print();
+    // print();
 }
 
 void Kth::build_from_dest(const vector<pair<Transition_Type,int>>& through, int dest, bool specify){
 
-    LOG(CERR) << "builf from dest\n";
+    // LOG(CERR) << "builf from dest\n";
     mark_through(through);
     // hight level to low level
     reverse(object.begin(), object.end());
@@ -284,9 +301,11 @@ void Kth::build_from_dest(const vector<pair<Transition_Type,int>>& through, int 
         int graph_id = map->get_graph_id(dest);
         int map_id;
 
-        for(int i=0; i<2; i++){
+/* just setup check*/
+        for(int i=0; i<1; i++){
             for(int j=0; j<2; j++){
                 Mode mode = MODES[i];
+                mode = LATE;
                 Transition_Type type = TYPES[j];
 
                 map_id = map->get_index(mode, type, graph_id);
@@ -303,8 +322,10 @@ void Kth::build_from_dest(const vector<pair<Transition_Type,int>>& through, int 
         // type is specified by map id
         Transition_Type type = map->get_graph_id_type(dest);
         int graph_id = map->get_graph_id(dest);
-        for(int i=0; i<2; i++){
+/* just setup check*/
+        for(int i=0; i<1; i++){
             Mode mode = MODES[i];
+            mode = LATE;
             int map_id = map->get_index(mode, type, graph_id);
             // LOG(CERR) << "*connnect " << get_node_name(dest_kth) << " " << map->get_node_name(map_id) << endl;
 
@@ -312,7 +333,7 @@ void Kth::build_from_dest(const vector<pair<Transition_Type,int>>& through, int 
             if(mode==EARLY) delay = -map->graph->nodes[graph_id].rat[mode][type];
             else delay = map->graph->nodes[graph_id].rat[mode][type];
 
-            add_edge(get_kth_id(map_id), dest, delay);
+            add_edge(get_kth_id(map_id), dest_kth, delay);
             backward_build(map_id, 0);
         }
     }
@@ -328,7 +349,11 @@ void Kth::build_from_dest(const vector<pair<Transition_Type,int>>& through, int 
         const auto & leaf_node = map->graph->nodes[leaf_id];
         // Transition_Type dest_type = map->get_graph_id_type(dest);
         float delay = 0, at_clock = 0;
-
+/* just setup check*/
+        if(mode==EARLY){
+            LOG(ERROR) << "[Kth][build_from_dest] early mode in dest " << endl;
+            continue;
+        }
         // LOG(CERR) << "cppr: " <<  map->get_node_name(x) << " " << map->get_node_name(dest) ;
         // if(map->graph->nodes[dest_id].node_type!=PRIMARY_OUT and map->graph->nodes[leaf_id].is_clock){
         //     int dest_ck_id = map->graph->nodes[dest_id].constrained_clk;
@@ -413,10 +438,12 @@ void Kth::build_from_throgh(const vector<pair<Transition_Type,int>>& through){
             int graph_id = map->get_graph_id( through[i].second );
             Transition_Type type = map->get_graph_id_type( through[i].second );
             // search this point can connect what point
+
             forward_build(map->get_index(EARLY, type, graph_id), 1);
-            forward_build(map->get_index(LATE, type, graph_id), 1);
             vis[map->get_index(EARLY, type, graph_id)] = 0;
-            vis[map->get_index(LATE, type, graph_id)] = 0;
+/* just setup check*/
+            // forward_build(map->get_index(LATE, type, graph_id), 1);
+            // vis[map->get_index(LATE, type, graph_id)] = 0;
         }
     }
     // can't go through all asked points
@@ -427,6 +454,12 @@ void Kth::build_from_throgh(const vector<pair<Transition_Type,int>>& through){
         Mode mode = map->get_graph_id_mode(x);
         Transition_Type type = map->get_graph_id_type(x);
         const auto& node = map->graph->nodes[map->get_graph_id(x)];
+
+/* just setup check*/
+        if(mode==EARLY){
+            LOG(ERROR) << "[Kth][build_from_through] early mode in all_leave" << endl;
+            continue;
+        }
 
         float delay = 0;
         if(mode==EARLY) delay = -node.rat[mode][type];
@@ -443,7 +476,8 @@ void Kth::build_from_throgh(const vector<pair<Transition_Type,int>>& through){
             Transition_Type type = map->get_graph_id_type( through[i].second );
             // just backward search which point can connenct this points
             backward_build(map->get_index(EARLY, type, graph_id), object.size());
-            backward_build(map->get_index(LATE, type, graph_id), object.size());
+/* just setup check*/
+            // backward_build(map->get_index(LATE, type, graph_id), object.size());
         }
     }
     // source_kth to leaf
@@ -452,6 +486,11 @@ void Kth::build_from_throgh(const vector<pair<Transition_Type,int>>& through){
         Transition_Type type = map->get_graph_id_type(x);
         const auto& node = map->graph->nodes[map->get_graph_id(x)];
 
+/* just setup check*/
+        if(mode==EARLY){
+            LOG(ERROR) << "[Kth][build_from_through] early mode in all_leave" << endl;
+            continue;
+        }
         float delay = 0;
         if(mode==EARLY) delay = node.at[mode][type];
         else delay = -node.at[mode][type];

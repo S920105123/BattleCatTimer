@@ -1,6 +1,7 @@
 #ifndef HEADER_H
 #define HEADER_H
 
+#include <omp.h>
 #include <algorithm>
 #include <utility>
 #include <time.h>

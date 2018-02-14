@@ -98,7 +98,8 @@ public:
 	void insert_net(const string& net_name);
 	void insert_gate(const string& inst_name, const string& cell_type);
 	void repower_gate(const string& inst_name, const string& cell_type);
-	void report_timing(const vector<pair<Transition_Type,string>>&from,
+	void report_timing(ostream& fout,
+					   const vector<pair<Transition_Type,string>>&from,
 					   const vector<pair<Transition_Type,string>>&through,
 					   const vector<pair<Transition_Type,string>>&to, int max_paths, int nworst);
 

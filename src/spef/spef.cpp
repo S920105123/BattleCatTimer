@@ -156,7 +156,7 @@ void SpefNet::add_res(const string& pin1, const string& pin2, float f){
 
 int SpefNet::get_pin_id(const string& name){
     if(pin_id.find( name )==pin_id.end()){
-        LOG(WARNING) << "[SpefNet] Net:" << net_name << " : " << name << " don't appear at CAP, so it's CAP is 0\n";
+        // LOG(WARNING) << "[SpefNet] Net:" << net_name << " : " << name << " don't appear at CAP, so it's CAP is 0\n";
         add_cap( name , 0);
     }
     return pin_id[ name ];

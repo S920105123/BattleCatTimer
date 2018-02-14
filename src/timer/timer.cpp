@@ -238,7 +238,7 @@ void Timer::open_ops(const string& ops){
                 else break;
             }while(true);
             if(op.size()) in.put_back(op);
-            graph->report_timing(from, through, to, max_pahts, nworst);
+            graph->report_timing(output, from, through, to, max_pahts, nworst);
         }
         else if(cmd=="report_cppr_credit"){
             string pin1, pin2;

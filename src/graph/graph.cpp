@@ -776,11 +776,14 @@ void Graph::init_graph(){
 		if(nodes[i].in_cppr) continue;
 		if(nodes[i].constrained_clk == -1 and nodes[i].node_type!=PRIMARY_OUT) continue;
 		// just pick ff:d and PRIMARY_OUT
-		cout << get_name(i) << " added to slack\n";
-		for(int mm=0; mm<2; mm++){
+		// cout << get_name(i) << " added to slack\n";
+
+/*just setup check*/
+		for(int mm=0; mm<1; mm++){
 			for(int jj=0; jj<2; jj++){
-				int map_id = bc_map->get_index(MODES[mm], TYPES[jj], i);
-				nodes_slack.emplace_back(nodes[i].slack[MODES[mm]][TYPES[jj]], map_id);
+				Mode mode = LATE;
+				int map_id = bc_map->get_index(mode, TYPES[jj], i);
+				nodes_slack.emplace_back(nodes[i].slack[mode][TYPES[jj]], map_id);
 			}
 		}
 	}
@@ -828,38 +831,39 @@ void Graph::repower_gate(const string& inst_name, const string& cell_type){
 }
 
 
-void Graph::report_timing(const vector<pair<Transition_Type,string>>&from,
+void Graph::report_timing(ostream& fout,
+						  const vector<pair<Transition_Type,string>>&from,
 				   		  const vector<pair<Transition_Type,string>>&through,
 				   	      const vector<pair<Transition_Type,string>>&to, int max_paths, int nworst)
 {
-	LOG(CERR) << "report_timing ";
-	LOG(CERR) << "-max_paths " << max_paths << " ";
-	LOG(CERR) << "-nworst " << nworst << " ";
-	for(auto i:from){
-		if(i.first==Transition_Type::FALL){
-			LOG(CERR) << "-fall_from " << i.second << " ";
-		}
-		if(i.first==Transition_Type::RISE){
-			LOG(CERR) << "-rise_from " << i.second << " ";
-		}
-	}
-	for(auto i:through){
-		if(i.first==Transition_Type::FALL){
-			LOG(CERR) << "-fall_through " << i.second << " ";
-		}
-		if(i.first==Transition_Type::RISE){
-			LOG(CERR) << "-rise_through " << i.second << " ";
-		}
-	}
-	for(auto i:to){
-		if(i.first==Transition_Type::FALL){
-			LOG(CERR) << "-fall_to " << i.second << " ";
-		}
-		if(i.first==Transition_Type::RISE){
-			LOG(CERR) << "-rise_to " << i.second << " ";
-		}
-	}
-	LOG(CERR) << endl;
+	// LOG(CERR) << "report_timing ";
+	// LOG(CERR) << "-max_paths " << max_paths << " ";
+	// LOG(CERR) << "-nworst " << nworst << " ";
+	// for(auto i:from){
+	// 	if(i.first==Transition_Type::FALL){
+	// 		LOG(CERR) << "-fall_from " << i.second << " ";
+	// 	}
+	// 	if(i.first==Transition_Type::RISE){
+	// 		LOG(CERR) << "-rise_from " << i.second << " ";
+	// 	}
+	// }
+	// for(auto i:through){
+	// 	if(i.first==Transition_Type::FALL){
+	// 		LOG(CERR) << "-fall_through " << i.second << " ";
+	// 	}
+	// 	if(i.first==Transition_Type::RISE){
+	// 		LOG(CERR) << "-rise_through " << i.second << " ";
+	// 	}
+	// }
+	// for(auto i:to){
+	// 	if(i.first==Transition_Type::FALL){
+	// 		LOG(CERR) << "-fall_to " << i.second << " ";
+	// 	}
+	// 	if(i.first==Transition_Type::RISE){
+	// 		LOG(CERR) << "-rise_to " << i.second << " ";
+	// 	}
+	// }
+	// LOG(CERR) << endl;
 
 	Kth kth(bc_map, cppr);
 	vector<pair<Transition_Type,int>> _through;
@@ -896,7 +900,7 @@ void Graph::report_timing(const vector<pair<Transition_Type,string>>&from,
 	vector<Kth::Path> ans;
 	kth.k_shortest_path(max_paths, ans);
 	for(auto k:ans){
-		kth.output_path(std::cerr, k);
+		kth.output_path(fout, k);
 	}
 }
 
