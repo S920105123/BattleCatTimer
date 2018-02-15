@@ -20,22 +20,39 @@ void Timer::gen_test(const string& type, const string& tau, const string& output
 
 void Timer::run(const string& tau, const string& timing, const string& ops, const string&output_file){
     Logger::add_timestamp("start");
-    open_tau(tau);
-    Logger::add_timestamp("open_tau ok");
-    graph = new Graph();
-    graph->build(*verilog, *spef, *lib[EARLY], *lib[LATE]);
 
-    Logger::add_timestamp("graph build ok");
-    open_timing(timing);
+    /* important */
+    omp_set_nested(4);
+    #pragma omp parallel sections
+    {
+        #pragma omp section
+        {
+            open_tau(tau);
+            Logger::add_timestamp("open_tau ok");
+            graph = new Graph();
+            graph->build(*verilog, *spef, *lib[EARLY], *lib[LATE]);
 
-    // init graph
-    init_timer();
-    Logger::add_timestamp("init_timer ok");
+            Logger::add_timestamp("graph build ok");
+            open_timing(timing);
 
+            // init graph
+            init_timer();
+        }
+
+        #pragma omp section
+        {
+            cout << "tid : " << omp_get_thread_num() << " open ops\n";
+            open_ops(ops);
+        }
+    }
     output.open(output_file);
-    open_ops(ops);
+    for(int i=0; i<(int)_from.size(); i++){
+        graph->report_timing(output, *_from[i], *_through[i], *_to[i], _max_paths[i], _nworst[i]);
+    }
     output.close();
-    Logger::add_timestamp("ops ok");
+    Logger::add_timestamp("report_timing ok");
+
+
 }
 
 void Timer::clear_Timer(){
@@ -71,10 +88,29 @@ void Timer::open_tau(const string& tau){
     lib[EARLY] = new CellLib(EARLY);
     lib[LATE]  = new CellLib(LATE);
 
-    verilog->open( file_verilog );
-    spef->open( file_spef);
-    lib[EARLY]->open( file_lib_early);
-    lib[LATE]->open( file_lib_late );
+    #pragma omp parallel sections
+    {
+        #pragma omp section
+        {
+            cout << "tid : " << omp_get_thread_num() << " open verilog\n";
+            verilog->open( file_verilog );
+        }
+        #pragma omp section
+        {
+            cout << "tid : " << omp_get_thread_num() << " open spef \n";
+            spef->open( file_spef);
+        }
+        #pragma omp section
+        {
+            cout << "tid : " << omp_get_thread_num() << " open lib \n";
+            lib[EARLY]->open( file_lib_early);
+        }
+        #pragma omp section
+        {
+            cout << "tid : " << omp_get_thread_num() << " open lib \n";
+            lib[LATE]->open( file_lib_late );
+        }
+    }
 }
 
 void Timer::open_timing(const string& timing){
@@ -173,10 +209,10 @@ void Timer::open_ops(const string& ops){
     in.open(ops);
 
     string cmd, op, name, inst_name, cell_type, net_name, pin_name;
-    Transition_Type transition;
-    Mode mode;
-    float val;
-    int num_path;
+    // Transition_Type transition;
+    // Mode mode;
+    // float val;
+    // int num_path;
 
     do{
         cmd = in.next_token();
@@ -184,49 +220,52 @@ void Timer::open_ops(const string& ops){
         /* tau 2018 */
         if(cmd=="report_timing"){
             string op, pin;
-            vector<pair<Transition_Type, string>> through, from ,to;
+            vector<pair<Transition_Type, string>> *through, *from , *to;
+            through = new vector<pair<Transition_Type,string>>();
+            from = new vector<pair<Transition_Type,string>>();
+            to = new vector<pair<Transition_Type,string>>();
             int max_pahts = 1, nworst = 1;
             do{
                 op = in.next_token();
                 if(op=="") break;
                 if(op=="-from"){
                     read_pin_name(in, pin);
-                    from.emplace_back(RISE, pin);
-                    from.emplace_back(FALL, pin);
+                    from->emplace_back(RISE, pin);
+                    from->emplace_back(FALL, pin);
                 }
                 else if(op=="-rise_from"){
                     read_pin_name(in, pin);
-                    from.emplace_back(RISE, pin);
+                    from->emplace_back(RISE, pin);
                 }
                 else if(op=="-fall_from"){
                     read_pin_name(in, pin);
-                    from.emplace_back(FALL, pin);
+                    from->emplace_back(FALL, pin);
                 }
                 else if(op=="-to"){
                     read_pin_name(in, pin);
-                    to.emplace_back(RISE, pin);
-                    to.emplace_back(FALL, pin);
+                    to->emplace_back(RISE, pin);
+                    to->emplace_back(FALL, pin);
                 }
                 else if(op=="-rise_to"){
                     read_pin_name(in, pin);
-                    to.emplace_back(RISE, pin);
+                    to->emplace_back(RISE, pin);
                 }
                 else if(op=="-fall_to"){
                     read_pin_name(in, pin);
-                    to.emplace_back(FALL, pin);
+                    to->emplace_back(FALL, pin);
                 }
                 else if(op=="-through"){
                     read_pin_name(in, pin);
-                    through.emplace_back(RISE, pin);
-                    through.emplace_back(FALL, pin);
+                    through->emplace_back(RISE, pin);
+                    through->emplace_back(FALL, pin);
                 }
                 else if(op=="-rise_through"){
                     read_pin_name(in, pin);
-                    through.emplace_back(RISE, pin);
+                    through->emplace_back(RISE, pin);
                 }
                 else if(op=="-fall_through"){
                     read_pin_name(in, pin);
-                    through.emplace_back(FALL, pin);
+                    through->emplace_back(FALL, pin);
                 }
                 else if(op=="-max_paths") max_pahts = (int)stof(in.next_token());
                 else if(op=="-nworst")   nworst = (int)stof(in.next_token());
@@ -238,116 +277,121 @@ void Timer::open_ops(const string& ops){
                 else break;
             }while(true);
             if(op.size()) in.put_back(op);
-            graph->report_timing(output, from, through, to, max_pahts, nworst);
+            _from.emplace_back(from);
+            _to.emplace_back(to);
+            _through.emplace_back(through);
+            _nworst.emplace_back(nworst);
+            _max_paths.emplace_back(max_pahts);
+            // graph->report_timing(output, from, through, to, max_pahts, nworst);
         }
-        else if(cmd=="report_cppr_credit"){
-            string pin1, pin2;
-            Transition_Type type1, type2;
-            mode = EARLY;
-            type1 = type2 = RISE;
-            do{
-                op = in.next_token();
-                if(op=="") break;
-                else if(op=="-pin1") read_pin_name(in, pin1);
-                else if(op=="-pin2") read_pin_name(in, pin2);
-                else if(op=="-fall1") type1 = FALL;
-                else if(op=="-fall2") type2 = FALL;
-                else if(op=="-late") mode = LATE;
-                else break;
-            }while(true);
-            if(op.size()) in.put_back(op);
-            output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_cppr_credit(pin1, pin2, type1, type2, mode) << endl;
-        }
-        /* Timing assertions */
-        else if(cmd=="set_at"){
-            read_timing_assertion_option(in, name, mode, transition, val);
-            graph->set_at(name, mode, transition, val);
-        }
-        else if(cmd=="set_slew"){
-            read_timing_assertion_option(in, name, mode, transition, val);
-            graph->set_slew(name, mode, transition, val);
-        }
-        else if(cmd=="set_rat"){
-            read_timing_assertion_option(in, name, mode, transition, val);
-            graph->set_rat(name, mode, transition, val);
-        }
-        else if(cmd=="set_load"){
-            name = "";
-            while(true){
-                op = in.next_token();
-                if(op=="-pin") read_pin_name(in, name);
-                else if(isfloat(op)) val = stof(in.next_token());
-                else break;
-            }
-            if(op.size()) in.put_back(op);
-        }
-        /* Timing queryies */
-        else if(cmd=="report_at"){
-            read_timing_assertion_option(in, name, mode, transition, val);
-            output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_at(name, mode, transition) << endl;
-        }
-        else if(cmd=="report_rat"){
-            read_timing_assertion_option(in, name, mode, transition, val);
-            output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_rat(name, mode, transition) << endl;
-        }
-        else if(cmd=="report_slack"){
-            read_timing_assertion_option(in, name, mode, transition, val);
-            output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_slack(name, mode, transition) << endl;
-        }
-        else if(cmd=="report_slew"){
-            read_timing_assertion_option(in, name, mode, transition, val);
-            output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_slew(name, mode, transition) << endl;
-        }
-        else if(cmd=="report_worst_paths"){
-            name = "";
-            num_path = 1; // default
-            while(true){
-                op = in.next_token();
-                if(op=="-pin") read_pin_name(in, name);
-                else if(op=="-numPaths") num_path = int(stof(in.next_token()));
-                else break;
-            }
-            if(op.size()) in.put_back(op);
-            graph->report_worst_paths(name, num_path);
-        }
-        /* circuit modification */
-        else if(cmd=="insert_gate"){
-            inst_name = in.next_token();
-            cell_type = in.next_token();
-            graph->insert_gate(inst_name, cell_type);
-        }
-        else if(cmd=="repower_gate"){
-            inst_name = in.next_token();
-            cell_type = in.next_token();
-            graph->repower_gate(inst_name, cell_type);
-        }
-        else if(cmd=="remove_gate"){
-            inst_name = in.next_token();
-            graph->remove_gate(inst_name);
-        }
-        /* net-level */
-        else if(cmd=="insert_net"){
-            net_name = in.next_token();
-            graph->insert_net(net_name);
-        }
-        else if(cmd=="read_spef"){
-            name = in.next_token();
-            graph->update_spef(name);
-        }
-        else if(cmd=="remove_net"){
-            net_name = in.next_token();
-            graph->remove_net(net_name);
-        }
-        /* pin-level*/
-        else if(cmd=="connect_pin"){
-            read_pin_name(in, pin_name);
-            net_name = in.next_token();
-            graph->connect_pin(pin_name, net_name);
-        }
-        else if(cmd=="disconnect_pin"){
-            read_pin_name(in, pin_name);
-            graph->disconnect_pin(pin_name);
-        }
+        // else if(cmd=="report_cppr_credit"){
+        //     string pin1, pin2;
+        //     Transition_Type type1, type2;
+        //     mode = EARLY;
+        //     type1 = type2 = RISE;
+        //     do{
+        //         op = in.next_token();
+        //         if(op=="") break;
+        //         else if(op=="-pin1") read_pin_name(in, pin1);
+        //         else if(op=="-pin2") read_pin_name(in, pin2);
+        //         else if(op=="-fall1") type1 = FALL;
+        //         else if(op=="-fall2") type2 = FALL;
+        //         else if(op=="-late") mode = LATE;
+        //         else break;
+        //     }while(true);
+        //     if(op.size()) in.put_back(op);
+        //     output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_cppr_credit(pin1, pin2, type1, type2, mode) << endl;
+        // }
+        // /* Timing assertions */
+        // else if(cmd=="set_at"){
+        //     read_timing_assertion_option(in, name, mode, transition, val);
+        //     graph->set_at(name, mode, transition, val);
+        // }
+        // else if(cmd=="set_slew"){
+        //     read_timing_assertion_option(in, name, mode, transition, val);
+        //     graph->set_slew(name, mode, transition, val);
+        // }
+        // else if(cmd=="set_rat"){
+        //     read_timing_assertion_option(in, name, mode, transition, val);
+        //     graph->set_rat(name, mode, transition, val);
+        // }
+        // else if(cmd=="set_load"){
+        //     name = "";
+        //     while(true){
+        //         op = in.next_token();
+        //         if(op=="-pin") read_pin_name(in, name);
+        //         else if(isfloat(op)) val = stof(in.next_token());
+        //         else break;
+        //     }
+        //     if(op.size()) in.put_back(op);
+        // }
+        // /* Timing queryies */
+        // else if(cmd=="report_at"){
+        //     read_timing_assertion_option(in, name, mode, transition, val);
+        //     output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_at(name, mode, transition) << endl;
+        // }
+        // else if(cmd=="report_rat"){
+        //     read_timing_assertion_option(in, name, mode, transition, val);
+        //     output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_rat(name, mode, transition) << endl;
+        // }
+        // else if(cmd=="report_slack"){
+        //     read_timing_assertion_option(in, name, mode, transition, val);
+        //     output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_slack(name, mode, transition) << endl;
+        // }
+        // else if(cmd=="report_slew"){
+        //     read_timing_assertion_option(in, name, mode, transition, val);
+        //     output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_slew(name, mode, transition) << endl;
+        // }
+        // else if(cmd=="report_worst_paths"){
+        //     name = "";
+        //     num_path = 1; // default
+        //     while(true){
+        //         op = in.next_token();
+        //         if(op=="-pin") read_pin_name(in, name);
+        //         else if(op=="-numPaths") num_path = int(stof(in.next_token()));
+        //         else break;
+        //     }
+        //     if(op.size()) in.put_back(op);
+        //     graph->report_worst_paths(name, num_path);
+        // }
+        // /* circuit modification */
+        // else if(cmd=="insert_gate"){
+        //     inst_name = in.next_token();
+        //     cell_type = in.next_token();
+        //     graph->insert_gate(inst_name, cell_type);
+        // }
+        // else if(cmd=="repower_gate"){
+        //     inst_name = in.next_token();
+        //     cell_type = in.next_token();
+        //     graph->repower_gate(inst_name, cell_type);
+        // }
+        // else if(cmd=="remove_gate"){
+        //     inst_name = in.next_token();
+        //     graph->remove_gate(inst_name);
+        // }
+        // /* net-level */
+        // else if(cmd=="insert_net"){
+        //     net_name = in.next_token();
+        //     graph->insert_net(net_name);
+        // }
+        // else if(cmd=="read_spef"){
+        //     name = in.next_token();
+        //     graph->update_spef(name);
+        // }
+        // else if(cmd=="remove_net"){
+        //     net_name = in.next_token();
+        //     graph->remove_net(net_name);
+        // }
+        // /* pin-level*/
+        // else if(cmd=="connect_pin"){
+        //     read_pin_name(in, pin_name);
+        //     net_name = in.next_token();
+        //     graph->connect_pin(pin_name, net_name);
+        // }
+        // else if(cmd=="disconnect_pin"){
+        //     read_pin_name(in, pin_name);
+        //     graph->disconnect_pin(pin_name);
+        // }
         else{
             LOG(ERROR) << "[Timer][open_ops] unknown keyword " << cmd << endl;
         }

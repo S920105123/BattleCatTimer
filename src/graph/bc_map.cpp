@@ -70,7 +70,6 @@ void BC_map::build(){
         }
     }
 
-    Logger::add_timestamp("bc_map dfs ok");
     //bfs build level
     for(int i=0; i<num_node; i++) if(in[i]==0)
         q.push(i);
@@ -83,8 +82,6 @@ void BC_map::build(){
             level[e.to] = max(level[e.to], level[x]+1);
         }
     }
-    Logger::add_timestamp("bc level");
-
     for(size_t i=0; i<graph->nodes.size(); i++){
         int a = level[ get_index(EARLY, RISE, i) ];
         int b = level[ get_index(EARLY, FALL, i) ];
@@ -92,11 +89,11 @@ void BC_map::build(){
         int d = level[ get_index(LATE, FALL, i) ];
         // cout << a << " " << b << " " << c << " " << d << endl;
         if(a!=b || a!=c || a!=d || b!=c || b!=d || c!=d){
-            cout << " level error\n";
+            LOG(ERROR) << " level error\n";
+            LOG(CERR) << " level error\n";
         }
     }
 
-    Logger::add_timestamp("bc level check");
 }
 
 void BC_map::build_map(int root){

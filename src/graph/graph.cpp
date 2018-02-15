@@ -773,33 +773,44 @@ void Graph::init_graph(){
     calculate_at();
 	Logger::add_timestamp("at ok");
 
+	/* still build because nodes_slack need it(line:791)*/
 	cppr = new CPPR(this, clock_id);
 	cppr->build_tree();
 	Logger::add_timestamp("cppr ok");
 
-	bc_map = new BC_map(this);
-	bc_map->build();
-	Logger::add_timestamp("bc ok");
+    #pragma omp parallel sections
+    {
+        #pragma omp section
+        {
+            cout << "tid : " << omp_get_thread_num() << " bc_map\n";
+			bc_map = new BC_map(this);
+			bc_map->build();
+			Logger::add_timestamp("bc ok");
 
-    calculate_rat();
-	Logger::add_timestamp("rat ok");
+			for(int i=0; i<(int)nodes.size(); i++){
+				if(nodes[i].in_cppr) continue;
+				if(nodes[i].constrained_clk == -1 and nodes[i].node_type!=PRIMARY_OUT) continue;
+				// just pick ff:d and PRIMARY_OUT
+				// cout << get_name(i) << " added to slack\n";
 
-	for(int i=0; i<(int)nodes.size(); i++){
-		if(nodes[i].in_cppr) continue;
-		if(nodes[i].constrained_clk == -1 and nodes[i].node_type!=PRIMARY_OUT) continue;
-		// just pick ff:d and PRIMARY_OUT
-		// cout << get_name(i) << " added to slack\n";
-
-/*just setup check*/
-		for(int mm=0; mm<1; mm++){
-			for(int jj=0; jj<2; jj++){
-				Mode mode = LATE;
-				int map_id = bc_map->get_index(mode, TYPES[jj], i);
-				nodes_slack.emplace_back(nodes[i].slack[mode][TYPES[jj]], map_id);
+		/*just setup check*/
+				for(int mm=0; mm<1; mm++){
+					for(int jj=0; jj<2; jj++){
+						Mode mode = LATE;
+						int map_id = bc_map->get_index(mode, TYPES[jj], i);
+						nodes_slack.emplace_back(nodes[i].slack[mode][TYPES[jj]], map_id);
+					}
+				}
 			}
+			sort(nodes_slack.begin(), nodes_slack.end());
+		}
+		#pragma omp section
+		{
+            cout << "tid : " << omp_get_thread_num() << " rat\n";
+		    calculate_rat();
+			Logger::add_timestamp("rat ok");
 		}
 	}
-	sort(nodes_slack.begin(), nodes_slack.end());
 }
 
 // ******************************************************

@@ -10,7 +10,7 @@ GCCINCLUDE += -Isrc/liberty/
 GCCINCLUDE += -Isrc/graph/
 GCCINCLUDE += -Isrc/timer/
 
-GCCFLAG = g++ $(INCLUDEPATH) $(GCCINCLUDE) -std=c++14 -Wall
+GCCFLAG = g++ $(INCLUDEPATH) $(GCCINCLUDE) -std=c++14 -Wall -fopenmp
 
 HEADER_SRC      = src/header/func.cpp
 HEADER_SRC      += src/debug/logger.cpp

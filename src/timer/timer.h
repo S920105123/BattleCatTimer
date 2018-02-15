@@ -16,6 +16,7 @@ public:
     void run(const string& tau, const string& timing, const string& ops, const string&output);
     void gen_test(const string& type, const string& tau, const string& outfile);
 
+
 private:
     void clear_Timer();
     void init_timer();
@@ -27,6 +28,8 @@ private:
     void read_timing_assertion_option(File_Reader& in, string &name, Mode &mode, Transition_Type &transition, float &val);
     void read_pin_name(File_Reader& in, string &name);
 
+    vector< vector<pair<Transition_Type,string>>* > _from, _to, _through;
+    vector<int> _nworst, _max_paths;
     ofstream output;
     Verilog *verilog;
     Spef* spef;
