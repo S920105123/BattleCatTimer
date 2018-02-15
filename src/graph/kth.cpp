@@ -1,8 +1,9 @@
 #include "kth.h"
 
-Kth::Kth(BC_map *_map, CPPR *_cppr){
+Kth::Kth(BC_map *_map, CPPR *_cppr, Graph *_graph){
     map = _map;
     cppr = _cppr;
+    graph = _graph;
     num_node = num_edge = 0;
     to_kth_id.resize( map->num_node );
     is_good.resize( map->num_node );
@@ -46,7 +47,7 @@ string Kth::get_node_name(int kth_id){
     int map_id = to_bc_id[kth_id];
     int graph_id = map->get_graph_id(map_id);
     string name = map->graph->get_name(graph_id);
-    for(int i=0; i<name.size(); i++){
+    for(int i=0; i<(int)name.size(); i++){
         if(name[i]==':') name[i] = '/';
     }
     return name;
@@ -305,7 +306,7 @@ void Kth::build_from_dest(const vector<pair<Transition_Type,int>>& through, int 
         int graph_id = map->get_graph_id(dest);
         int map_id;
 
-/* just setup check*/
+		/* just setup check*/
         for(int i=0; i<1; i++){
             for(int j=0; j<2; j++){
                 Mode mode = MODES[i];
@@ -326,7 +327,7 @@ void Kth::build_from_dest(const vector<pair<Transition_Type,int>>& through, int 
         // type is specified by map id
         Transition_Type type = map->get_graph_id_type(dest);
         int graph_id = map->get_graph_id(dest);
-/* just setup check*/
+		/* just setup check*/
         for(int i=0; i<1; i++){
             Mode mode = MODES[i];
             mode = LATE;
@@ -353,7 +354,7 @@ void Kth::build_from_dest(const vector<pair<Transition_Type,int>>& through, int 
         const auto & leaf_node = map->graph->nodes[leaf_id];
         // Transition_Type dest_type = map->get_graph_id_type(dest);
         float delay = 0, at_clock = 0;
-/* just setup check*/
+		/* just setup check*/
         if(mode==EARLY){
             LOG(ERROR) << "[Kth][build_from_dest] early mode in dest " << endl;
             continue;
@@ -632,10 +633,23 @@ void Kth::get_explicit_path_helper(Path *exp_path, const Prefix_node *imp_path, 
 void Kth::get_explicit_path(Path *exp_path, const Prefix_node *imp_path) {
 	// Recover path from implicit representation to explicit representaion
 	// Store in exp_path, path will be reverse order.
+	// IMPORTANT, the paths are in BC id.
 	exp_path->dist = this->dist[ this->source_kth ] + imp_path->delta;
 	exp_path->path.clear();
 	// cout<<"Begin find exp path\n"<<std::flush;
 	get_explicit_path_helper(exp_path, imp_path, dest_kth);
+	exp_path->mark.resize(exp_path->path.size());
+	for (int i=0; i<(int)exp_path->path.size(); i++) {
+		int v = this->to_bc_id[ exp_path->path[i] ];
+		exp_path->path[i] = v;
+		if (v == -1) continue;
+		if (this->mark[v]) {
+			exp_path->mark[i] = true;
+		}
+		else {
+			exp_path->mark[i] = false;
+		}
+	}
 	// cout<<"FIND DONE\n"<<std::flush;
 }
 
@@ -678,8 +692,7 @@ void Kth::k_shortest_path(int k, vector<Path> &container) {
 	}
 }
 
-void Kth::print_path(const Path& p){
-
+void Kth::print_path(const Path& p) {
     float total = 0, delay = 0;
     int width = 10;
     vector<int> path = p.path;
@@ -698,21 +711,24 @@ void Kth::print_path(const Path& p){
 
 int Kth::get_type(int index) {
 	// Return 0 if rising, 1 if falling
-	return this->to_bc_id[index]&1;
+	// Use BC id
+	return index&1;
 }
 
-void Kth::output_path(ostream &fout, const Path& p) {
-
-    const vector<int> &path = p.path;
-    const vector<float> &delay = p.delay;
+void Kth::Path::output(ostream &fout, Graph *graph, BC_map *bc) {
+	// Paths are using BC id
+    const vector<int> &path = this->path;
+    const vector<float> &delay = this->delay;
+    const vector<bool> &mark = this->mark;
+    
     int width = 8, n = path.size();
-    float rat = delay[0], slack = p.dist, at = rat - slack, total = -delay[n-2];
+    float rat = delay[0], slack = this->dist, at = rat - slack, total = -delay[n-2];
     const char *tab = "      ", *spline = "----------------------------------------", *type_ch[2] = {"^   ", "v   "};
 
     // path[0] is SuperDest, path[n-1] is SuperSrc
     fout << endl;
-	fout << "Endpoint:   " << get_node_name(path[1])   << endl;
-	fout << "Beginpoint: " << get_node_name(path[n-2]) << endl;
+	fout << "Endpoint:   " << graph->nodes[bc->get_graph_id(path[1])].name << endl;
+	fout << "Beginpoint: " << graph->nodes[bc->get_graph_id(path[n-2])].name << endl;
 	fout << "= Required Time              " << std::fixed << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << rat    << endl;
 	fout << "- Arrival Time               " << std::fixed << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << at     << endl;
 	fout << "= Slack Time                 " << std::fixed << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << rat-at << endl;
@@ -721,15 +737,15 @@ void Kth::output_path(ostream &fout, const Path& p) {
 	fout << tab << "          Time" << endl;
 	fout << tab << spline << endl;
 	fout << tab << "-         " << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total
-    << "  " << type_ch[this->get_type(path[n-2])] << "  " << get_node_name(path[n-2]);
-    if(mark[to_bc_id[path[n-2]]]) fout << " ->";
+    << "   " << type_ch[bc->get_graph_id_type(path[n-2])] << "  " << graph->nodes[bc->get_graph_id(path[n-2])].name;
+    if(mark[n-2]) fout << " ->";
     fout << endl;
 	for (int i = n-3; i>=1; i--) {
 		total -= delay[i]; // Delay is negative
 		fout << tab << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << -delay[i] << "  ";
-		fout        << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total << "  ";
-		fout << type_ch[this->get_type(path[i])] << "  " << get_node_name(path[i]);
-        if(mark[ to_bc_id[path[i]] ] ) fout << " ->";
+		fout        << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total << "   ";
+		fout << type_ch[bc->get_graph_id_type(path[i])] << "  " << graph->nodes[bc->get_graph_id(path[i])].name;
+        if(mark[i] ) fout << " ->";
         fout << endl;
 	}
 	fout << tab << spline << endl << endl;

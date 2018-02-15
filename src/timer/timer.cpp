@@ -23,9 +23,9 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
 
     /* important */
     omp_set_nested(4);
-    #pragma omp parallel sections
+//    #pragma omp parallel sections
     {
-        #pragma omp section
+//        #pragma omp section
         {
             open_tau(tau);
             Logger::add_timestamp("open_tau ok");
@@ -39,9 +39,9 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
             init_timer();
         }
 
-        #pragma omp section
+//        #pragma omp section
         {
-            cout << "tid : " << omp_get_thread_num() << " open ops\n";
+            cout << "tid: " << omp_get_thread_num() << " open ops\n";
             open_ops(ops);
         }
     }
@@ -88,24 +88,24 @@ void Timer::open_tau(const string& tau){
     lib[EARLY] = new CellLib(EARLY);
     lib[LATE]  = new CellLib(LATE);
 
-    #pragma omp parallel sections
+//    #pragma omp parallel sections
     {
-        #pragma omp section
+//        #pragma omp section
         {
             cout << "tid : " << omp_get_thread_num() << " open verilog\n";
             verilog->open( file_verilog );
         }
-        #pragma omp section
+//        #pragma omp section
         {
             cout << "tid : " << omp_get_thread_num() << " open spef \n";
             spef->open( file_spef);
         }
-        #pragma omp section
+//        #pragma omp section
         {
             cout << "tid : " << omp_get_thread_num() << " open lib \n";
             lib[EARLY]->open( file_lib_early);
         }
-        #pragma omp section
+//        #pragma omp section
         {
             cout << "tid : " << omp_get_thread_num() << " open lib \n";
             lib[LATE]->open( file_lib_late );

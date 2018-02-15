@@ -175,7 +175,7 @@ void Graph::set_load(const string& pin_name, float cap){
 		return;
 	}
 	out_load[pin_name] = cap;
-	RCTree* tree = nodes[id].tree;
+	// RCTree* tree = nodes[id].tree;
 	// if(tree==NULL) return;
 	// tree->add_pin_cap(pin_name, cap);
 	// tree->cal();
@@ -778,9 +778,9 @@ void Graph::init_graph(){
 	cppr->build_tree();
 	Logger::add_timestamp("cppr ok");
 
-    #pragma omp parallel sections
+//    #pragma omp parallel sections
     {
-        #pragma omp section
+//        #pragma omp section
         {
             cout << "tid : " << omp_get_thread_num() << " bc_map\n";
 			bc_map = new BC_map(this);
@@ -804,7 +804,7 @@ void Graph::init_graph(){
 			}
 			sort(nodes_slack.begin(), nodes_slack.end());
 		}
-		#pragma omp section
+//		#pragma omp section
 		{
             cout << "tid : " << omp_get_thread_num() << " rat\n";
 		    calculate_rat();
@@ -888,9 +888,9 @@ void Graph::report_timing(ostream& fout,
 	// }
 	// LOG(CERR) << endl;
 
-	Kth kth(bc_map, cppr);
+	Kth kth(bc_map, cppr, this);
 	vector<pair<Transition_Type,int>> _through;
-	for(auto x:through){
+	for(const auto &x:through){
 		_through.emplace_back(x.first, bc_map->get_index(EARLY, x.first, get_index(x.second)));
 	}
 
@@ -922,8 +922,8 @@ void Graph::report_timing(ostream& fout,
 
 	vector<Kth::Path> ans;
 	kth.k_shortest_path(max_paths, ans);
-	for(auto k:ans){
-		kth.output_path(fout, k);
+	for (auto &k : ans) {
+		k.output(fout, this, this->bc_map);
 	}
 }
 
