@@ -176,9 +176,9 @@ void Graph::set_load(const string& pin_name, float cap){
 	}
 	out_load[pin_name] = cap;
 	RCTree* tree = nodes[id].tree;
-	if(tree==NULL) return;
-	tree->add_pin_cap(pin_name, cap);
-	tree->cal();
+	// if(tree==NULL) return;
+	// tree->add_pin_cap(pin_name, cap);
+	// tree->cal();
 }
 
 float Graph::get_at(const string &pin_name, Mode mode, Transition_Type transition){
@@ -414,6 +414,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 		mapping->sinks.emplace_back(sink);
 	}
 
+	cout << "start rc\n";
 	/* Construct external timing arc through wire mapping */
 	for (const auto &wire_pair : this->wire_mapping) {
 		const string &wire_name = wire_pair.first;
@@ -423,33 +424,34 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 
 		SpefNet *net = spef.get_spefnet_ptr(wire_name, 0);
 		RCTree *tree = NULL;
-		if (net!=NULL) tree = new RCTree(net, &vlog, lib_arr);
-		else{
-			// add new spef
-			SpefNet *net = new SpefNet();
-			net->set_total_cap(0);
-			string root = get_name ( wire_mapping[wire_name]->src ), type="I", dir="O";
-			Node_type node_type = nodes[get_index(root)].node_type;
-			if(node_type==PRIMARY_IN)  type="P", dir="I";
-			if(node_type==PRIMARY_OUT) type="P", dir="O";
-
-			net->set_name(wire_name);
-			net->add_conn(root, type, dir);
-			for(auto &it: (*wire_mapping[wire_name]).sinks) {
-				string name = get_name(it), type="I", dir="I";
-				Node_type node_type = nodes[it].node_type;
-				if(node_type==PRIMARY_IN)  type="P", dir="I";
-				if(node_type==PRIMARY_OUT) type="P", dir="O";
-
-				net->add_conn(name, type , dir);
-				net->add_cap(name, 0);
-				net->add_res(root, get_name(it), 0);
-			}
-			spef.add_net( wire_name, net);
-			tree = new RCTree(net, &vlog, lib_arr);
-		}
-		tree->build_tree();
-		tree->cal();
+		tree = new RCTree(net, &vlog, lib_arr);
+		// if (net!=NULL) tree = new RCTree(net, &vlog, lib_arr);
+		// else{
+		// 	// add new spef
+		// 	SpefNet *net = new SpefNet();
+		// 	net->set_total_cap(0);
+		// 	string root = get_name ( wire_mapping[wire_name]->src ), type="I", dir="O";
+		// 	Node_type node_type = nodes[get_index(root)].node_type;
+		// 	if(node_type==PRIMARY_IN)  type="P", dir="I";
+		// 	if(node_type==PRIMARY_OUT) type="P", dir="O";
+		//
+		// 	net->set_name(wire_name);
+		// 	net->add_conn(root, type, dir);
+		// 	for(auto &it: (*wire_mapping[wire_name]).sinks) {
+		// 		string name = get_name(it), type="I", dir="I";
+		// 		Node_type node_type = nodes[it].node_type;
+		// 		if(node_type==PRIMARY_IN)  type="P", dir="I";
+		// 		if(node_type==PRIMARY_OUT) type="P", dir="O";
+		//
+		// 		net->add_conn(name, type , dir);
+		// 		net->add_cap(name, 0);
+		// 		net->add_res(root, get_name(it), 0);
+		// 	}
+		// 	spef.add_net( wire_name, net);
+		// 	tree = new RCTree(net, &vlog, lib_arr);
+		// }
+		// tree->build_tree();
+		// tree->cal();
 		nodes[from].tree = tree;
 		for (int to : mapping->sinks) {
 			nodes[to].tree = tree;
@@ -482,6 +484,16 @@ void Graph::at_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 	/* Use "from" update "to" through "arc" */
 	Node &node_from = this->nodes[from], &node_to = this->nodes[to];
 
+	if(nodes[from].is_clock){
+		nodes[from].at[EARLY][RISE] = 0;
+		nodes[from].at[EARLY][FALL] = 0;
+		nodes[from].at[LATE][RISE] = 0;
+		nodes[from].at[LATE][FALL] = 0;
+		nodes[from].slew[EARLY][RISE] = 0;
+		nodes[from].slew[EARLY][FALL] = 0;
+		nodes[from].slew[LATE][RISE] = 0;
+		nodes[from].slew[LATE][FALL] = 0;
+	}
 	for (int i=0; i<2; i++) {
 		for (int j=0; j<2; j++) {
 			Transition_Type type_from = TYPES[i], type_to = TYPES[j];

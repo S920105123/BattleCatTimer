@@ -44,7 +44,12 @@ string Kth::get_node_name(int kth_id){
     if(kth_id==source_kth) return "SuperSource";
     if(kth_id==dest_kth)   return "SuperDest";
     int map_id = to_bc_id[kth_id];
-    return map->get_node_name(map_id);
+    int graph_id = map->get_graph_id(map_id);
+    string name = map->graph->get_name(graph_id);
+    for(int i=0; i<name.size(); i++){
+        if(name[i]==':') name[i] = '/';
+    }
+    return name;
 }
 
 void Kth::print(){
