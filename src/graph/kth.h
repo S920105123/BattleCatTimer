@@ -3,7 +3,9 @@
 
 #include "bc_map.h"
 #include "cppr.h"
+#include "graph.h"
 
+class Graph;
 class CPPR;
 class BC_map;
 class Kth {
@@ -35,11 +37,13 @@ public:
 		float dist;
 		vector<int> path;
 		vector<float> delay;
+		vector<bool> mark;
 
 		void print();
+		void output(ostream &fout, Graph *graph, BC_map *bc);
 	};
 
-	Kth(BC_map *_map, CPPR *_cppr);
+	Kth(BC_map *_map, CPPR *_cppr, Graph *_graph);
     void build_from_src(const vector<pair<Transition_Type,int>>&, int src, bool only_src);
     void build_from_dest(const vector<pair<Transition_Type,int>>&, int dest, bool only_dest);
     void build_from_dest(const vector<int>& dest);
@@ -66,8 +70,9 @@ private:
     bool backward_build(int now, int next_object);
     int add_node(int bc_node_id);
 
-    BC_map* map;
-    CPPR* cppr;
+    BC_map *map;
+    CPPR *cppr;
+    Graph *graph;
     vector<int> to_bc_id;       // kth node id to bc node id
     vector<int> to_kth_id;      // bc node id to kth node id
     vector<bool> is_good;       // if the node is good then it can go through all obect under it's level
