@@ -13,7 +13,12 @@
 
 int main(int argc, char **argv){
 
-    if(argc>1){
+    if (argc == 5) {
+        // Contest format
+        timer.gen_test(argv[1], argv[2], argv[3], argv[4]);
+    }
+    else if(argc>1) {
+        // Generate testcase
         string testcase = argv[1];
         string timer_argv[10];
         timer_argv[1] = "testcase_v1.2/" + testcase + "/" + testcase + ".tau2015";
@@ -23,7 +28,8 @@ int main(int argc, char **argv){
         cout << " --- Timer gen " << testcase << " testcase ---" << endl;
         timer.gen_test(timer_argv[3], timer_argv[1], timer_argv[2]);
     }
-    else{
+    else {
+        // Testing
         string testcase, timer_argv[10];
         cout << "enter testcase(c17/simple...): ";
         cin >> testcase;
