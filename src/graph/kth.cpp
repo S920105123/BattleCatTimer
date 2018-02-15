@@ -73,12 +73,11 @@ void Kth::mark_through(const vector<pair<Transition_Type,int>>& through){
         int map_id = through[i].second;
         int graph_id = map->get_graph_id(map_id);
 
-    #ifdef HOLD_MODE_TOO
-        map_id = map->get_index(EARLY, through[i].first, graph_id);
-        mark[map_id] = 1;
-        // level.emplace_back(map->level[map_id]);
-        level.emplace_back(map->level[map_id], map_id);
-    #endif
+/*just setup check*/
+        // map_id = map->get_index(EARLY, through[i].first, graph_id);
+        // mark[map_id] = 1;
+        // // level.emplace_back(map->level[map_id]);
+        // level.emplace_back(map->level[map_id], map_id);
         // LOG(CERR) << map->get_node_name(map_id) << " " << map->level[map_id] << endl;
 
         map_id = map->get_index(LATE, through[i].first, graph_id);

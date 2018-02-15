@@ -11,10 +11,10 @@ Timer::~Timer(){
 
 void Timer::gen_test(const string& type, const string& tau, const string& output){
     open_tau(tau);
-    cout << "read file ok\n";
+    // cout << "read file ok\n";
     graph = new Graph();
     graph->build(*verilog, *spef, *lib[EARLY], *lib[LATE]);
-    cout << "graph build ok\n";
+    // cout << "graph build ok\n";
     graph->gen_test(output, type);
 }
 
