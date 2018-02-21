@@ -30,7 +30,7 @@ void CPPR::add_node(int node_id,int dep, int neg){
 void CPPR::dfs_build(int root, int dep, int neg){
     add_node(root, dep, neg);
     bool is_neg = 0;
-    if(graph->nodes[ root ].is_clock) return;
+    if(graph->nodes[ root ].type == CLOCK) return;
 
     for(const auto& adj_pair:graph->adj[root]){
         int to = adj_pair.first;

@@ -14,7 +14,8 @@
 #include "kth.h"
 
 typedef enum { RC_TREE, IN_CELL } Edge_type;
-typedef enum { PRIMARY_IN, PRIMARY_OUT, INTERNAL} Node_type;
+typedef enum { PRIMARY_IN, PRIMARY_OUT, INPUT_PIN, OUTPUT_PIN, CLOCK, DATA_PIN, UNKNOWN } Node_type;
+
 const string INPUT_PREFIX  = "";
 const string OUTPUT_PREFIX = "";
 
@@ -26,19 +27,19 @@ class Graph {
 public:
 
 	struct Node {
-		bool exist, is_clock, in_cppr;
-		Transition_Type clk_edge; // Only set when is_clock==true
+		bool exist, in_cppr;
+		Transition_Type clk_edge; // Only set when type == CLOCK
 		int index;
 		string name;
-		Node_type node_type;
+		Node_type type;
 		RCTree *tree;
 
-		float at[2][2];  // Arrival time. e.g, at[EARLY][RISE]
-		float rat[2][2]; // Required arrival time.
+		float at[2][2];           // Arrival time. e.g, at[EARLY][RISE]
+		float rat[2][2];          // Required arrival time.
 		float slew[2][2];
 		float slack[2][2];
 		int launching_clk[2][2];
-		int constrained_clk;
+		int constrained_clk;      // Only set when type == DATA_PIN
 
 		Node(int index, const string& name, Node_type type);
 	};
@@ -46,7 +47,7 @@ public:
 	struct Edge {
 		// If "type"==IN_CELL, refer "arcs" for delay, "tree" otherwise.
 		Edge_type type;
-		int from ,to;
+		int from , to, through; // Through will be specified after condense, it is the condensed input pin.
 		RCTree *tree;
 		vector<TimingArc*> arcs[2];
 
@@ -69,7 +70,7 @@ public:
 	Graph();
 	~Graph();
 	// Node related
-	int get_index(const string &name);                 // "name" should follow this format: <Cell name>:<Pin name>, insert one if not found.
+	int get_index(const string &name);                 // "name" should follow this format: <Cell name>:<Pin name>, all nodes are built after this->build()
 	const string& get_name(int index) const;           // Get name from index.
 	bool in_graph(int index) const;                    // Check whether a node with "index" in graph
 	bool in_graph(const string &name) const;           // Check whether a node with "name" in graph (name: <cell_name>:<pin_name>)
@@ -103,7 +104,7 @@ public:
 					   const vector<pair<Transition_Type,string>>&through,
 					   const vector<pair<Transition_Type,string>>&to, int max_paths, int nworst);
 
-	int add_node(const string &name, Node_type type);
+	int add_node(const string &name, Node_type type = UNKNOWN);
 
 	// Edge related
 	const vector< unordered_map<int, Edge*> >& adj_list() const;      // Return adjacency list
@@ -138,12 +139,11 @@ private:
 	vector< unordered_map<int, Edge*> > adj;     // Adjacency list of all nodes.
 	vector< unordered_map<int, Edge*> > rev_adj; // Reverse adjacency list.
 	vector< Constraint > constraints;            // Conatraint edges
-	vector< int > clocks;                        // Clock nodes
+	vector< int > clocks, data_pins;             // Clock nodes
 	vector<pair<float,int>> nodes_slack;         // slack of ff:d of primary_out <slack, map_id>
 
-
-
 	// Graph related
+	void first_level_condense();
 	void at_arc_update(int from, int to, TimingArc *arc, Mode mode);
 	void at_update(Edge *eptr);
 	void at_dfs(int index, vector<bool> &visit);

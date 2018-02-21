@@ -61,10 +61,10 @@ void BC_map::build(){
     vector<int> clocks;
     for(int i=0; i<(int)graph->nodes.size(); i++)if(i!=graph->clock_id){
         Graph::Node &node = graph->nodes[i];
-        if(node.is_clock){
+        if(node.type == CLOCK){
             clocks.push_back(i);
         }
-        if(node.node_type==PRIMARY_IN or node.is_clock){
+        if(node.type == PRIMARY_IN or node.type == CLOCK){
             build_map(i);
             // add_edge(superSource, get_index(EARLY, RISE, i), 0);
             // add_edge(superSource, get_index(EARLY, FALL, i), 0);
@@ -74,8 +74,9 @@ void BC_map::build(){
     }
 
     //bfs build level
-    for(int i=0; i<num_node; i++) if(in[i]==0)
-        q.push(i);
+    for(int i=0; i<num_node; i++) if(in[i]==0) {
+    	q.push(i);
+	}
 
     while(!q.empty()){
         int x = q.front(); q.pop();
@@ -86,7 +87,7 @@ void BC_map::build(){
         }
     }
 
-    for(size_t i=0; i<graph->nodes.size(); i++){
+    for(size_t i=0; i < graph->nodes.size(); i++){
         // int a = level[ get_index(EARLY, RISE, i) ];
         // int b = level[ get_index(EARLY, FALL, i) ];
         int c = level[ get_index(LATE, RISE, i) ];
