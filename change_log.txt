@@ -150,3 +150,5 @@
 2018/2/21: remove early in bc_map
 - add get constant in timingArc
 - remove early mode in bc_map
+
+2018/2/21: add kth array for threads

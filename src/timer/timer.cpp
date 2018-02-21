@@ -21,7 +21,7 @@ void Timer::gen_test(const string& type, const string& tau, const string& output
 void Timer::run(const string& tau, const string& timing, const string& ops, const string&output_file){
     Logger::add_timestamp("start");
 
-    omp_set_num_threads(8);
+    omp_set_num_threads(NUM_THREAD);
     /* important */
     omp_set_nested(4);
    #pragma omp parallel sections

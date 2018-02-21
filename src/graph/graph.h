@@ -131,6 +131,7 @@ public:
 	BC_map* get_bc_map();
 
 private:
+	Kth* kths[NUM_THREAD];
 
 	int next_id;
 	int clock_id;

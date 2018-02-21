@@ -353,7 +353,10 @@ float TimingArc::get_constraint_constant(Transition_Type from, Transition_Type t
             break;
     }
 
-    if(to==RISE) return rise_constraint_table->get_value_constant();
+    if(to==RISE){
+        cout << rise_constraint_table->get_value_constant() << endl;
+        return rise_constraint_table->get_value_constant();
+    }
     else return fall_constraint_table->get_value_constant();
 }
 

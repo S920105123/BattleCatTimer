@@ -46,6 +46,7 @@ public:
 
 
 	Kth(BC_map *_map, CPPR *_cppr, Graph *_graph);
+    void clear();
     void build_from_src(const vector<pair<Transition_Type,int>>&, int src, bool only_src);
     void build_from_dest(const vector<pair<Transition_Type,int>>&, int dest, bool only_dest);
     void build_from_dest(const vector<int>& dest);

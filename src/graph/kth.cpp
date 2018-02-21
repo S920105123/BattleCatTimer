@@ -715,6 +715,31 @@ int Kth::get_type(int index) {
 	return index&1;
 }
 
+void Kth::clear(){
+    to_bc_id.clear();
+    to_kth_id.clear();
+    is_good.clear();
+    has_kth_id.clear();
+    vis.clear();
+    G.clear();
+    mark.clear();
+    object.clear();
+    all_leave.clear();
+    dist.clear();
+    at_dist.clear();
+    successor.clear();
+    use_edge.clear();
+    while(!pq.empty()) pq.pop();
+    num_node = 0;
+    num_edge = 0;
+
+    to_kth_id.resize( map->num_node );
+    is_good.resize( map->num_node );
+    has_kth_id.resize( map->num_node );
+    vis.resize( map->num_node );
+    mark.resize( map->num_node );
+}
+
 string turn_name(string name){
     for(int i=0; i<(int)name.size(); i++){
         if(name[i]==':')

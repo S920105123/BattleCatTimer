@@ -784,6 +784,9 @@ void Graph::init_graph(){
             LOG(CERR) << "tid : " << omp_get_thread_num() << " bc_map\n";
 			bc_map = new BC_map(this);
 			bc_map->build();
+			for(int i=0; i<NUM_THREAD; i++){
+				kths[i] = new Kth(bc_map, cppr, this);
+			}
 		}
 		#pragma omp section
 		{
@@ -887,7 +890,10 @@ vector<Path>* Graph::report_timing(const vector<pair<Transition_Type,string>>&fr
 	// }
 	// LOG(CERR) << endl;
 
-	Kth kth(bc_map, cppr, this);
+	// Kth kth(bc_map, cppr, this);
+	cout << "tid = " << omp_get_thread_num() << endl << std::flush;
+	Kth& kth = *kths[omp_get_thread_num()];
+	kth.clear();
 	vector<pair<Transition_Type,int>> _through;
 	for(const auto &x:through){
 		_through.emplace_back(x.first, bc_map->get_index(LATE, x.first, get_index(x.second)));

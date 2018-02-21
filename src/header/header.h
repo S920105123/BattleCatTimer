@@ -68,4 +68,6 @@ const float UNDEFINED_SLACK[2] = { 987654.0 , 987654.0  };  // Early/late
 const Transition_Type TYPES[2] = { RISE, FALL };
 const Mode MODES[2] = { EARLY, LATE };
 
+const int NUM_THREAD = 8;
+
 #endif /* end HEADER_H */
