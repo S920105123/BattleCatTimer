@@ -8,6 +8,18 @@
 class Graph;
 class CPPR;
 class BC_map;
+
+struct Path {
+    // Explicit representation of a path
+    float dist;
+    vector<int> path;
+    vector<float> delay;
+    vector<bool> mark;
+
+    void print();
+    void output(ostream &fout, Graph *graph);
+};
+
 class Kth {
 
 public:
@@ -32,16 +44,6 @@ public:
 		Prefix_node();
 	};
 
-	struct Path {
-		// Explicit representation of a path
-		float dist;
-		vector<int> path;
-		vector<float> delay;
-		vector<bool> mark;
-
-		void print();
-		void output(ostream &fout, Graph *graph, BC_map *bc);
-	};
 
 	Kth(BC_map *_map, CPPR *_cppr, Graph *_graph);
     void build_from_src(const vector<pair<Transition_Type,int>>&, int src, bool only_src);

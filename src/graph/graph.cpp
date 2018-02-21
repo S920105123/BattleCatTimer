@@ -414,7 +414,6 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 		mapping->sinks.emplace_back(sink);
 	}
 
-	cout << "start rc\n";
 	/* Construct external timing arc through wire mapping */
 	for (const auto &wire_pair : this->wire_mapping) {
 		const string &wire_name = wire_pair.first;
@@ -782,13 +781,13 @@ void Graph::init_graph(){
     {
        #pragma omp section
         {
-            cout << "tid : " << omp_get_thread_num() << " bc_map\n";
+            LOG(CERR) << "tid : " << omp_get_thread_num() << " bc_map\n";
 			bc_map = new BC_map(this);
 			bc_map->build();
 		}
 		#pragma omp section
 		{
-            cout << "tid : " << omp_get_thread_num() << " rat\n";
+            LOG(CERR) << "tid : " << omp_get_thread_num() << " rat\n";
 		    calculate_rat();
 		}
 	}
@@ -799,7 +798,7 @@ void Graph::init_graph(){
 		if(nodes[i].in_cppr) continue;
 		if(nodes[i].constrained_clk == -1 and nodes[i].node_type!=PRIMARY_OUT) continue;
 		// just pick ff:d and PRIMARY_OUT
-		// cout << get_name(i) << " added to slack\n";
+		// LOG(CERR) << get_name(i) << " added to slack\n";
 
 /*just setup check*/
 		for(int mm=0; mm<1; mm++){
@@ -855,9 +854,7 @@ void Graph::repower_gate(const string& inst_name, const string& cell_type){
 	//LOG(CERR) << "repower_gate " << inst_name << " " << cell_type << endl;
 }
 
-
-void Graph::report_timing(ostream& fout,
-						  const vector<pair<Transition_Type,string>>&from,
+vector<Path>* Graph::report_timing(const vector<pair<Transition_Type,string>>&from,
 				   		  const vector<pair<Transition_Type,string>>&through,
 				   	      const vector<pair<Transition_Type,string>>&to, int max_paths, int nworst)
 {
@@ -922,11 +919,17 @@ void Graph::report_timing(ostream& fout,
 		kth.build_from_dest(dest);
 	}
 
-	vector<Kth::Path> ans;
-	kth.k_shortest_path(max_paths, ans);
-	for (auto &k : ans) {
-		k.output(fout, this, this->bc_map);
-	}
+	vector<Path>* ans = new vector<Path>;
+	kth.k_shortest_path(max_paths, *ans);
+
+	return ans;
+	// for (auto &k : ans) {
+	// 	k.output(fout, this, this->bc_map);
+	// }
+}
+
+BC_map* Graph::get_bc_map(){
+	return bc_map;
 }
 
 void Graph::print_graph(){

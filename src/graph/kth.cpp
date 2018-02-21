@@ -722,11 +722,13 @@ string turn_name(string name){
     }
     return name;
 }
-void Kth::Path::output(ostream &fout, Graph *graph, BC_map *bc) {
+
+void Path::output(ostream &fout, Graph *graph){
 	// Paths are using BC id
     const vector<int> &path = this->path;
     const vector<float> &delay = this->delay;
     const vector<bool> &mark = this->mark;
+    BC_map *bc = graph->get_bc_map();
 
     int width = 8, n = path.size();
     float rat = delay[0], slack = this->dist, at = rat - slack, total = -delay[n-2];
@@ -758,7 +760,7 @@ void Kth::Path::output(ostream &fout, Graph *graph, BC_map *bc) {
 	fout << tab << spline << endl << endl;
 }
 
-void Kth::Path::print() {
+void Path::print() {
 	LOG(CERR) << "Path:\nEnd at " << this->path[0] << endl;
 	for (int i=1; i<(int)path.size(); i++) {
 		LOG(CERR) << "delay " << std::setw(6) << delay[i-1] << " from " << this->path[i] << endl;
@@ -822,7 +824,7 @@ int main() {
 			algo.add_edge(fr, to, w, 1);
 		}
 
-		vector<Kth::Path> vp;
+		vector<Path> vp;
 		algo.k_shortest_path(k, vp);
 		cout<<"------------------------------\n\n"<<vp.size()<<" paths found\n"<<std::flush;
 		for (int i=0; i<(int)vp.size(); i++) {
