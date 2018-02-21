@@ -422,7 +422,8 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 		int from = mapping->src;
 		if (from == -1) continue; // Isolated node.
 
-		SpefNet *net = spef.get_spefnet_ptr(wire_name, 0);
+		// SpefNet *net = spef.get_spefnet_ptr(wire_name, 0);
+		SpefNet *net = NULL;
 		RCTree *tree = NULL;
 		tree = new RCTree(net, &vlog, lib_arr);
 		// if (net!=NULL) tree = new RCTree(net, &vlog, lib_arr);
@@ -773,44 +774,45 @@ void Graph::init_graph(){
     calculate_at();
 	Logger::add_timestamp("at ok");
 
-	/* still build because nodes_slack need it(line:791)*/
 	cppr = new CPPR(this, clock_id);
 	cppr->build_tree();
 	Logger::add_timestamp("cppr ok");
 
-//    #pragma omp parallel sections
+   #pragma omp parallel sections
     {
-//        #pragma omp section
+       #pragma omp section
         {
             cout << "tid : " << omp_get_thread_num() << " bc_map\n";
 			bc_map = new BC_map(this);
 			bc_map->build();
-			Logger::add_timestamp("bc ok");
-
-			for(int i=0; i<(int)nodes.size(); i++){
-				if(nodes[i].in_cppr) continue;
-				if(nodes[i].constrained_clk == -1 and nodes[i].node_type!=PRIMARY_OUT) continue;
-				// just pick ff:d and PRIMARY_OUT
-				// cout << get_name(i) << " added to slack\n";
-
-		/*just setup check*/
-				for(int mm=0; mm<1; mm++){
-					for(int jj=0; jj<2; jj++){
-						Mode mode = LATE;
-						int map_id = bc_map->get_index(mode, TYPES[jj], i);
-						nodes_slack.emplace_back(nodes[i].slack[mode][TYPES[jj]], map_id);
-					}
-				}
-			}
-			sort(nodes_slack.begin(), nodes_slack.end());
 		}
-//		#pragma omp section
+		#pragma omp section
 		{
             cout << "tid : " << omp_get_thread_num() << " rat\n";
 		    calculate_rat();
-			Logger::add_timestamp("rat ok");
 		}
 	}
+	Logger::add_timestamp("bcmap rat ok");
+
+	/* slack is ok*/
+	for(int i=0; i<(int)nodes.size(); i++){
+		if(nodes[i].in_cppr) continue;
+		if(nodes[i].constrained_clk == -1 and nodes[i].node_type!=PRIMARY_OUT) continue;
+		// just pick ff:d and PRIMARY_OUT
+		// cout << get_name(i) << " added to slack\n";
+
+/*just setup check*/
+		for(int mm=0; mm<1; mm++){
+			for(int jj=0; jj<2; jj++){
+				Mode mode = LATE;
+				int map_id = bc_map->get_index(mode, TYPES[jj], i);
+				nodes_slack.emplace_back(nodes[i].slack[mode][TYPES[jj]], map_id);
+			}
+		}
+	}
+	sort(nodes_slack.begin(), nodes_slack.end());
+
+	Logger::add_timestamp("pick node ok");
 }
 
 // ******************************************************
@@ -891,21 +893,21 @@ void Graph::report_timing(ostream& fout,
 	Kth kth(bc_map, cppr, this);
 	vector<pair<Transition_Type,int>> _through;
 	for(const auto &x:through){
-		_through.emplace_back(x.first, bc_map->get_index(EARLY, x.first, get_index(x.second)));
+		_through.emplace_back(x.first, bc_map->get_index(LATE, x.first, get_index(x.second)));
 	}
 
 	if(to.size()){
 		int to_id = get_index(to[0].second);
 		bool specify = to.size()==2? false:true;
 
-		int to_map_id = bc_map->get_index(EARLY, to[0].first, to_id);
+		int to_map_id = bc_map->get_index(LATE, to[0].first, to_id);
 		kth.build_from_dest(_through, to_map_id, specify);
 	}
 	else if(from.size()){
 		int from_id = get_index(from[0].second);
 		bool specify = from.size()==2? false:true; // only rise or fall ?
 
-		int from_map_id = bc_map->get_index(EARLY, from[0].first, from_id);
+		int from_map_id = bc_map->get_index(LATE, from[0].first, from_id);
 		kth.build_from_src(_through, from_map_id, specify);
 	}
 	else if(through.size()){

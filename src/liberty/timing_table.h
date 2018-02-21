@@ -24,6 +24,7 @@ public:
     // look-up table use linear polation
     // input_val: input_slew, output_val: cload/output_slew
     float get_value(float input_val, float output_val);
+    float get_value_constant();                           // if liberty is constant
 
 private:
     // we use 1d array to store 2d data, so use this function to get 1d position

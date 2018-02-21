@@ -117,6 +117,11 @@ float TimingTable::liner_polation(float v1, float v2, float indx1, float indx2, 
     return 0;
 }
 
+float TimingTable::get_value_constant(){
+    if(values.size()) return values[0];
+    else return 0;
+}
+
 void TimingTable::print(const string &tab){
     LOG(CERR) << tab << " TimingTable : " << table_type << ", " << label_name << endl;
 

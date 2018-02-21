@@ -146,3 +146,7 @@
 
 2018/2/14: output format
 - As title
+
+2018/2/21: remove early in bc_map
+- add get constant in timingArc
+- remove early mode in bc_map

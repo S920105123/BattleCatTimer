@@ -444,11 +444,11 @@ void Kth::build_from_throgh(const vector<pair<Transition_Type,int>>& through){
             Transition_Type type = map->get_graph_id_type( through[i].second );
             // search this point can connect what point
 
-            forward_build(map->get_index(EARLY, type, graph_id), 1);
-            vis[map->get_index(EARLY, type, graph_id)] = 0;
 /* just setup check*/
-            // forward_build(map->get_index(LATE, type, graph_id), 1);
-            // vis[map->get_index(LATE, type, graph_id)] = 0;
+            // forward_build(map->get_index(EARLY, type, graph_id), 1);
+            // vis[map->get_index(EARLY, type, graph_id)] = 0;
+            forward_build(map->get_index(LATE, type, graph_id), 1);
+            vis[map->get_index(LATE, type, graph_id)] = 0;
         }
     }
     // can't go through all asked points
@@ -480,9 +480,9 @@ void Kth::build_from_throgh(const vector<pair<Transition_Type,int>>& through){
             int graph_id = map->get_graph_id( through[i].second );
             Transition_Type type = map->get_graph_id_type( through[i].second );
             // just backward search which point can connenct this points
-            backward_build(map->get_index(EARLY, type, graph_id), object.size());
 /* just setup check*/
-            // backward_build(map->get_index(LATE, type, graph_id), object.size());
+            // backward_build(map->get_index(EARLY, type, graph_id), object.size());
+            backward_build(map->get_index(LATE, type, graph_id), object.size());
         }
     }
     // source_kth to leaf
@@ -715,20 +715,27 @@ int Kth::get_type(int index) {
 	return index&1;
 }
 
+string turn_name(string name){
+    for(int i=0; i<(int)name.size(); i++){
+        if(name[i]==':')
+        name[i] = '/';
+    }
+    return name;
+}
 void Kth::Path::output(ostream &fout, Graph *graph, BC_map *bc) {
 	// Paths are using BC id
     const vector<int> &path = this->path;
     const vector<float> &delay = this->delay;
     const vector<bool> &mark = this->mark;
-    
+
     int width = 8, n = path.size();
     float rat = delay[0], slack = this->dist, at = rat - slack, total = -delay[n-2];
     const char *tab = "      ", *spline = "----------------------------------------", *type_ch[2] = {"^   ", "v   "};
 
     // path[0] is SuperDest, path[n-1] is SuperSrc
     fout << endl;
-	fout << "Endpoint:   " << graph->nodes[bc->get_graph_id(path[1])].name << endl;
-	fout << "Beginpoint: " << graph->nodes[bc->get_graph_id(path[n-2])].name << endl;
+	fout << "Endpoint:   " << turn_name(graph->nodes[bc->get_graph_id(path[1])].name) << endl;
+	fout << "Beginpoint: " << turn_name(graph->nodes[bc->get_graph_id(path[n-2])].name) << endl;
 	fout << "= Required Time              " << std::fixed << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << rat    << endl;
 	fout << "- Arrival Time               " << std::fixed << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << at     << endl;
 	fout << "= Slack Time                 " << std::fixed << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << rat-at << endl;
@@ -737,14 +744,14 @@ void Kth::Path::output(ostream &fout, Graph *graph, BC_map *bc) {
 	fout << tab << "          Time" << endl;
 	fout << tab << spline << endl;
 	fout << tab << "-         " << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total
-    << "   " << type_ch[bc->get_graph_id_type(path[n-2])] << "  " << graph->nodes[bc->get_graph_id(path[n-2])].name;
+    << "   " << type_ch[bc->get_graph_id_type(path[n-2])] << "  " << turn_name(graph->nodes[bc->get_graph_id(path[n-2])].name);
     if(mark[n-2]) fout << " ->";
     fout << endl;
 	for (int i = n-3; i>=1; i--) {
 		total -= delay[i]; // Delay is negative
 		fout << tab << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << -delay[i] << "  ";
 		fout        << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total << "   ";
-		fout << type_ch[bc->get_graph_id_type(path[i])] << "  " << graph->nodes[bc->get_graph_id(path[i])].name;
+		fout << type_ch[bc->get_graph_id_type(path[i])] << "  " << turn_name(graph->nodes[bc->get_graph_id(path[i])].name);
         if(mark[i] ) fout << " ->";
         fout << endl;
 	}
