@@ -110,7 +110,7 @@ void Spef::add_net(const string& name, SpefNet* net){        // map name to net 
 }
 
 void Spef::print_net(const string& name){
-    if(nets.find(name) == nets.end()) cout << "no such net " << name << endl;
+    if(nets.find(name) == nets.end()) cout << "no such net " << name << '\n';
     else nets[name]->print_net();
 }
 
@@ -120,7 +120,7 @@ int Spef::size(){
 
 SpefNet* Spef::get_spefnet_ptr(const string &name, bool logged){
     if(nets.find(name)==nets.end()){
-        if(logged) LOG(ERROR) << "[Spef][get_spef_net_ptr] no such net: " << name << endl;
+        if(logged) LOG(ERROR) << "[Spef][get_spef_net_ptr] no such net: " << name << '\n';
     }else return nets[name];
     return NULL;
 }
@@ -163,30 +163,30 @@ int SpefNet::get_pin_id(const string& name){
 }
 
 void SpefNet::print_net(){
-    cout << "net_name:" << net_name << endl;
+    cout << "net_name:" << net_name << '\n';
     cout << "CONN:\n" ;
     for(auto& x:conn){
         string name, type, dir;
         tie(name, type, dir) = x;
-        cout << name << " " << type << " " << dir << " pin id = " << pin_id[name] << endl;
+        cout << name << " " << type << " " << dir << " pin id = " << pin_id[name] << '\n';
     }
 
     cout << "CAP:\n";
     for(size_t i=0; i<pin_cap.size(); i++)
-        cout << pin_name[i] << " cap = " << pin_cap[i] << " pinid = " << i << endl;
+        cout << pin_name[i] << " cap = " << pin_cap[i] << " pinid = " << i << '\n';
 
     cout << "RES:\n";
     // for(auto& x:pin_res){
     //     for(auto& y:x.second)
     //         cout << x.first << "(" << pin_name[x.first] << ")" << " " <<
-    //                 y.first << "(" << pin_name[y.first] << ")" << " = " << y.second << endl;
+    //                 y.first << "(" << pin_name[y.first] << ")" << " = " << y.second << '\n';
     // }
     for(auto& t:pin_res){
         int from, to;
         float res;
         tie(from ,to, res) = t;
         cout << from << "(" << pin_name[from] << ")" << " " <<
-                to << "(" << pin_name[to] << ")" << " = " << res << endl;
+                to << "(" << pin_name[to] << ")" << " = " << res << '\n';
     }
 }
 
@@ -205,7 +205,7 @@ int main()
     time_t end = clock();
 
 	cout << "open ok spend : " << end-start << "\n";
-    cout << "total : " << spef.size() << endl;
+    cout << "total : " << spef.size() << '\n';
 	string name;
     do{
         cout << "Enter Net name or exit : ";
@@ -214,7 +214,7 @@ int main()
 
         SpefNet *spefnet = spef.get_spefnet_ptr( name );
         if(spefnet==NULL){
-            cout << "no such net: " << name << endl;
+            cout << "no such net: " << name << '\n';
             continue;
         }
         spefnet->print_net();
@@ -224,8 +224,8 @@ int main()
             float res;
             tie(from ,to, res) = t;
             cout << from << "(" << pin_name[from] << ")" << " " <<
-                    to << "(" << pin_name[to] << ")" << " = " << res << endl;
-            // cout << from << " " << to << " = " << res << endl;
+                    to << "(" << pin_name[to] << ")" << " = " << res << '\n';
+            // cout << from << " " << to << " = " << res << '\n';
         }
 
         // spef.print_net(name);

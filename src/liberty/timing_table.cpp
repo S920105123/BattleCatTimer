@@ -37,7 +37,7 @@ void TimingTable::read(File_Reader &in){
             }while(true);
         }
         else{
-            LOG(WARNING) << "[TimingTable][read] unknown keyword: " << token << endl;
+            LOG(WARNING) << "[TimingTable][read] unknown keyword: " << token << '\n';
         }
     }
 }
@@ -54,7 +54,7 @@ int TimingTable::getValuesIndex(int i,int j){
 float TimingTable::get_value(float input_val,float output_val){
     #ifdef SHOW_TIMINGTABLE
         if(values.size()==1 and index1.size()==0 and index2.size()==0) return values[0];
-        LOG(CERR) << "input_val: " << input_val << ", output_val: " << output_val << endl;
+        LOG(CERR) << "input_val: " << input_val << ", output_val: " << output_val << '\n';
         LOG(CERR) << "Using table: \n";
         print("  ");
     #endif
@@ -101,7 +101,7 @@ float TimingTable::get_value(float input_val,float output_val){
 */
 float TimingTable::liner_polation(float v1, float v2, float indx1, float indx2, float x)
 {
-    // cout << v1 << " " << v2 << " " << indx1 << " " << indx2 << " " << x << endl;
+    // cout << v1 << " " << v2 << " " << indx1 << " " << indx2 << " " << x << '\n';
     if(x==indx1) return v1;
     else if(x==indx2) return v2;
     else if(indx1<x and x<indx2) return v1 + (x-indx1)*(v2-v1)/(indx2-indx1);
@@ -124,13 +124,13 @@ float TimingTable::get_value_constant(int precision){
 }
 
 void TimingTable::print(const string &tab){
-    LOG(CERR) << tab << " TimingTable : " << table_type << ", " << label_name << endl;
+    LOG(CERR) << tab << " TimingTable : " << table_type << ", " << label_name << '\n';
 
     LOG(CERR) << tab << "  - index1: ";
-    for(auto f:index1) LOG(CERR) << f << ", "; LOG(CERR) << endl;
+    for(auto f:index1) LOG(CERR) << f << ", "; LOG(CERR) << '\n';
 
     LOG(CERR) << tab << "  - index2: ";
-    for(auto f:index2) LOG(CERR) << f << ", "; LOG(CERR) << endl;
+    for(auto f:index2) LOG(CERR) << f << ", "; LOG(CERR) << '\n';
 
     LOG(CERR) << tab << "  - values: \n";
     for(size_t i=0; i<index1.size(); i++){
@@ -138,9 +138,9 @@ void TimingTable::print(const string &tab){
         for(size_t j=0; j<index2.size(); j++){
             LOG(CERR) << values[getValuesIndex(i,j)] << ", ";
         }
-        LOG(CERR) << endl;
+        LOG(CERR) << '\n';
     }
-    if(label_name == "scalar" && values.size()) LOG(CERR) << tab << values[0] << endl;
+    if(label_name == "scalar" && values.size()) LOG(CERR) << tab << values[0] << '\n';
 }
 
 #ifdef TEST_TIMING_TABLE
@@ -172,7 +172,7 @@ int main()
         cout << "enter input cload and slew: ";
         cin >> x >> y ;
         if(x==-1 and y==-1) break;
-        cout << "ans = " << table->get_value(x, y) << endl;
+        cout << "ans = " << table->get_value(x, y) << '\n';
     }while(true);
     Logger::create()->~Logger();
 

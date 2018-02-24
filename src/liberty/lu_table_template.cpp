@@ -34,7 +34,7 @@ void LuTableTemplate::read(File_Reader &in){
                 string_to_float(index2, token);
             }while(true);
         }
-        else LOG(WARNING) << "[LuTableTemplate][read] unknown keyword: " << token << endl;
+        else LOG(WARNING) << "[LuTableTemplate][read] unknown keyword: " << token << '\n';
     }
 }
 
@@ -48,7 +48,7 @@ Lu_Table_Variable LuTableTemplate::judge_variable(const string& name){
     else if(name == "constrained_pin_transition")
         return CONSTRAINED_PIN_TRANSITION;
     else{
-        LOG(ERROR) << "[LuTableTemplate] can't judge variable: " << name << endl;
+        LOG(ERROR) << "[LuTableTemplate] can't judge variable: " << name << '\n';
         return UNDEFINED_LU_TABLE_VARIABLE;
     }
 }
@@ -73,15 +73,15 @@ string LuTableTemplate::get_variable_string(Lu_Table_Variable var){
 }
 
 void LuTableTemplate::print(const string &tab){
-    LOG(CERR) << tab << "LuTableTemplate: " << label_name << endl;
-    LOG(CERR) << tab << "    - variable1 : " << get_variable_string(var1) << endl;
-    LOG(CERR) << tab << "    - variable2 : " << get_variable_string(var2) << endl;
+    LOG(CERR) << tab << "LuTableTemplate: " << label_name << '\n';
+    LOG(CERR) << tab << "    - variable1 : " << get_variable_string(var1) << '\n';
+    LOG(CERR) << tab << "    - variable2 : " << get_variable_string(var2) << '\n';
 
     LOG(CERR) << tab << "    - index1 :" ;
-    for(auto f:index1) LOG(CERR) << f << " "; cout << endl;
+    for(auto f:index1) LOG(CERR) << f << " "; cout << '\n';
 
     LOG(CERR) << tab << "    - index2 :" ;
-    for(auto f:index2) LOG(CERR) << f << " "; cout << endl;
+    for(auto f:index2) LOG(CERR) << f << " "; cout << '\n';
 }
 
 Lu_Table_Variable LuTableTemplate::get_var1(){

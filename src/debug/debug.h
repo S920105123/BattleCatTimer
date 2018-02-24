@@ -13,15 +13,15 @@ const bool NOT_REACHED = false;
 	#define ASSERT(EXPR) assert_handler( (EXPR), #EXPR, __FILE__, __FUNCTION__, __LINE__)
 	#define ASSERT_NOT_REACHED() ASSERT(NOT_REACHED)
 	#define UNEXPECTED(NAME, UNEXPECT, EXPECT) \
-		{LOG(CERR) << "\n[Fatal] Expectation fail, expect \"" << NAME << "\" to be \"" << (EXPECT) << "\", but it is \"" << (UNEXPECT) << "\"" <<  endl; \
+		{LOG(CERR) << "\n[Fatal] Expectation fail, expect \"" << NAME << "\" to be \"" << (EXPECT) << "\", but it is \"" << (UNEXPECT) << "\"" <<  '\n'; \
 		Logger::Log(CERR,false) << "- At \"" << __FILE__ << "\", \"" << __FUNCTION__ << "\", line " << __LINE__ << "\n\n";                                \
-		LOG(ERROR) << "Expectation fail, expect variable \"" << NAME << "\" to be \"" << (EXPECT) << "\", but it is \"" << (UNEXPECT) << "\"" <<  endl;          \
-		Logger::Log(ERROR,false) << "At \"" << __FILE__ << "\", \"" << __FUNCTION__ << "\", line " << __LINE__ << endl;}
+		LOG(ERROR) << "Expectation fail, expect variable \"" << NAME << "\" to be \"" << (EXPECT) << "\", but it is \"" << (UNEXPECT) << "\"" <<  '\n';          \
+		Logger::Log(ERROR,false) << "At \"" << __FILE__ << "\", \"" << __FUNCTION__ << "\", line " << __LINE__ << '\n';}
 	#define UNEXPECTED_NOT(NAME, UNEXPECT, EXPECT) \
-		{LOG(CERR) << "\n[Fatal] Expectation fail, expect \"" << NAME << "\" not to be \"" << (EXPECT) << "\", but it is." << endl; \
+		{LOG(CERR) << "\n[Fatal] Expectation fail, expect \"" << NAME << "\" not to be \"" << (EXPECT) << "\", but it is." << '\n'; \
 		Logger::Log(CERR,false) << "- At \"" << __FILE__ << "\", \"" << __FUNCTION__ << "\", line " << __LINE__ << "\n\n";           \
-		LOG(ERROR) << "Expectation fail, expect variable \"" << NAME << "\" not to be \"" << (EXPECT) << "\", but it is." << endl; \
-		Logger::Log(ERROR,false) << "At \"" << __FILE__ << "\", \"" << __FUNCTION__ << "\", line " << __LINE__ << endl;}
+		LOG(ERROR) << "Expectation fail, expect variable \"" << NAME << "\" not to be \"" << (EXPECT) << "\", but it is." << '\n'; \
+		Logger::Log(ERROR,false) << "At \"" << __FILE__ << "\", \"" << __FUNCTION__ << "\", line " << __LINE__ << '\n';}
 	#define EXPECT(AGENT, TO_BE)              \
 		if ((AGENT) != (TO_BE)) {             \
 			UNEXPECTED(#AGENT, AGENT, TO_BE); \
@@ -39,11 +39,10 @@ const bool NOT_REACHED = false;
 	#define UNEXPECTED(NAME, UNEXPECT, EXPECT) (NAME), (UNEXPECT), (EXPECT);
 	#define UNEXPECTED_NOT(NAME, UNEXPECT, EXPECT) (NAME), (UNEXPECT), (EXPECT);
 	#define EXPECT(AGENT, TO_BE) (AGENT), (TO_BE);
-	#define EXPECT_NOT(AGENT, TO_BE) (AGENT), (TO_BE); 
+	#define EXPECT_NOT(AGENT, TO_BE) (AGENT), (TO_BE);
 #endif
 
 void assert_handler(int expr, const char *assertion, const char *fname, const char *func, int line);
 void my_exit();
 
 #endif
-

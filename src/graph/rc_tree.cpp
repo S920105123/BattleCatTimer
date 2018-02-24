@@ -37,7 +37,7 @@ void RCTree::build_tree(){
     //     tie(name, type, dir) = it;
     //     if( (dir=="O" or type=="P" )&& (!(dir=="O" and type=="P"))){
     //         if(root!=-1) LOG(ERROR) << "[RC_Tree][build_tree] net = "
-    //                         << spefnet->get_name() << " can't get root" << endl;
+    //                         << spefnet->get_name() << " can't get root" << '\n';
     //         root = spefnet->get_pin_id(name);
     //         // don't add cap of root pin
     //         continue;
@@ -60,11 +60,11 @@ void RCTree::build_tree(){
     //     float tap_cap_late = cell_lib[LATE]->get_pin_capacitance(verilog->get_cell_type(inst), pin_name);
     //     nodes[ spefnet->get_pin_id(name) ].cap[LATE] += tap_cap_late;
     //     if(tap_cap_late != tap_cap_early)
-    //         LOG(WARNING) << "[RC_Tree][build_grapgh] net: " << spefnet->get_name() << " early pin cap != late pin cap" << name << endl;
+    //         LOG(WARNING) << "[RC_Tree][build_grapgh] net: " << spefnet->get_name() << " early pin cap != late pin cap" << name << '\n';
     // }
     //
     // if(root==-1) LOG(ERROR) << "[RC_Tree][build_tree] net = "
-    //                 << spefnet->get_name() << " can't get root" << endl;
+    //                 << spefnet->get_name() << " can't get root" << '\n';
     //
 }
 
@@ -145,17 +145,17 @@ void RCTree::add_pin_cap(const string& name, float cap){
 }
 
 void RCTree::print(){
-    cout << "net: " << spefnet->get_name() << endl;
-    cout << "   root = " << spefnet->get_pin_name(root) << endl;
+    cout << "net: " << spefnet->get_name() << '\n';
+    cout << "   root = " << spefnet->get_pin_name(root) << '\n';
     for(int i=0; i<num_nodes; i++){
-            cout << "   " << spefnet->get_pin_name(i)  << endl;
-            cout << "   delal: EARLY = " << nodes[i].delay[EARLY] << ", LATE = " << nodes[i].delay[LATE] << endl;
-            cout << "   downstream: EARLY = " << nodes[i].downstream[EARLY] << ", LATE = " << nodes[i].downstream[LATE] << endl;
-            cout << "   beta: EARLY = " << nodes[i].beta[EARLY] << ", LATE = " << nodes[i].beta[LATE] << endl;
+            cout << "   " << spefnet->get_pin_name(i)  << '\n';
+            cout << "   delal: EARLY = " << nodes[i].delay[EARLY] << ", LATE = " << nodes[i].delay[LATE] << '\n';
+            cout << "   downstream: EARLY = " << nodes[i].downstream[EARLY] << ", LATE = " << nodes[i].downstream[LATE] << '\n';
+            cout << "   beta: EARLY = " << nodes[i].beta[EARLY] << ", LATE = " << nodes[i].beta[LATE] << '\n';
             // use simple:inp2 input slew
-            cout << "   slew(input_slew=30) EARLY = " << get_slew(EARLY, spefnet->get_pin_name(i), 30)  << endl;
-            cout << "   slew(input_slew=30) LATE = " << get_slew(LATE, spefnet->get_pin_name(i), 30)  << endl;
-            cout << endl;
+            cout << "   slew(input_slew=30) EARLY = " << get_slew(EARLY, spefnet->get_pin_name(i), 30)  << '\n';
+            cout << "   slew(input_slew=30) LATE = " << get_slew(LATE, spefnet->get_pin_name(i), 30)  << '\n';
+            cout << '\n';
     }
 }
 
@@ -204,7 +204,7 @@ int main()
         if(name=="exit") break;
         SpefNet* spefnet = spef->get_spefnet_ptr(name);
         if(spefnet==NULL){
-            cout << "no such spefnet: " << name << endl;
+            cout << "no such spefnet: " << name << '\n';
             continue;
         }
         spef->print_net(name);

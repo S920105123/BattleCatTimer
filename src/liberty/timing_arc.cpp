@@ -78,7 +78,7 @@ void TimingArc::read(File_Reader &in){
             fall_constraint_table->read(in);
         }
         else{
-            LOG(WARNING) << "[TimingArc][open] unknown keyword: " << token << endl;
+            LOG(WARNING) << "[TimingArc][open] unknown keyword: " << token << '\n';
         }
     }
 }
@@ -92,7 +92,7 @@ void TimingArc::set_timing_sense(const string& val){
     else if(val=="positive_unate") timing_sense = POSITIVE_UNATE;
     else if(val=="non_unate") timing_sense = NON_UNATE;
     else{
-        LOG(ERROR) << "[TimingArc] can't juge timing sense : " << val << endl;
+        LOG(ERROR) << "[TimingArc] can't juge timing sense : " << val << '\n';
         timing_sense = UNDEFINED_TIMING_SENSE;
     }
 }
@@ -107,7 +107,7 @@ void TimingArc::set_timing_type(const string& val){
     else if(val=="combinational")timing_type = COMBINATINAL;
     else if(val=="undefined")    timing_type = UNDEFINED_TIMING_TYPE;
     else{
-        LOG(ERROR) << "[TimingArc] can't juge timing type: " << val << endl;
+        LOG(ERROR) << "[TimingArc] can't juge timing type: " << val << '\n';
         timing_type = COMBINATINAL;
     }
 }
@@ -348,17 +348,14 @@ float TimingArc::get_constraint_constant(Transition_Type from, Transition_Type t
         case NEGATIVE_UNATE:
         case NON_UNATE:
             at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
-            LOG(WARNING) << "[TimingArc][get_constraint_constant] check timing_sense at " << at << endl;
+            LOG(WARNING) << "[TimingArc][get_constraint_constant] check timing_sense at " << at << '\n';
             return 0;
             break;
         case UNDEFINED_TIMING_SENSE:
             break;
     }
 
-    if(to==RISE){
-        cout << rise_constraint_table->get_value_constant(2) << endl;
-        return rise_constraint_table->get_value_constant(2);
-    }
+    if(to==RISE) return rise_constraint_table->get_value_constant(2);
     else return fall_constraint_table->get_value_constant(2);
 }
 
@@ -407,29 +404,29 @@ bool TimingArc::is_rising_triggered(){
 }
 
 void TimingArc::print(const string &tab){
-    LOG(CERR) << tab << "related pin : " <<  related_pin << endl;
-    LOG(CERR) << tab << "timing_sense : " << get_timing_sense_string() << endl;
-    LOG(CERR) << tab << "timing_type : " << get_timing_type_string() << endl;
+    LOG(CERR) << tab << "related pin : " <<  related_pin << '\n';
+    LOG(CERR) << tab << "timing_sense : " << get_timing_sense_string() << '\n';
+    LOG(CERR) << tab << "timing_type : " << get_timing_type_string() << '\n';
 
     string nextTab = tab + "    ";
-    LOG(CERR) << tab << "cell_rise_table : " << endl;
+    LOG(CERR) << tab << "cell_rise_table : " << '\n';
     if(cell_rise_table) cell_rise_table->print(nextTab);
 
-    LOG(CERR) << tab << "cell_fall_table : " << endl;
+    LOG(CERR) << tab << "cell_fall_table : " << '\n';
     if(cell_fall_table) cell_fall_table->print(nextTab);
 
-    LOG(CERR) << tab << "rise_transition_table : " << endl;
+    LOG(CERR) << tab << "rise_transition_table : " << '\n';
     if(rise_transition_table) rise_transition_table->print(nextTab);
 
-    LOG(CERR) << tab << "fall_transition_table: " << endl;
+    LOG(CERR) << tab << "fall_transition_table: " << '\n';
     if(fall_transition_table) fall_transition_table->print(nextTab);
 
-    LOG(CERR) << tab << "rise_constraint_table: " << endl;
+    LOG(CERR) << tab << "rise_constraint_table: " << '\n';
     if(rise_constraint_table) rise_constraint_table->print(nextTab);
 
-    LOG(CERR) << tab << "fall_constraint_table: " << endl;
+    LOG(CERR) << tab << "fall_constraint_table: " << '\n';
     if(fall_constraint_table) fall_constraint_table->print(nextTab);
-    cout << endl;
+    cout << '\n';
 }
 
 #ifdef TEST_TIMING_ARC

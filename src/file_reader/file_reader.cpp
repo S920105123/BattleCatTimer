@@ -121,7 +121,7 @@ int main()
     while(true){
         string token = reader.next_token();
         if(token.empty()) break;
-        cout << token << endl;
+        cout << token << '\n';
     }
     return 0;
 }

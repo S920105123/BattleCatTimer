@@ -3,7 +3,7 @@
 
 void CellLib::open(const string& filename){
     File_Reader in;
-    LOG(NORMAL) << "[CellLib] is parsing ..." << filename << endl;
+    LOG(NORMAL) << "[CellLib] is parsing ..." << filename << '\n';
     in.open(filename);
 
     string token, name;
@@ -52,7 +52,7 @@ int CellLib::table_template_size(){
 
 void CellLib::print_cell(const string& name){
     if(cells.find(name)==cells.end()){
-        LOG(CERR) << " no such cells " << name << endl;
+        LOG(CERR) << " no such cells " << name << '\n';
     }else cells[name]->print();
 }
 
@@ -62,21 +62,21 @@ void CellLib::print_template(){
 
 float CellLib::get_pin_capacitance(const string& cell_type, const string& pin_name){
     if(cells.find(cell_type)==cells.end()){
-        LOG(ERROR) << "[CellLib][get_pin_capacitance] no such cell type: " <<  cell_type << endl;
+        LOG(ERROR) << "[CellLib][get_pin_capacitance] no such cell type: " <<  cell_type << '\n';
     }else return cells[cell_type]->get_pin_capacitance(pin_name);
     return 0;
 }
 
 bool CellLib::get_pin_is_clock(const string& cell_type, const string& pin_name){
     if(cells.find(cell_type)==cells.end()){
-        LOG(ERROR) << "[CellLib][get_pin_is_clock] no such cell type: " <<  cell_type << endl;
+        LOG(ERROR) << "[CellLib][get_pin_is_clock] no such cell type: " <<  cell_type << '\n';
     }else return cells[cell_type]->get_pin_is_clock(pin_name);
     return false;
 }
 
 Direction_type CellLib::get_pin_direction(const string& cell_type, const string& pin_name){
     if(cells.find(cell_type)==cells.end()){
-        LOG(ERROR) << "[CellLib][get_pin_direction] no such cell type: " <<  cell_type << endl;
+        LOG(ERROR) << "[CellLib][get_pin_direction] no such cell type: " <<  cell_type << '\n';
     } else {
     	return cells[cell_type]->get_pin_direction(pin_name);
 	}
@@ -85,35 +85,35 @@ Direction_type CellLib::get_pin_direction(const string& cell_type, const string&
 
 vector<TimingArc*>* CellLib::get_pin_TimingArc(const string& cell_type, const string& pin_name, const string& src){
     if(cells.find(cell_type)==cells.end()){
-        LOG(ERROR) << "[CellLib][get_pin_TimingArc] no such cell type: " <<  cell_type << endl;
+        LOG(ERROR) << "[CellLib][get_pin_TimingArc] no such cell type: " <<  cell_type << '\n';
     }else return cells[cell_type]->get_pin_TimingArc(pin_name, src);
     return NULL;
 }
 
 vector<TimingArc*>* CellLib::get_pin_total_TimingArc(const string& cell_type, const string& pin_name){
     if(cells.find(cell_type)==cells.end()){
-        LOG(ERROR) << "[CellLib][get_pin_total_TimingArc] no such cell type: " <<  cell_type << endl;
+        LOG(ERROR) << "[CellLib][get_pin_total_TimingArc] no such cell type: " <<  cell_type << '\n';
     }else return cells[cell_type]->get_pin_total_TimingArc(pin_name);
     return NULL;
 }
 
 Cell* CellLib::get_cell_ptr(const string& cell_type){
     if(cells.find(cell_type)==cells.end()){
-        LOG(ERROR) << "[CellLib][get_cell_ptr] no such cell type: " <<  cell_type << endl;
+        LOG(ERROR) << "[CellLib][get_cell_ptr] no such cell type: " <<  cell_type << '\n';
     }else return cells[cell_type];
     return NULL;
 }
 
 Pin* CellLib::get_pin_ptr(const string& cell_type, const string& pin_name){
     if(cells.find(cell_type)==cells.end()){
-        LOG(ERROR) << "[CellLib][get_pin_ptr] no such cell type: " <<  cell_type << endl;
+        LOG(ERROR) << "[CellLib][get_pin_ptr] no such cell type: " <<  cell_type << '\n';
     }else return cells[cell_type]->get_pin_ptr(pin_name);
     return NULL;
 }
 
 LuTableTemplate* CellLib::get_table_template(const string& table_label){
     if(table_template.find(table_label)==table_template.end()){
-        LOG(ERROR) << "[CellLib][get_table_template] no such table_label: " <<  table_label << endl;
+        LOG(ERROR) << "[CellLib][get_table_template] no such table_label: " <<  table_label << '\n';
     }else return table_template[table_label];
     return NULL;
 }
@@ -130,7 +130,7 @@ int main()
     lib.open(filename);
 	cout << "open " << filename << "ok\n";
 
-	cout << "total cells: " << lib.cells_size() << endl;
+	cout << "total cells: " << lib.cells_size() << '\n';
 	cout << "template table : ";
 	lib.print_template();
 

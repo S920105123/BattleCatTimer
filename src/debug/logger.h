@@ -2,9 +2,9 @@
 #define LOGGER_H
 
 #include "header.h"
-#define endl '\n'     // So that logger can use it.
+
 #define LOG(TYPE) Logger::Log(TYPE)
-#define LOG_PLACE(TYPE) Logger::Log(TYPE, flase) << "In " << __FILE__ << ", line number: " << __LINE__ << endl;
+#define LOG_PLACE(TYPE) Logger::Log(TYPE, flase) << "In " << __FILE__ << ", line number: " << __LINE__ << '\n';
 
 typedef enum { NORMAL, WARNING, ERROR, CERR } Log_type;
 

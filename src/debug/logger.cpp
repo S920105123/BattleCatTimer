@@ -12,7 +12,7 @@ Logger* Logger::create() {
 		const std::string fname = "message.log";
 		logger_instance->flog.open(fname);
 		if (!logger_instance->flog.is_open()) {
-			std::cerr << "[Error] - Cannot open log file, logger turned off." << endl;
+			std::cerr << "[Error] - Cannot open log file, logger turned off." << '\n';
 		}
 		logger_instance->on = logger_instance->flog.is_open();
 		logger_instance->cur_stream = &logger_instance->flog;
@@ -31,17 +31,17 @@ Logger::~Logger() {
 	for(auto p:timestamp){
 		if(pre==0) pre = p.second;
 		total += p.second-pre;
-		std::cerr << std::setw(16) << p.first << "| delay: " << std::setw(3) << p.second - pre << "| total: " << std::setw(3) << total << endl;
+		std::cerr << std::setw(16) << p.first << "| delay: " << std::setw(3) << p.second - pre << "| total: " << std::setw(3) << total << '\n';
 		pre = p.second;
 	}
-	std::cerr << "Log error : " << error_num << ", warning : " << warning_num << endl;
+	std::cerr << "Log error : " << error_num << ", warning : " << warning_num << '\n';
 	flog.close();
 }
 
 void Logger::add_timestamp(const string& event){
 	timestamp.emplace_back(event, time(NULL));
 
-	std::cerr << event << endl << std::flush;
+	std::cerr << event << '\n' << std::flush;
 }
 
 Logger& Logger::Log(Log_type type, bool prefix) {
@@ -83,17 +83,17 @@ void Logger::turn_on() {
 #ifdef TEST_LOGGER
 
 int main() {
-	LOG(CERR)    << "A message from the universe is printed." << endl;
-	LOG(NORMAL)  << "This is a log example." << endl;
-	LOG(ERROR)   << "This is an error." << endl;
-	LOG(WARNING) << "This is a warning." << endl;
-	LOG()        << "Is it normal?" << endl;
+	LOG(CERR)    << "A message from the universe is printed." << '\n';
+	LOG(NORMAL)  << "This is a log example." << '\n';
+	LOG(ERROR)   << "This is an error." << '\n';
+	LOG(WARNING) << "This is a warning." << '\n';
+	LOG()        << "Is it normal?" << '\n';
 
 	Logger::turn_off();
-	LOG(ERROR) << "(This should not be printed) Life is like you just want to log something trivial but it still fails..." << endl;
+	LOG(ERROR) << "(This should not be printed) Life is like you just want to log something trivial but it still fails..." << '\n';
 
 	Logger::turn_on();
-	LOG(ERROR) << "(After turn on) Hello everyone~" << endl;
+	LOG(ERROR) << "(After turn on) Hello everyone~" << '\n';
 	Logger::create()->~Logger();
 }
 

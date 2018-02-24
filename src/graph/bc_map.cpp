@@ -7,7 +7,6 @@ BC_map::BC_map(Graph* graph){
 
 int BC_map::get_index(Mode mode, Transition_Type type, int node_id){
     if(node_id >= (int)to_map_id[mode][type].size()){
-        cout << node_id << "" << graph->nodes[node_id].name<<endl;
         LOG(CERR) << get_mode_string(mode) << " " << graph->get_name(node_id) << " no exist\n";
         ASSERT(false);
     }
@@ -93,7 +92,7 @@ void BC_map::build(){
         // int b = level[ get_index(EARLY, FALL, i) ];
         int c = level[ get_index(LATE, RISE, i) ];
         int d = level[ get_index(LATE, FALL, i) ];
-        // cout << a << " " << b << " " << c << " " << d << endl;
+        // cout << a << " " << b << " " << c << " " << d << '\n';
         // if(a!=b || a!=c || a!=d || b!=c || b!=d || c!=d){
         if(c!=d){
             LOG(ERROR) << " level error\n";

@@ -23,7 +23,7 @@ void CPPR::add_node(int node_id,int dep, int neg){
     level.push_back(dep);
     who.push_back(to_node_id.size()-1);
     in.push_back(level.size()-1);       // node in time
-    // cout << graph->nodes[node_id].name << " tree id = " << num << endl;
+    // cout << graph->nodes[node_id].name << " tree id = " << num << '\n';
     num++;
 }
 
@@ -46,12 +46,12 @@ void CPPR::dfs_build(int root, int dep, int neg){
 }
 
 void CPPR::build_sparse(){
-    // cout << "num = " << num << endl;
-    // cout << "time:  "; for(size_t t=0; t<level.size(); t++) cout << t << endl;
-    // cout << "level: "; for(auto x:level) cout << x << " " ; cout << endl;
-    // cout << "who:   "; for(auto x:who) cout << x << " " ; cout << endl;
+    // cout << "num = " << num << '\n';
+    // cout << "time:  "; for(size_t t=0; t<level.size(); t++) cout << t << '\n';
+    // cout << "level: "; for(auto x:level) cout << x << " " ; cout << '\n';
+    // cout << "who:   "; for(auto x:who) cout << x << " " ; cout << '\n';
     //
-    // for(int i=0; i<num; i++) cout << graph->nodes[ to_node_id[i] ].name << ": " << in[i] << "\n"; cout << endl;
+    // for(int i=0; i<num; i++) cout << graph->nodes[ to_node_id[i] ].name << ": " << in[i] << "\n"; cout << '\n';
 
     int len = 0;
     for(int i=0; (1<<i)<=(int)level.size(); i++) len++;
@@ -72,7 +72,7 @@ void CPPR::build_sparse(){
 float CPPR::cppr_credit(Mode mode, int u, Transition_Type type_u, int v, Transition_Type type_v){
 
     if(root==-1) return 0;
-    // cout << graph->nodes[u].name << " " << graph->nodes[v].name << endl;
+    // cout << graph->nodes[u].name << " " << graph->nodes[v].name << '\n';
     int tree_u = to_tree_id[u], tree_v = to_tree_id[v];
     int lca = get_lca(in[tree_u], in[tree_v]);
     int num_neg_u = negation[lca] - negation[ tree_u ];
@@ -81,31 +81,31 @@ float CPPR::cppr_credit(Mode mode, int u, Transition_Type type_u, int v, Transit
     if(num_neg_u & 1) type_u = type_u==RISE? FALL:RISE;
     if(num_neg_v & 1) type_v = type_v==RISE? FALL:RISE;
     if(type_u != type_v){
-        // LOG(CERR) << " lca type is different " << graph->nodes[u].name << " " << graph->nodes[v].name << endl;
+        // LOG(CERR) << " lca type is different " << graph->nodes[u].name << " " << graph->nodes[v].name << '\n';
         return 0;
     }
     Transition_Type root_type = type_u;
     if(negation[tree_u]&1) root_type = root_type==RISE? FALL:RISE;
 
     lca = to_node_id[lca];
-    // cout << "lca = " << graph->nodes[lca].name << endl;
-    // cout << "root = " << get_transition_string( root_type ) << endl;
-    // cout << "lca = " << get_transition_string( type_u ) << endl;
+    // cout << "lca = " << graph->nodes[lca].name << '\n';
+    // cout << "root = " << get_transition_string( root_type ) << '\n';
+    // cout << "lca = " << get_transition_string( type_u ) << '\n';
     // cout << graph->nodes[root].at[LATE][RISE]  << " " ;
     // cout << graph->nodes[root].at[LATE][FALL]  << " " ;
     // cout << graph->nodes[root].at[EARLY][RISE] << " " ;
-    // cout << graph->nodes[root].at[EARLY][FALL] << " "  << endl;
+    // cout << graph->nodes[root].at[EARLY][FALL] << " "  << '\n';
     //
     // cout << graph->nodes[lca].at[LATE][RISE]  << " " ;
     // cout << graph->nodes[lca].at[LATE][FALL]  << " " ;
     // cout << graph->nodes[lca].at[EARLY][RISE] << " " ;
-    // cout << graph->nodes[lca].at[EARLY][FALL] << " "  << endl;
+    // cout << graph->nodes[lca].at[EARLY][FALL] << " "  << '\n';
     if(mode==Mode::EARLY){ // hold
         return graph->nodes[lca].at[LATE][type_u] - graph->nodes[lca].at[EARLY][type_u];
     }
     else{
         float root_credit = graph->nodes[root].at[LATE][root_type] - graph->nodes[root].at[EARLY][root_type];
-        // cout << "root credit = " << root_credit << endl;
+        // cout << "root credit = " << root_credit << '\n';
         return graph->nodes[lca].at[LATE][type_u] - graph->nodes[lca].at[EARLY][type_u]
             - (root_credit);
     }
@@ -115,7 +115,7 @@ int CPPR::get_lca(int u,int v){
     if(u>v) swap(u, v);
     int gap = v-u;
 
-    // cout << gap << endl;
+    // cout << gap << '\n';
     if(u==v) return who[u];
     int k = 0;
     while((1<<(k+1)) <= gap) k++;
