@@ -11,7 +11,7 @@ Graph::Node::Node(int index, const string &name, Node_type type) {
 	this->tree    = NULL;
 	this->type    = type;
 	this->in_cppr = false;
-	this->through = -1;
+	this->through = index;
 	this->constrained_clk = -1;
 
 	// These undefined values is defined in header.h
@@ -353,7 +353,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 			const string &pin_name = io_pair.first, &wire_name = io_pair.second;
 			// Check is clock
 			int sink = this->get_index( cell_pin_concat(cell_name, pin_name));
-			if (cell_name == "inst_57311") cout<<cell_pin_concat(cell_name, pin_name)<<" index= "<<sink<<endl;
+			// if (cell_name == "inst_57311") cout<<cell_pin_concat(cell_name, pin_name)<<" index= "<<sink<<endl;
 			Direction_type direction = lib.get_pin_direction(cell_type, pin_name);
 			if (lib.get_pin_is_clock(cell_type, pin_name)) {
 				this->nodes[sink].type = CLOCK;
@@ -424,7 +424,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 
 	/* Construct external timing arc through wire mapping */
 	for (const auto &wire_pair : this->wire_mapping) {
-		const string &wire_name = wire_pair.first;
+		// const string &wire_name = wire_pair.first;
 		Wire_mapping *mapping = wire_pair.second;
 		int from = mapping->src;
 		if (from == -1) continue; // Isolated node.
@@ -495,7 +495,7 @@ void Graph::first_level_condense() {
 
 		/* Collect data pins and clock pins */
 		if (node.type == CLOCK) this->clocks.push_back(i);
-		else if (node.type == DATA_PIN) this->clocks.push_back(i);
+		else if (node.type == DATA_PIN) this->data_pins.push_back(i);
 
 		if (node.type != INPUT_PIN) continue;
 		// cout << "Try removing " << node.name << endl;
@@ -571,7 +571,7 @@ void Graph::at_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 			Transition_Type type_from = TYPES[i], type_to = TYPES[j];
 			// No ++ in Transition_Type
 			if (!arc->is_transition_defined(type_from, type_to)) continue;
-			float cap_load = node_to.tree->get_downstream(mode, node_to.name);
+			// float cap_load = node_to.tree->get_downstream(mode, node_to.name);
 			float input_slew = node_from.slew[mode][type_from];
 			/* Try to update at */
 			if (node_from.at[mode][type_from] != UNDEFINED_AT[mode]) {
@@ -589,7 +589,8 @@ void Graph::at_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 
 			/* Try to update slew */
 			if (input_slew != UNDEFINED_SLEW[mode]) {
-				float new_slew = arc->get_slew(type_from, type_to, input_slew, cap_load);
+				// float new_slew = arc->get_slew(type_from, type_to, input_slew, cap_load);
+				float new_slew = arc->get_slew_constant(type_from, type_to);
 				float &slew = node_to.slew[mode][type_to];
 				if (slew == UNDEFINED_SLEW[mode] || slew_worse_than(new_slew, slew, mode)) {
 					// Always choose worst slew.
@@ -807,7 +808,8 @@ void Graph::init_rat_from_constraint() {
 					if (data_pin.at[EARLY][type_data] != UNDEFINED_AT[EARLY]) rat_relax(clk_rat, new_clk_rat, LATE);
 				} else {
 					// Setup test
-					float delay = cons.arc->get_constraint(type_clk, type_data, clk.slew[EARLY][type_clk], data_pin.slew[LATE][type_data]);
+					// float delay = cons.arc->get_constraint(type_clk, type_data, clk.slew[EARLY][type_clk], data_pin.slew[LATE][type_data]);
+					float delay = cons.arc->get_constraint_constant(type_clk, type_data);
 					float &data_rat = data_pin.rat[LATE][type_data];
 					float &clk_rat = clk.rat[EARLY][type_clk];
 					float new_data_rat = this->clock_T + clk.at[EARLY][type_clk] - delay;
@@ -873,9 +875,10 @@ void Graph::init_graph(){
 	Logger::add_timestamp("bcmap rat ok");
 
 	/* slack is ok*/
-	for(int i=0; i<(int)nodes.size(); i++){
-		if(nodes[i].in_cppr) continue;
-		if(nodes[i].constrained_clk == -1 and nodes[i].type!=PRIMARY_OUT) continue;
+	// for(int i=0; i<(int)nodes.size(); i++){
+	// 	if(nodes[i].in_cppr) continue;
+	// 	if(nodes[i].constrained_clk == -1 and nodes[i].type!=PRIMARY_OUT) continue;
+	for(auto &i:data_pins){
 		// just pick ff:d and PRIMARY_OUT
 		// LOG(CERR) << get_name(i) << " added to slack\n";
 
@@ -884,11 +887,11 @@ void Graph::init_graph(){
 			for(int jj=0; jj<2; jj++){
 				Mode mode = LATE;
 				int map_id = bc_map->get_index(mode, TYPES[jj], i);
-				nodes_slack.emplace_back(nodes[i].slack[mode][TYPES[jj]], map_id);
+				data_pin_slack.emplace_back(nodes[i].slack[mode][TYPES[jj]], map_id);
 			}
 		}
 	}
-	sort(nodes_slack.begin(), nodes_slack.end());
+	sort(data_pin_slack.begin(), data_pin_slack.end());
 
 	Logger::add_timestamp("pick node ok");
 }
@@ -967,17 +970,19 @@ vector<Path>* Graph::report_timing(const vector<pair<Transition_Type,string>>&fr
 	// LOG(CERR) << endl;
 
 	// Kth kth(bc_map, cppr, this);
-	cout << "tid = " << omp_get_thread_num() << endl << std::flush;
+	// cout << "tid = " << omp_get_thread_num() << endl << std::flush;
 	Kth& kth = *kths[omp_get_thread_num()];
 	kth.clear();
 	vector<pair<Transition_Type,int>> _through;
 	for(const auto &x:through){
-		_through.emplace_back(x.first, bc_map->get_index(LATE, x.first, get_index(x.second)));
+		int who_eat_me = nodes[ get_index(x.second) ].through;
+		_through.emplace_back(x.first, bc_map->get_index(LATE, x.first, who_eat_me));
 	}
 
 	if(to.size()){
 		for(const auto &x:from){
-			_through.emplace_back(x.first, bc_map->get_index(LATE, x.first, get_index(x.second)));
+			int who_eat_me = nodes[ get_index(x.second) ].through;
+			_through.emplace_back(x.first, bc_map->get_index(LATE, x.first, who_eat_me));
 		}
 		int to_id = get_index(to[0].second);
 		bool specify = to.size()==2? false:true;
@@ -987,7 +992,8 @@ vector<Path>* Graph::report_timing(const vector<pair<Transition_Type,string>>&fr
 	}
 	else if(from.size()){
 		for(const auto &x:to){
-			_through.emplace_back(x.first, bc_map->get_index(LATE, x.first, get_index(x.second)));
+			int who_eat_me = nodes[ get_index(x.second) ].through;
+			_through.emplace_back(x.first, bc_map->get_index(LATE, x.first, who_eat_me));
 		}
 		int from_id = get_index(from[0].second);
 		bool specify = from.size()==2? false:true; // only rise or fall ?
@@ -1000,9 +1006,9 @@ vector<Path>* Graph::report_timing(const vector<pair<Transition_Type,string>>&fr
 	}
 	else{
 		vector<int> dest;
-		int lim = min((int)nodes_slack.size(), max_paths);
+		int lim = min((int)data_pin_slack.size(), max_paths);
 		for(int i=0; i<lim; i++){
-			dest.emplace_back(nodes_slack[i].second);
+			dest.emplace_back(data_pin_slack[i].second);
 		}
 		kth.build_from_dest(dest);
 	}

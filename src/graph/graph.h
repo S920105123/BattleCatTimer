@@ -144,7 +144,7 @@ private:
 	vector< unordered_map<int, Edge*> > rev_adj; // Reverse adjacency list.
 	vector< Constraint > constraints;            // Conatraint edges
 	vector< int > clocks, data_pins;             // Clock nodes
-	vector<pair<float,int>> nodes_slack;         // slack of ff:d of primary_out <slack, map_id>
+	vector<pair<float,int>> data_pin_slack;      // slack of data_pin <slack, map_id>
 
 	// Graph related
 	void first_level_condense();

@@ -146,127 +146,127 @@ string TimingArc::get_timing_sense_string(){
     }
 }
 
-float TimingArc::get_delay(
-    Transition_Type from, Transition_Type to, float input_val, float output_val){
-    string at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
-    if(!is_transition_defined(from, to)){
-        LOG(CERR) << "[TimingArc][get_delay] wrong transition arc from = "
-        << from << ", to = " << to <<  " at " << at << endl;
-    }
-    if(cell_rise_table==NULL){
-        LOG(ERROR) << "[TimingArc][get_delay] cell_rise_table==NULL, at " << at << endl;
-        return 0;
-    }
-    if(cell_fall_table==NULL){
-        LOG(ERROR) << "[TimingArc][get_delay] cell_rise_table==NULL, at " << at << endl;
-        return 0;
-    }
-    switch(timing_sense){
-        case POSITIVE_UNATE:
-            if(from==RISE) return cell_rise_table->get_value(input_val, output_val);
-            else return cell_fall_table->get_value(input_val, output_val);
-            break;
-        case NEGATIVE_UNATE:
-            if(from==FALL) return cell_rise_table->get_value(input_val, output_val);
-            else return cell_fall_table->get_value(input_val, output_val);
-            break;
-        case NON_UNATE:
-            if(to==FALL) return cell_fall_table->get_value(input_val, output_val);
-            else return cell_rise_table->get_value(input_val, output_val);
-            break;
-        case UNDEFINED_TIMING_SENSE:
-            LOG(ERROR) << "[TimingArc][get_delay] undefined timing sense.\n";
-            return 0;
-            break;
-    }
-    return 0;
-}
-
-float TimingArc::get_slew(
-    Transition_Type from, Transition_Type to, float input_val, float output_val){
-    string at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
-    if(!is_transition_defined(from, to)){
-        LOG(CERR) << "[TimingArc][get_slew] wrong transition arc from = "
-        << from << ", to = " << to <<  " at " << at << endl;
-    }
-    if(fall_transition_table==NULL){
-        LOG(ERROR) << "[TimingArc][get_slew] fall_transition_table==NULL, at " << at << endl;
-        return 0;
-    }
-    if(rise_transition_table==NULL){
-        LOG(ERROR) << "[TimingArc][get_slew] rise_transition_table==NULL, at " << at << endl;
-        return 0;
-    }
-    switch(timing_sense){
-        case POSITIVE_UNATE:
-            if(from==RISE) return rise_transition_table->get_value(input_val, output_val);
-            else return fall_transition_table->get_value(input_val, output_val);
-            break;
-        case NEGATIVE_UNATE:
-            if(from==FALL) return rise_transition_table->get_value(input_val, output_val);
-            else return fall_transition_table->get_value(input_val, output_val);
-            break;
-        case NON_UNATE:
-            if(to==FALL) return fall_transition_table->get_value(input_val, output_val);
-            else return rise_transition_table->get_value(input_val, output_val);
-            break;
-        case UNDEFINED_TIMING_SENSE:
-            LOG(ERROR) << "[TimingArc][get_slew] undefined timing sense.\n";
-            return 0;
-            break;
-    }
-    return 0;
-}
-
-float TimingArc::get_constraint(
-    Transition_Type from, Transition_Type to, float input_val, float output_val){
-    string at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
-    if(!is_constraint()){
-        LOG(CERR) << "[TimingArc][get_constraint] isn't constraint arc at " << at << endl;
-        return 0;
-    }
-    if(!is_transition_defined(from, to)){
-        LOG(CERR) << "[TimingArc][get_constraint] wrong transition arc from = "
-        << from << ", to = " << to <<  " at " << at << endl;
-        return 0;
-    }
-    if(fall_constraint_table==NULL){
-        LOG(ERROR) << "[TimingArc][get_constraint] fall_constraint_table==NULL, at " << at << endl;
-        return 0;
-    }
-    if(rise_constraint_table==NULL){
-        LOG(ERROR) << "[TimingArc][get_constraint] rise_constraint_table==NULL, at " << at << endl;
-        return 0;
-    }
-    switch(timing_sense){
-        case POSITIVE_UNATE:
-        case NEGATIVE_UNATE:
-        case NON_UNATE:
-            LOG(WARNING) << "[TimingArc][get_constraint] check timing_sense at " << at << endl;
-            return 0;
-            break;
-        case UNDEFINED_TIMING_SENSE:
-            break;
-    }
-
-    if(to==RISE) return rise_constraint_table->get_value(input_val, output_val);
-    else return fall_constraint_table->get_value(input_val, output_val);
-}
-
+// float TimingArc::get_delay(
+//     Transition_Type from, Transition_Type to, float input_val, float output_val){
+//     string at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
+//     if(!is_transition_defined(from, to)){
+//         LOG(CERR) << "[TimingArc][get_delay] wrong transition arc from = "
+//         << from << ", to = " << to <<  " at " << at << endl;
+//     }
+//     if(cell_rise_table==NULL){
+//         LOG(ERROR) << "[TimingArc][get_delay] cell_rise_table==NULL, at " << at << endl;
+//         return 0;
+//     }
+//     if(cell_fall_table==NULL){
+//         LOG(ERROR) << "[TimingArc][get_delay] cell_rise_table==NULL, at " << at << endl;
+//         return 0;
+//     }
+//     switch(timing_sense){
+//         case POSITIVE_UNATE:
+//             if(from==RISE) return cell_rise_table->get_value(input_val, output_val);
+//             else return cell_fall_table->get_value(input_val, output_val);
+//             break;
+//         case NEGATIVE_UNATE:
+//             if(from==FALL) return cell_rise_table->get_value(input_val, output_val);
+//             else return cell_fall_table->get_value(input_val, output_val);
+//             break;
+//         case NON_UNATE:
+//             if(to==FALL) return cell_fall_table->get_value(input_val, output_val);
+//             else return cell_rise_table->get_value(input_val, output_val);
+//             break;
+//         case UNDEFINED_TIMING_SENSE:
+//             LOG(ERROR) << "[TimingArc][get_delay] undefined timing sense.\n";
+//             return 0;
+//             break;
+//     }
+//     return 0;
+// }
+//
+// float TimingArc::get_slew(
+//     Transition_Type from, Transition_Type to, float input_val, float output_val){
+//     string at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
+//     if(!is_transition_defined(from, to)){
+//         LOG(CERR) << "[TimingArc][get_slew] wrong transition arc from = "
+//         << from << ", to = " << to <<  " at " << at << endl;
+//     }
+//     if(fall_transition_table==NULL){
+//         LOG(ERROR) << "[TimingArc][get_slew] fall_transition_table==NULL, at " << at << endl;
+//         return 0;
+//     }
+//     if(rise_transition_table==NULL){
+//         LOG(ERROR) << "[TimingArc][get_slew] rise_transition_table==NULL, at " << at << endl;
+//         return 0;
+//     }
+//     switch(timing_sense){
+//         case POSITIVE_UNATE:
+//             if(from==RISE) return rise_transition_table->get_value(input_val, output_val);
+//             else return fall_transition_table->get_value(input_val, output_val);
+//             break;
+//         case NEGATIVE_UNATE:
+//             if(from==FALL) return rise_transition_table->get_value(input_val, output_val);
+//             else return fall_transition_table->get_value(input_val, output_val);
+//             break;
+//         case NON_UNATE:
+//             if(to==FALL) return fall_transition_table->get_value(input_val, output_val);
+//             else return rise_transition_table->get_value(input_val, output_val);
+//             break;
+//         case UNDEFINED_TIMING_SENSE:
+//             LOG(ERROR) << "[TimingArc][get_slew] undefined timing sense.\n";
+//             return 0;
+//             break;
+//     }
+//     return 0;
+// }
+//
+// float TimingArc::get_constraint(
+//     Transition_Type from, Transition_Type to, float input_val, float output_val){
+//     string at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
+//     if(!is_constraint()){
+//         LOG(CERR) << "[TimingArc][get_constraint] isn't constraint arc at " << at << endl;
+//         return 0;
+//     }
+//     if(!is_transition_defined(from, to)){
+//         LOG(CERR) << "[TimingArc][get_constraint] wrong transition arc from = "
+//         << from << ", to = " << to <<  " at " << at << endl;
+//         return 0;
+//     }
+//     if(fall_constraint_table==NULL){
+//         LOG(ERROR) << "[TimingArc][get_constraint] fall_constraint_table==NULL, at " << at << endl;
+//         return 0;
+//     }
+//     if(rise_constraint_table==NULL){
+//         LOG(ERROR) << "[TimingArc][get_constraint] rise_constraint_table==NULL, at " << at << endl;
+//         return 0;
+//     }
+//     switch(timing_sense){
+//         case POSITIVE_UNATE:
+//         case NEGATIVE_UNATE:
+//         case NON_UNATE:
+//             LOG(WARNING) << "[TimingArc][get_constraint] check timing_sense at " << at << endl;
+//             return 0;
+//             break;
+//         case UNDEFINED_TIMING_SENSE:
+//             break;
+//     }
+//
+//     if(to==RISE) return rise_constraint_table->get_value(input_val, output_val);
+//     else return fall_constraint_table->get_value(input_val, output_val);
+// }
+//
 float TimingArc::get_delay_constant(Transition_Type from, Transition_Type to){
-    string at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
-    if(!is_transition_defined(from, to)){
-        LOG(CERR) << "[TimingArc][get_delay_constant] wrong transition arc from = "
-        << from << ", to = " << to <<  " at " << at << endl;
-    }
-    if(cell_rise_table==NULL){
-        LOG(ERROR) << "[TimingArc][get_delay_constant] cell_rise_table==NULL, at " << at << endl;
-        return 0;
-    }
-    if(cell_fall_table==NULL){
-        LOG(ERROR) << "[TimingArc][get_delay_constant] cell_rise_table==NULL, at " << at << endl;
-        return 0;
-    }
+    // string at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
+    // if(!is_transition_defined(from, to)){
+    //     LOG(CERR) << "[TimingArc][get_delay_constant] wrong transition arc from = "
+    //     << from << ", to = " << to <<  " at " << at << endl;
+    // }
+    // if(cell_rise_table==NULL){
+    //     LOG(ERROR) << "[TimingArc][get_delay_constant] cell_rise_table==NULL, at " << at << endl;
+    //     return 0;
+    // }
+    // if(cell_fall_table==NULL){
+    //     LOG(ERROR) << "[TimingArc][get_delay_constant] cell_rise_table==NULL, at " << at << endl;
+    //     return 0;
+    // }
     switch(timing_sense){
         case POSITIVE_UNATE:
             if(from==RISE) return cell_rise_table->get_value_constant();
@@ -289,19 +289,19 @@ float TimingArc::get_delay_constant(Transition_Type from, Transition_Type to){
 }
 
 float TimingArc::get_slew_constant(Transition_Type from, Transition_Type to){
-    string at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
-    if(!is_transition_defined(from, to)){
-        LOG(CERR) << "[TimingArc][get_slew_constant] wrong transition arc from = "
-        << from << ", to = " << to <<  " at " << at << endl;
-    }
-    if(fall_transition_table==NULL){
-        LOG(ERROR) << "[TimingArc][get_slew_constant] fall_transition_table==NULL, at " << at << endl;
-        return 0;
-    }
-    if(rise_transition_table==NULL){
-        LOG(ERROR) << "[TimingArc][get_slew_constant] rise_transition_table==NULL, at " << at << endl;
-        return 0;
-    }
+    // string at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
+    // if(!is_transition_defined(from, to)){
+    //     LOG(CERR) << "[TimingArc][get_slew_constant] wrong transition arc from = "
+    //     << from << ", to = " << to <<  " at " << at << endl;
+    // }
+    // if(fall_transition_table==NULL){
+    //     LOG(ERROR) << "[TimingArc][get_slew_constant] fall_transition_table==NULL, at " << at << endl;
+    //     return 0;
+    // }
+    // if(rise_transition_table==NULL){
+    //     LOG(ERROR) << "[TimingArc][get_slew_constant] rise_transition_table==NULL, at " << at << endl;
+    //     return 0;
+    // }
     switch(timing_sense){
         case POSITIVE_UNATE:
             if(from==RISE) return rise_transition_table->get_value_constant();
@@ -324,28 +324,30 @@ float TimingArc::get_slew_constant(Transition_Type from, Transition_Type to){
 }
 
 float TimingArc::get_constraint_constant(Transition_Type from, Transition_Type to){
-    string at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
-    if(!is_constraint()){
-        LOG(CERR) << "[TimingArc][get_constraint_constant] isn't constraint arc at " << at << endl;
-        return 0;
-    }
-    if(!is_transition_defined(from, to)){
-        LOG(CERR) << "[TimingArc][get_constraint_constant] wrong transition arc from = "
-        << from << ", to = " << to <<  " at " << at << endl;
-        return 0;
-    }
-    if(fall_constraint_table==NULL){
-        LOG(ERROR) << "[TimingArc][get_constraint_constant] fall_constraint_table==NULL, at " << at << endl;
-        return 0;
-    }
-    if(rise_constraint_table==NULL){
-        LOG(ERROR) << "[TimingArc][get_constraint_constant] rise_constraint_table==NULL, at " << at << endl;
-        return 0;
-    }
+    // string at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
+    // if(!is_constraint()){
+    //     LOG(CERR) << "[TimingArc][get_constraint_constant] isn't constraint arc at " << at << endl;
+    //     return 0;
+    // }
+    // if(!is_transition_defined(from, to)){
+    //     LOG(CERR) << "[TimingArc][get_constraint_constant] wrong transition arc from = "
+    //     << from << ", to = " << to <<  " at " << at << endl;
+    //     return 0;
+    // }
+    // if(fall_constraint_table==NULL){
+    //     LOG(ERROR) << "[TimingArc][get_constraint_constant] fall_constraint_table==NULL, at " << at << endl;
+    //     return 0;
+    // }
+    // if(rise_constraint_table==NULL){
+    //     LOG(ERROR) << "[TimingArc][get_constraint_constant] rise_constraint_table==NULL, at " << at << endl;
+    //     return 0;
+    // }
+    string at;
     switch(timing_sense){
         case POSITIVE_UNATE:
         case NEGATIVE_UNATE:
         case NON_UNATE:
+            at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
             LOG(WARNING) << "[TimingArc][get_constraint_constant] check timing_sense at " << at << endl;
             return 0;
             break;
@@ -354,10 +356,10 @@ float TimingArc::get_constraint_constant(Transition_Type from, Transition_Type t
     }
 
     if(to==RISE){
-        cout << rise_constraint_table->get_value_constant() << endl;
-        return rise_constraint_table->get_value_constant();
+        cout << rise_constraint_table->get_value_constant(2) << endl;
+        return rise_constraint_table->get_value_constant(2);
     }
-    else return fall_constraint_table->get_value_constant();
+    else return fall_constraint_table->get_value_constant(2);
 }
 
 bool TimingArc::is_constraint(){
