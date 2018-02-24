@@ -29,7 +29,7 @@ public:
 	struct Node {
 		bool exist, in_cppr;
 		Transition_Type clk_edge; // Only set when type == CLOCK
-		int index;
+		int index, through;       // through: For the condensed input pins.
 		string name;
 		Node_type type;
 		RCTree *tree;

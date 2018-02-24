@@ -7,6 +7,7 @@ BC_map::BC_map(Graph* graph){
 
 int BC_map::get_index(Mode mode, Transition_Type type, int node_id){
     if(node_id >= (int)to_map_id[mode][type].size()){
+        cout << node_id << "" << graph->nodes[node_id].name<<endl;
         LOG(CERR) << get_mode_string(mode) << " " << graph->get_name(node_id) << " no exist\n";
         ASSERT(false);
     }
