@@ -1,1 +1,1 @@
-report_timing -max_paths 1000
+report_timing -from inp2 -to f1:d -through u1:o

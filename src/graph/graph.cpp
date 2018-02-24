@@ -900,6 +900,9 @@ vector<Path>* Graph::report_timing(const vector<pair<Transition_Type,string>>&fr
 	}
 
 	if(to.size()){
+		for(const auto &x:from){
+			_through.emplace_back(x.first, bc_map->get_index(LATE, x.first, get_index(x.second)));
+		}
 		int to_id = get_index(to[0].second);
 		bool specify = to.size()==2? false:true;
 
@@ -907,6 +910,9 @@ vector<Path>* Graph::report_timing(const vector<pair<Transition_Type,string>>&fr
 		kth.build_from_dest(_through, to_map_id, specify);
 	}
 	else if(from.size()){
+		for(const auto &x:to){
+			_through.emplace_back(x.first, bc_map->get_index(LATE, x.first, get_index(x.second)));
+		}
 		int from_id = get_index(from[0].second);
 		bool specify = from.size()==2? false:true; // only rise or fall ?
 
