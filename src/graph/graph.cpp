@@ -5,14 +5,14 @@
 // ******************************************************
 
 Graph::Node::Node(int index, const string &name, Node_type type) {
-	this->exist     = true;
-	this->name      = name;
-	this->index     = index;
-	this->tree      = NULL;
-	this->node_type = type;
-	this->is_clock  = false; // Assume it is false at first, manually set later.
+	this->exist   = true;
+	this->name    = name;
+	this->index   = index;
+	this->tree    = NULL;
+	this->type    = type;
+	this->in_cppr = false;
+	this->through = -1;
 	this->constrained_clk = -1;
-	this->in_cppr   = false;
 
 	// These undefined values is defined in header.h
 	for (int i=0; i<2; i++) {
@@ -31,7 +31,7 @@ Graph::Node::Node(int index, const string &name, Node_type type) {
 
 int Graph::add_node(const string &name, Node_type type) {
 	int id = this->next_id++;
-	this->trans.insert(make_pair(name, id));
+	this->trans.emplace(name, id);
 	this->nodes.emplace_back(id, name, type);
 	this->adj.emplace_back();
 	this->rev_adj.emplace_back();
@@ -40,10 +40,10 @@ int Graph::add_node(const string &name, Node_type type) {
 
 int Graph::get_index(const string &name) {
 	// Get index of a cell:pin name
-	// If it is not exist, automatically add one
+	// Doesn't check exist for looking up condensed pins
 	auto it = this->trans.find(name);
 	if (it == this->trans.end()) {
-		return this->add_node(name, INTERNAL);
+		return this->add_node(name);
 	} else {
 		return it->second;
 	}
@@ -243,6 +243,7 @@ Graph::Edge::Edge(int src, int dest, Edge_type type) {
 	this->from = src;
 	this->to = dest;
 	this->type = type;
+	this->through = -1;
 }
 
 Graph::Edge* Graph::add_edge(int src, int dest, Edge_type type) {
@@ -350,16 +351,23 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 		const string &cell_type = gt->cell_type, cell_name = gt->cell_name;
 		for (const pair<string,string> &io_pair : gt->param) {
 			const string &pin_name = io_pair.first, &wire_name = io_pair.second;
-			// Check is clock.
-			int sink = this->get_index( cell_pin_concat(cell_name, pin_name) );
+			// Check is clock
+			int sink = this->get_index( cell_pin_concat(cell_name, pin_name));
+			if (cell_name == "inst_57311") cout<<cell_pin_concat(cell_name, pin_name)<<" index= "<<sink<<endl;
+			Direction_type direction = lib.get_pin_direction(cell_type, pin_name);
 			if (lib.get_pin_is_clock(cell_type, pin_name)) {
-				this->nodes[sink].is_clock = true;
+				this->nodes[sink].type = CLOCK;
 				this->nodes[sink].launching_clk[EARLY][RISE] = this->nodes[sink].launching_clk[EARLY][FALL] =
 				this->nodes[sink].launching_clk[LATE][RISE]  = this->nodes[sink].launching_clk[LATE][FALL]  = sink;
-				this->clocks.push_back(sink);
+			} else {
+				if (direction == OUTPUT) {
+					this->nodes[sink].type = OUTPUT_PIN;
+				}
+				else {
+					this->nodes[sink].type = INPUT_PIN;
+				}
 			}
 
-			Direction_type direction = lib.get_pin_direction(cell_type, pin_name);
 			if (direction == OUTPUT) {
 				// Construct in-cell timing arc.
 				for (int mode=EARLY; mode<=LATE; mode++) {
@@ -397,8 +405,8 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 	/* Create nodes for primary input */
 	for (const string &in_pin : vlog.input) {
 		// int src = this->get_index( cell_pin_concat( INPUT_PREFIX, in_pin ) );
-		int src = this->get_index( in_pin  );
-		nodes[src].node_type = PRIMARY_IN;
+		int src = this->get_index(in_pin);
+		this->nodes[src].type = PRIMARY_IN;
 		Wire_mapping *mapping = this->get_wire_mapping(in_pin);
 		ASSERT(mapping != NULL);
 		ASSERT(mapping->src == -1);
@@ -408,8 +416,8 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 	/* Create nodes for primary output */
 	for (const string &out_pin : vlog.output) {
 		// int sink = this->get_index( cell_pin_concat( OUTPUT_PREFIX, out_pin ) );
-		int sink = this->get_index( out_pin );
-		nodes[sink].node_type = PRIMARY_OUT;  // set node type
+		int sink = this->get_index( out_pin);
+		this->nodes[sink].type = PRIMARY_OUT;  // set node type
 		Wire_mapping *mapping = this->get_wire_mapping(out_pin);
 		mapping->sinks.emplace_back(sink);
 	}
@@ -476,6 +484,70 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 	}
 }
 
+void Graph::first_level_condense() {
+	/* Remove the input pins, collect the data pins and clock pins
+	   Assume AT and RAT are ready                                 */
+
+	static int condensed = 0; // For bookkeeping
+
+	for (int i = 0; i < (int)nodes.size(); i++) {
+		Node &node = nodes[i];
+
+		/* Collect data pins and clock pins */
+		if (node.type == CLOCK) this->clocks.push_back(i);
+		else if (node.type == DATA_PIN) this->clocks.push_back(i);
+
+		if (node.type != INPUT_PIN) continue;
+		// cout << "Try removing " << node.name << endl;
+
+		/* Condensation, this node should be clear if all edge is deleted, i.e., the "from" output pin
+		   does not connect to more than one input pins of a certain gate.                             */
+		Edge *rc_eptr = this->rev_adj[i].begin()->second;
+		int from = rc_eptr->from;
+		bool clear = true;
+		node.through = from;
+		ASSERT(this->rev_adj[i].size() == 1);
+		ASSERT(rc_eptr->type == RC_TREE);
+		ASSERT(rc_eptr->to == i);
+
+		auto it = this->adj[i].begin();
+		while (it != this->adj[i].end()) {
+			auto next_it = std::next(it);
+			Edge *arc_eptr = it->second;
+			int to = arc_eptr->to;
+			ASSERT(arc_eptr->from == i);
+			if (this->adj[from].find(to) != this->adj[from].end()) {
+				// cout<<nodes[from].name<< " goto " << nodes[to].name << endl;
+				clear = false;
+			} else {
+				arc_eptr->from = from;
+				arc_eptr->through = i;
+				auto to_erase = this->rev_adj[to].find(i);
+				ASSERT(to_erase != this->rev_adj[to].end());
+				this->rev_adj[to].erase( to_erase );
+				this->adj[i].erase(it);
+				this->adj[from].emplace(to, arc_eptr);
+				this->rev_adj[to].emplace( from, arc_eptr );
+			}
+			it = next_it;
+		}
+
+		/* Removing this input pin if clear is true */
+		if (clear) {
+			condensed++;
+			ASSERT(adj[i].empty());
+			auto to_erase = this->adj[from].find(i);
+			ASSERT(to_erase != this->adj[from].end());
+			this->adj[from].erase( to_erase );
+
+			node.exist = false;
+			this->rev_adj[i].clear();
+			delete rc_eptr;
+		}
+	}
+	cout << "First level condense:\n    " << condensed << " out of " << this->nodes.size() << " nodes is removed. " << (double)condensed/this->nodes.size()*100.0 << "%\n";
+}
+
 // ******************************************************
 // ***                 Arrival Time                   ***
 // ******************************************************
@@ -484,7 +556,7 @@ void Graph::at_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 	/* Use "from" update "to" through "arc" */
 	Node &node_from = this->nodes[from], &node_to = this->nodes[to];
 
-	if(nodes[from].is_clock){
+	if(nodes[from].type == CLOCK){
 		nodes[from].at[EARLY][RISE] = 0;
 		nodes[from].at[EARLY][FALL] = 0;
 		nodes[from].at[LATE][RISE] = 0;
@@ -503,13 +575,13 @@ void Graph::at_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 			float input_slew = node_from.slew[mode][type_from];
 			/* Try to update at */
 			if (node_from.at[mode][type_from] != UNDEFINED_AT[mode]) {
-				float delay = arc->get_delay(type_from, type_to, input_slew, cap_load);
+				float delay = arc->get_delay_constant(type_from, type_to);
 				float new_at = node_from.at[mode][type_from] + delay;
 				float &at = node_to.at[mode][type_to];
 				if (at == UNDEFINED_AT[mode] || at_worse_than(new_at, at, mode)) {
 					// Always choose worst at.
 					at = new_at;
-					if (!node_to.is_clock) {
+					if (node_to.type != CLOCK) {
 						node_to.launching_clk[mode][type_to] = node_from.launching_clk[mode][type_from];
 					}
 				}
@@ -562,7 +634,7 @@ void Graph::at_update(Edge *eptr) {
 					if ( at == UNDEFINED_AT[mode] || at_worse_than(new_at, at, mode) ) {
 						// Always choose worst at
 						at = new_at;
-						if (!node_to.is_clock) {
+						if (node_to.type != CLOCK) {
 							node_to.launching_clk[mode][type] = node_from.launching_clk[mode][type];
 						}
 					}
@@ -623,11 +695,9 @@ void Graph::rat_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 			Transition_Type type_from = TYPES[i], type_to = TYPES[j];
 			// No ++ in Transition_Type
 			if (!arc->is_transition_defined(type_from, type_to)) continue;
-			float cap_load = node_to.tree->get_downstream(mode, node_to.name);
-			float input_slew = node_from.slew[mode][type_from];
 			/* Try to update rat */
 			if (node_to.rat[mode][type_to] != UNDEFINED_RAT[mode]) {
-				float delay = arc->get_delay(type_from, type_to, input_slew, cap_load);
+				float delay = arc->get_delay_constant(type_from, type_to);
 				float new_rat = node_to.rat[mode][type_to] - delay;
 				float &rat = node_from.rat[mode][type_from];
 				if (rat == UNDEFINED_RAT[mode] || rat_worse_than(new_rat, rat, mode)) {
@@ -712,7 +782,6 @@ void Graph::init_rat_from_constraint() {
 	//     - rat-late (setup) = T + at(CLK,early) - setup
 	// Here all rats are block-based, CPPR credit hasn't been considered.
 	// That is, rats are pre-CPPR rats, slacks are pre-CPPR slacks.
-
 	for (auto it = this->constraints.begin(); it != this->constraints.end(); ++it) {
 		const Constraint &cons = *it;
 		ASSERT(cons.arc->is_constraint());
@@ -723,10 +792,12 @@ void Graph::init_rat_from_constraint() {
 				Node &clk = this->nodes[cons.from], &data_pin = this->nodes[cons.to];
 				Transition_Type type_clk = TYPES[i], type_data = TYPES[j];
 				Mode mode = cons.mode;
+				clk.type = CLOCK;
+				data_pin.type = DATA_PIN;
 				if (!cons.arc->is_transition_defined(type_clk, type_data)) continue; // This also checks what clock edge to be used
 				if (mode == EARLY) {
 					// Hold test
-					float delay = cons.arc->get_constraint(type_clk, type_data, clk.slew[LATE][type_clk], data_pin.slew[EARLY][type_data]);
+					float delay = cons.arc->get_constraint_constant(type_clk, type_data);
 					float &data_rat = data_pin.rat[EARLY][type_data];
 					float &clk_rat = clk.rat[LATE][type_clk];
 					float new_data_rat = clk.at[LATE][type_clk] + delay;
@@ -755,7 +826,7 @@ void Graph::calculate_rat() {
 	// You MUST call calculate_at before calling calculate_rat function.
 	// That is, required arrival time requires arrival time to be calculated first.
 
-	/* Set the value of basic case in DP */
+	/* Set the basic case in DP */
 	this->init_rat_from_constraint();
 
 	/* DFS each point if it hasn't been visited */
@@ -777,33 +848,38 @@ void Graph::init_graph(){
 	cppr->build_tree();
 	Logger::add_timestamp("cppr ok");
 
-   #pragma omp parallel sections
+   // #pragma omp parallel sections
     {
-       #pragma omp section
-        {
-            LOG(CERR) << "tid : " << omp_get_thread_num() << " bc_map\n";
-			bc_map = new BC_map(this);
-			bc_map->build();
-			for(int i=0; i<NUM_THREAD; i++){
-				kths[i] = new Kth(bc_map, cppr, this);
-			}
-		}
-		#pragma omp section
+		// #pragma omp section
 		{
             LOG(CERR) << "tid : " << omp_get_thread_num() << " rat\n";
 		    calculate_rat();
+			/* Do condensation,
+			   First level  - Remove input pin, cell delay merge with RC delay, also construct vector<int> clocks, data_pins
+			   Second level - Merge nodes with in-degree==1 or out-degree==1, but not removing (unimplemented)
+			*/
+			this->first_level_condense();
 		}
+		// #pragma omp section
+        {
+         	cout << "tid : " << omp_get_thread_num() << " bc_map\n";
+ 			bc_map = new BC_map(this);
+ 			bc_map->build();
+			for(int i=0; i<NUM_THREAD; i++){
+				kths[i] = new Kth(bc_map, cppr, this);
+			}
+ 		}
 	}
 	Logger::add_timestamp("bcmap rat ok");
 
 	/* slack is ok*/
 	for(int i=0; i<(int)nodes.size(); i++){
 		if(nodes[i].in_cppr) continue;
-		if(nodes[i].constrained_clk == -1 and nodes[i].node_type!=PRIMARY_OUT) continue;
+		if(nodes[i].constrained_clk == -1 and nodes[i].type!=PRIMARY_OUT) continue;
 		// just pick ff:d and PRIMARY_OUT
 		// LOG(CERR) << get_name(i) << " added to slack\n";
 
-/*just setup check*/
+		/*just setup check*/
 		for(int mm=0; mm<1; mm++){
 			for(int jj=0; jj<2; jj++){
 				Mode mode = LATE;
@@ -958,7 +1034,7 @@ void Graph::print_graph(){
 
 							cout << get_name(i) << ":" << get_transition_string(TYPES[ii]) << " -> ";
 							cout << get_name(to) << ":" << get_transition_string(TYPES[jj]) << " ";
-							cout << arc->get_delay(TYPES[ii], TYPES[jj], nodes[i].slew[LATE][TYPES[ii]], nodes[to].tree->get_downstream(LATE, get_name(to))) << endl;
+							cout << arc->get_delay_constant(TYPES[ii], TYPES[jj]) << endl;
 						}
 					}
 				}
@@ -974,7 +1050,7 @@ void Graph::print_graph(){
 void Graph::gen_test(string type, string filename){
 	if(type=="cppr"){
 		vector<int> clocks;
-		for(size_t i=0; i<nodes.size(); i++) if(nodes[i].is_clock){
+		for(size_t i=0; i<nodes.size(); i++) if (nodes[i].type == CLOCK) {
 			clocks.push_back(i);
 		}
 		cout << "total clocks = " << clocks.size() << endl;
@@ -1043,6 +1119,7 @@ int main() {
 	early_lib.open("unit_test/graph/simple_Early.lib");
 	late_lib.open("unit_test/graph/simple_Late.lib");
 	G.build(vlog, spef, early_lib, late_lib);
+	G.print_graph();
 
 	Logger::create()->~Logger();
 }

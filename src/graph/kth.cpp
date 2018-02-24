@@ -118,7 +118,7 @@ void Kth::build_from_src(const vector<pair<Transition_Type,int>>& through, int s
         float clock_at;
 
         const auto& src_node = map->graph->nodes[graph_id];
-        if(!src_node.is_clock and src_node.node_type!=PRIMARY_IN){
+        if(src_node.type != CLOCK and src_node.type!=PRIMARY_IN){
             LOG(CERR) << "from node: " << map->graph->nodes[graph_id].name << " is not clock or PRIMARY_IN\n";
             return;
         }
@@ -130,7 +130,7 @@ void Kth::build_from_src(const vector<pair<Transition_Type,int>>& through, int s
                 Transition_Type type = TYPES[j];
                 map_id = map->get_index(mode, type, graph_id);
                 clock_at = src_node.at[mode][type];
-                if(src_node.is_clock and type!=src_node.clk_edge) continue;
+                if(src_node.type == CLOCK and type != src_node.clk_edge) continue;
 
                 /*  source at time became delay*/
                 float delay = 0;

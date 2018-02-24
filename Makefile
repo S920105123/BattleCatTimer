@@ -85,8 +85,8 @@ TEST_RCTREE: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT)
 	$(GCCFLAG) file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(RCTREE_SRC) -o rc_tree2 -DTEST_RCTREE
 	rc_tree2.exe
 
-TEST_GRAPH: file_reader.o rc_tree.o cppr.o $(HEADER_OBJECT) $(DATA_OBEJCT)
-	$(GCCFLAG) file_reader.o rc_tree.o cppr.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_SRC) -o graph -DTEST_GRAPH
+TEST_GRAPH: file_reader.o rc_tree.o cppr.o bc_map.o kth.o $(HEADER_OBJECT) $(DATA_OBEJCT)
+	$(GCCFLAG) file_reader.o rc_tree.o cppr.o bc_map.o kth.o $(HEADER_OBJECT) $(DATA_OBEJCT) src/graph/graph.cpp -o graph -DTEST_GRAPH
 	graph.exe
 
 TEST_KTH: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) graph.o rc_tree.o cppr.o bc_map.o
@@ -127,6 +127,9 @@ test_main: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) rc_tree.o
 main: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_OBJECT) timer.o
 	$(GCCFLAG) $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_OBJECT) file_reader.o timer.o  main.cpp  -o main
 	main
+
+all: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_OBJECT) timer.o
+	$(GCCFLAG) $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_OBJECT) file_reader.o timer.o  main.cpp  -o BattleCatTimer
 
 clean:
 	del *.o

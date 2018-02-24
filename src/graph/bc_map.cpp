@@ -7,6 +7,7 @@ BC_map::BC_map(Graph* graph){
 
 int BC_map::get_index(Mode mode, Transition_Type type, int node_id){
     if(node_id >= (int)to_map_id[mode][type].size()){
+        cout << node_id << "" << graph->nodes[node_id].name<<endl;
         LOG(CERR) << get_mode_string(mode) << " " << graph->get_name(node_id) << " no exist\n";
         ASSERT(false);
     }
@@ -61,10 +62,10 @@ void BC_map::build(){
     vector<int> clocks;
     for(int i=0; i<(int)graph->nodes.size(); i++)if(i!=graph->clock_id){
         Graph::Node &node = graph->nodes[i];
-        if(node.is_clock){
+        if(node.type == CLOCK){
             clocks.push_back(i);
         }
-        if(node.node_type==PRIMARY_IN or node.is_clock){
+        if(node.type == PRIMARY_IN or node.type == CLOCK){
             build_map(i);
             // add_edge(superSource, get_index(EARLY, RISE, i), 0);
             // add_edge(superSource, get_index(EARLY, FALL, i), 0);
@@ -74,8 +75,9 @@ void BC_map::build(){
     }
 
     //bfs build level
-    for(int i=0; i<num_node; i++) if(in[i]==0)
-        q.push(i);
+    for(int i=0; i<num_node; i++) if(in[i]==0) {
+    	q.push(i);
+	}
 
     while(!q.empty()){
         int x = q.front(); q.pop();
@@ -86,7 +88,7 @@ void BC_map::build(){
         }
     }
 
-    for(size_t i=0; i<graph->nodes.size(); i++){
+    for(size_t i=0; i < graph->nodes.size(); i++){
         // int a = level[ get_index(EARLY, RISE, i) ];
         // int b = level[ get_index(EARLY, FALL, i) ];
         int c = level[ get_index(LATE, RISE, i) ];

@@ -30,13 +30,13 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
         {
             open_tau(tau);
             Logger::add_timestamp("open_tau ok");
+
             graph = new Graph();
             graph->build(*verilog, *spef, *lib[EARLY], *lib[LATE]);
-
             Logger::add_timestamp("graph build ok");
-            open_timing(timing);
-
+            
             // init graph
+            open_timing(timing);
             init_timer();
         }
 
