@@ -3,7 +3,7 @@
 void assert_handler(int expr, const char *assertion, const char *fname, const char *func, int line) {
 	if (!(expr)) {
         LOG(ERROR) << "Assertion \"" << assertion << "\" fail at function \"" << func << "\"\n"
-                   << "- At file \"" << fname << "\", line number "<< line << endl;
+                   << "- At file \"" << fname << "\", line number "<< line << '\n';
         LOG(CERR) << "\n\n[Fatal] Assertion \"" << assertion << "\" fail at function \"" << func << "\"\n"
                   << "- At file \"" << fname << "\", line number "<< line << "\n\n\n";
 		my_exit();
@@ -21,9 +21,9 @@ void my_exit() {
 #ifdef TEST_DEBUG
 
 int main() {
-	LOG(ERROR) << "NO~~~~" << endl;
-	LOG(CERR)  << "You shall not pass" << endl;
-	
+	LOG(ERROR) << "NO~~~~" << '\n';
+	LOG(CERR)  << "You shall not pass" << '\n';
+
 //	ASSERT_NOT_REACHED();
 //	ASSERT(1==0);
 	EXPECT(1,1);
@@ -33,4 +33,3 @@ int main() {
 }
 
 #endif
-

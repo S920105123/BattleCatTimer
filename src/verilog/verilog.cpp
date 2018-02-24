@@ -3,13 +3,13 @@
 void Verilog::open(const string &fname) {
 	File_Reader reader;
 	reader.open(fname);
-	
+
 	string tok;
-	
+
 	/* Read in the module name */
 	EXPECT(reader.next_token(), "module");
 	module_name = reader.next_token();
-	
+
 	/* Skip those parameters. */
 	tok = reader.next_token();
 	EXPECT(tok, "(");
@@ -17,7 +17,7 @@ void Verilog::open(const string &fname) {
 		tok = reader.next_token();
 		EXPECT_NOT(tok, "");
 	}
-	
+
 	/* Reading inputs */
 	tok = reader.next_token();
 	while (tok == "input") {
@@ -25,21 +25,21 @@ void Verilog::open(const string &fname) {
 		input.push_back(tok);
 		tok = reader.next_token();
 	}
-	
+
 	/* Reading outputs */
 	while (tok == "output") {
 		tok = reader.next_token();
 		output.push_back(tok);
 		tok = reader.next_token();
 	}
-	
+
 	/* Reading wires */
 	while (tok == "wire") {
 		tok = reader.next_token();
 		wire.push_back(tok);
 		tok = reader.next_token();
 	}
-	
+
 	/* Reading cells */
 	while (tok != "endmodule") {
 		EXPECT_NOT(tok, "");
@@ -62,15 +62,15 @@ void Verilog::open(const string &fname) {
 		tok = reader.next_token();
 		gates.insert(make_pair(gt->cell_name, gt));
 	}
-	
-	LOG(NORMAL) << "Parse of verilog file is done." << endl;
+
+	LOG(NORMAL) << "Parse of verilog file is done." << '\n';
 }
 
 const string& Verilog::get_cell_type(const string &inst_name) const {
 	static const string undefined_str = "Undefined";
 	auto it = gates.find(inst_name);
 	if (it == gates.end()) {
-		LOG(WARNING) << "[Verilog] Searching for an unknown verilog gate instance name" << endl;
+		LOG(WARNING) << "[Verilog] Searching for an unknown verilog gate instance name" << '\n';
 		return undefined_str;
 	}
 	return it->second->cell_type;
@@ -83,42 +83,42 @@ const string& Verilog::get_cell_type(const string &inst_name) const {
 int main() {
 	Verilog vlog;
 	vlog.parse("unit_test/test_verilog.v");
-	
+
 	LOG(CERR) << "Parse done\n\n";
 	LOG(CERR) << "Module name: " << vlog.module_name << "\n\n";
-	
-	LOG(CERR) << "Input list:" << endl;
+
+	LOG(CERR) << "Input list:" << '\n';
 	for (const string &inp : vlog.input) {
-		LOG(CERR) << "    " << inp << endl;
+		LOG(CERR) << "    " << inp << '\n';
 	}
-	LOG(CERR) << endl;
-	
-	LOG(CERR) << "Output list:" << endl;
+	LOG(CERR) << '\n';
+
+	LOG(CERR) << "Output list:" << '\n';
 	for (const string &out : vlog.output) {
-		LOG(CERR) << "    " << out << endl;;
+		LOG(CERR) << "    " << out << '\n';;
 	}
-	LOG(CERR) << endl;
-	
-	LOG(CERR) << "Wire list:" << endl;
+	LOG(CERR) << '\n';
+
+	LOG(CERR) << "Wire list:" << '\n';
 	for (const string &w : vlog.wire) {
-		LOG(CERR) << "    " << w << endl;;
+		LOG(CERR) << "    " << w << '\n';;
 	}
-	LOG(CERR) << endl;
-	
-	LOG(CERR) << "Cells: " << endl;
+	LOG(CERR) << '\n';
+
+	LOG(CERR) << "Cells: " << '\n';
 	for (auto it : vlog.gates) {
 		const Verilog::Verilog_Gate &gt = *it.second;
-		LOG(CERR) << "    - Type: "<< gt.cell_type << endl;
-		LOG(CERR) << "    - Name: "<< gt.cell_name << endl;
-		LOG(CERR) << "    - Parameters:" << endl;
+		LOG(CERR) << "    - Type: "<< gt.cell_type << '\n';
+		LOG(CERR) << "    - Name: "<< gt.cell_name << '\n';
+		LOG(CERR) << "    - Parameters:" << '\n';
 		for (const pair<string,string> &p : gt.param) {
-			LOG(CERR) << "          ." << p.first << "(" << p.second << ")" << endl;
+			LOG(CERR) << "          ." << p.first << "(" << p.second << ")" << '\n';
 		}
-		LOG(CERR) << endl;
+		LOG(CERR) << '\n';
 	}
-	
+
 	string to_find = "U7";
-	LOG(CERR) << "Find instance " << to_find << ". Result is: " << vlog.get_cell_type(to_find) << endl;
+	LOG(CERR) << "Find instance " << to_find << ". Result is: " << vlog.get_cell_type(to_find) << '\n';
 }
 
 #endif

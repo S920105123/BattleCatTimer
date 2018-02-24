@@ -54,7 +54,7 @@ void Pin::read(File_Reader &in){
 		else {
 			if (tok == "}") level--;
 			if (tok == "{") level++;
-			LOG(WARNING) << "An unknown keyword \"" << tok << "\" is reached. (In .lib pin parser)" <<endl;
+			LOG(WARNING) << "An unknown keyword \"" << tok << "\" is reached. (In .lib pin parser)" <<'\n';
 		}
 		tok = in.next_token();
 	}
@@ -78,18 +78,18 @@ void Pin::add_arc(const string &src, TimingArc* arc){
 
 void Pin::print(const string &tab) {
 	string next_level = tab+"    ";
-	LOG(CERR) << tab << "Pin name: " << this->name << endl;
-	LOG(CERR) << tab << "	- Direction: " << this->direction << endl;
-	LOG(CERR) << tab << "	- Is Clock: " << (this->is_clock ? "True" : "False") << endl;
-	LOG(CERR) << tab << "	- Capacitance: " << this->capacitance << endl;
-	LOG(CERR) << tab << "	- Max capacitance: " << this->max_capacitance << endl;
-	LOG(CERR) << tab << "	- Min capacitance: " << this->min_capacitance << endl;
-	LOG(CERR) << tab << "	- Timing Arcs: " << this->min_capacitance << endl;
+	LOG(CERR) << tab << "Pin name: " << this->name << '\n';
+	LOG(CERR) << tab << "	- Direction: " << this->direction << '\n';
+	LOG(CERR) << tab << "	- Is Clock: " << (this->is_clock ? "True" : "False") << '\n';
+	LOG(CERR) << tab << "	- Capacitance: " << this->capacitance << '\n';
+	LOG(CERR) << tab << "	- Max capacitance: " << this->max_capacitance << '\n';
+	LOG(CERR) << tab << "	- Min capacitance: " << this->min_capacitance << '\n';
+	LOG(CERR) << tab << "	- Timing Arcs: " << this->min_capacitance << '\n';
 	for (const auto &it : timing) {
 		for(const auto &arc: *it.second)
 			arc->print(next_level);
 	}
-	LOG(CERR) << endl;
+	LOG(CERR) << '\n';
 }
 
 float Pin::get_capacitance(){
@@ -104,7 +104,7 @@ vector<TimingArc*>* Pin::get_TimingArc(const string& src){
 	auto it = timing.find(src);
 	if(it == timing.end()) {
 		LOG(ERROR) << "[Pin][get_TimingArc] Cell: " << parent->get_type_name()
-		<< " pin: " << name << " src: " << src << " empty TimingArc." << endl;
+		<< " pin: " << name << " src: " << src << " empty TimingArc." << '\n';
 		return NULL;
 	}
 	return it->second;

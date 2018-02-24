@@ -54,11 +54,11 @@ string Kth::get_node_name(int kth_id){
 }
 
 void Kth::print(){
-    LOG(CERR) << num_node << " " << G.size() << endl;
+    LOG(CERR) << num_node << " " << G.size() << '\n';
     for(int i=0; i<num_node; i++){
         for(auto x:G[i]){
             int to = x.to;
-            LOG(CERR) << get_node_name(i) << " -> " << get_node_name(to) << " " << x.delay << endl;
+            LOG(CERR) << get_node_name(i) << " -> " << get_node_name(to) << " " << x.delay << '\n';
         }
     }
 }
@@ -74,24 +74,24 @@ void Kth::mark_through(const vector<pair<Transition_Type,int>>& through){
         int map_id = through[i].second;
         int graph_id = map->get_graph_id(map_id);
 
-/*just setup check*/
+        /*just setup check*/
         // map_id = map->get_index(EARLY, through[i].first, graph_id);
         // mark[map_id] = 1;
         // // level.emplace_back(map->level[map_id]);
         // level.emplace_back(map->level[map_id], map_id);
-        // LOG(CERR) << map->get_node_name(map_id) << " " << map->level[map_id] << endl;
+        // LOG(CERR) << map->get_node_name(map_id) << " " << map->level[map_id] << '\n';
 
         map_id = map->get_index(LATE, through[i].first, graph_id);
         mark[map_id] = 1;
         // level.emplace_back(map->level[map_id]);
         level.emplace_back(map->level[map_id], map_id);
-        // LOG(CERR) << map->get_node_name(map_id) << " " << map->level[map_id] << endl;
+        // LOG(CERR) << map->get_node_name(map_id) << " " << map->level[map_id] << '\n';
 
     }
     sort(level.begin(), level.end());
 
     // for(auto x:level){
-    //     LOG(CERR) << map->get_node_name(x.second) << " level = " << x.first << endl;
+    //     LOG(CERR) << map->get_node_name(x.second) << " level = " << x.first << '\n';
     // }
     if(level.size()) object.emplace_back(level[0].first);
     for(int i=1; i<(int)level.size(); i++){
@@ -122,7 +122,7 @@ void Kth::build_from_src(const vector<pair<Transition_Type,int>>& through, int s
             LOG(CERR) << "from node: " << map->graph->nodes[graph_id].name << " is not clock or PRIMARY_IN\n";
             return;
         }
-/* just setup check*/
+        /* just setup check*/
         for(int i=0; i<1; i++){
             for(int j=0; j<2; j++){
                 Mode mode = MODES[i];
@@ -147,7 +147,7 @@ void Kth::build_from_src(const vector<pair<Transition_Type,int>>& through, int s
         int graph_id = map->get_graph_id(src);
         Transition_Type type = map->get_graph_id_type(src);
 
-/* just setup check*/
+        /* just setup check*/
         for(int i=0; i<1; i++){
             Mode mode = MODES[i];
             mode = LATE;
@@ -178,8 +178,8 @@ void Kth::build_from_src(const vector<pair<Transition_Type,int>>& through, int s
         // if(map->graph->nodes[src_id].is_clock and map->graph->nodes[leaf_id].node_type!=PRIMARY_OUT){
         //     int leaf_clk_id= map->graph->nodes[leaf_id].constrained_clk; // ff:d's clk
         //     if(leaf_clk_id==-1){
-        //         LOG(ERROR) << "[kth][build_from_src] leaf'ck is -1, leaf: " << map->get_node_name(x) << endl;
-        //         LOG(CERR) << "[kth][build_from_src] leaf'ck is -1, leaf: " << map->get_node_name(x) << endl;
+        //         LOG(ERROR) << "[kth][build_from_src] leaf'ck is -1, leaf: " << map->get_node_name(x) << '\n';
+        //         LOG(CERR) << "[kth][build_from_src] leaf'ck is -1, leaf: " << map->get_node_name(x) << '\n';
         //         continue;
         //     }
         //     // ASSERT(leaf_clk_id!=-1);
@@ -188,7 +188,7 @@ void Kth::build_from_src(const vector<pair<Transition_Type,int>>& through, int s
         //     Transition_Type leaf_clk_type = map->graph->nodes[leaf_clk_id].clk_edge;
         //
         //     delay += cppr->cppr_credit(mode, src_id, src_clk_type, leaf_clk_id, leaf_clk_type);
-        //     LOG(CERR) << "(" << map->get_node_name( map->get_index(mode, leaf_clk_type, leaf_clk_id)) << ") " << delay << endl;
+        //     LOG(CERR) << "(" << map->get_node_name( map->get_index(mode, leaf_clk_type, leaf_clk_id)) << ") " << delay << '\n';
         // }
         // else LOG(CERR) << " no cppr\n";
 
@@ -207,7 +207,7 @@ bool Kth::forward_build(int now, int next_object){
 
     // LOG(CERR) << "dfs: " << map->get_node_name(now) << " my level: " << map->level[now] ;
     // if(next_object<(int)object.size())
-    //     cout << " next_object level " << object[next_object] << endl;
+    //     cout << " next_object level " << object[next_object] << '\n';
     // else cout << " next_object level " << " ok\n";
     if(map->G[now].size()==0){ // at primary out or ff:d
         if(next_object==(int)object.size()){
@@ -254,9 +254,9 @@ void Kth::build_from_dest(const vector<int>& dest){
         const auto& node = map->graph->nodes[graph_id];
         Mode mode = map->get_graph_id_mode(map_id);
 
-/* just setup check*/
+        /* just setup check*/
         if(mode==EARLY){
-            LOG(ERROR) << "[Kth][build_from_dest] early mode in dest " << endl;
+            LOG(ERROR) << "[Kth][build_from_dest] early mode in dest " << '\n';
             continue;
         }
         Transition_Type type = map->get_graph_id_type(map_id);
@@ -275,9 +275,9 @@ void Kth::build_from_dest(const vector<int>& dest){
         Mode mode = map->get_graph_id_mode(x);
         Transition_Type type = map->get_graph_id_type(x);
         const auto& node = map->graph->nodes[ map->get_graph_id(x) ];
-/* just setup check*/
+        /* just setup check*/
         if(mode==EARLY){
-            LOG(ERROR) << "[Kth][build_from_dest] early mode in dest " << endl;
+            LOG(ERROR) << "[Kth][build_from_dest] early mode in dest " << '\n';
             continue;
         }
 
@@ -314,7 +314,7 @@ void Kth::build_from_dest(const vector<pair<Transition_Type,int>>& through, int 
                 Transition_Type type = TYPES[j];
 
                 map_id = map->get_index(mode, type, graph_id);
-                // LOG(CERR) << "connnect " << get_node_name(dest_kth) << " " << map->get_node_name(map_id) << endl;
+                // LOG(CERR) << "connnect " << get_node_name(dest_kth) << " " << map->get_node_name(map_id) << '\n';
                 float delay = 0;
                 if(mode==EARLY) delay = -map->graph->nodes[graph_id].rat[mode][type];
                 else delay = map->graph->nodes[graph_id].rat[mode][type];
@@ -332,7 +332,7 @@ void Kth::build_from_dest(const vector<pair<Transition_Type,int>>& through, int 
             Mode mode = MODES[i];
             mode = LATE;
             int map_id = map->get_index(mode, type, graph_id);
-            // LOG(CERR) << "*connnect " << get_node_name(dest_kth) << " " << map->get_node_name(map_id) << endl;
+            // LOG(CERR) << "*connnect " << get_node_name(dest_kth) << " " << map->get_node_name(map_id) << '\n';
 
             float delay = 0;
             if(mode==EARLY) delay = -map->graph->nodes[graph_id].rat[mode][type];
@@ -356,15 +356,15 @@ void Kth::build_from_dest(const vector<pair<Transition_Type,int>>& through, int 
         float delay = 0, at_clock = 0;
 		/* just setup check*/
         if(mode==EARLY){
-            LOG(ERROR) << "[Kth][build_from_dest] early mode in dest " << endl;
+            LOG(ERROR) << "[Kth][build_from_dest] early mode in dest " << '\n';
             continue;
         }
         // LOG(CERR) << "cppr: " <<  map->get_node_name(x) << " " << map->get_node_name(dest) ;
         // if(map->graph->nodes[dest_id].node_type!=PRIMARY_OUT and map->graph->nodes[leaf_id].is_clock){
         //     int dest_ck_id = map->graph->nodes[dest_id].constrained_clk;
         //     if(dest_ck_id==-1){
-        //         LOG(CERR) << "[kth][build_from_dest] dest'ck is not primary out or register/D, dest: " << map->get_node_name(dest) << endl;
-        //         LOG(ERROR) << "[kth][build_from_dest] dest'ck is not primary out or register/D, dest: " << map->get_node_name(dest) << endl;
+        //         LOG(CERR) << "[kth][build_from_dest] dest'ck is not primary out or register/D, dest: " << map->get_node_name(dest) << '\n';
+        //         LOG(ERROR) << "[kth][build_from_dest] dest'ck is not primary out or register/D, dest: " << map->get_node_name(dest) << '\n';
         //         continue;
         //     }
         //     // ASSERT(dest_ck_id!=-1);
@@ -372,7 +372,7 @@ void Kth::build_from_dest(const vector<pair<Transition_Type,int>>& through, int 
         //     Transition_Type dest_ck_type = map->graph->nodes[dest_ck_id].clk_edge;
         //     Transition_Type leaf_ck_type = map->graph->nodes[leaf_id].clk_edge;
         //     delay += cppr->cppr_credit(mode, dest_ck_id, dest_ck_type, leaf_id, leaf_ck_type);
-        //     LOG(CERR) << "(" << map->get_node_name( map->get_index(mode, dest_ck_type, dest_ck_id)) << ") " << delay << endl;
+        //     LOG(CERR) << "(" << map->get_node_name( map->get_index(mode, dest_ck_type, dest_ck_id)) << ") " << delay << '\n';
         //
         // }
         // else LOG(CERR) << " no cppr\n";
@@ -395,7 +395,7 @@ bool Kth::backward_build(int now, int next_object){
 
     // LOG(CERR) << "dfs " << map->get_node_name(now) << " my level: " << map->level[now];
     // if(next_object<(int)object.size())
-    //     cout << " next_object level " << object[next_object] << endl;
+    //     cout << " next_object level " << object[next_object] << '\n';
     // else cout << " next_object level " << " ok\n";
     if(map->Gr[now].size()==0){
         if(next_object>=(int)object.size()){
@@ -444,7 +444,7 @@ void Kth::build_from_throgh(const vector<pair<Transition_Type,int>>& through){
             Transition_Type type = map->get_graph_id_type( through[i].second );
             // search this point can connect what point
 
-/* just setup check*/
+            /* just setup check*/
             // forward_build(map->get_index(EARLY, type, graph_id), 1);
             // vis[map->get_index(EARLY, type, graph_id)] = 0;
             forward_build(map->get_index(LATE, type, graph_id), 1);
@@ -460,9 +460,9 @@ void Kth::build_from_throgh(const vector<pair<Transition_Type,int>>& through){
         Transition_Type type = map->get_graph_id_type(x);
         const auto& node = map->graph->nodes[map->get_graph_id(x)];
 
-/* just setup check*/
+        /* just setup check*/
         if(mode==EARLY){
-            LOG(ERROR) << "[Kth][build_from_through] early mode in all_leave" << endl;
+            LOG(ERROR) << "[Kth][build_from_through] early mode in all_leave" << '\n';
             continue;
         }
 
@@ -472,7 +472,7 @@ void Kth::build_from_throgh(const vector<pair<Transition_Type,int>>& through){
 
         add_edge(get_kth_id(x), dest_kth, delay);
     }
-    // for(auto x:all_leave) LOG(CERR) << " can go to " << map->get_node_name(x) << endl;
+    // for(auto x:all_leave) LOG(CERR) << " can go to " << map->get_node_name(x) << '\n';
 
     all_leave.clear();
     for(int i=0; i<(int)through.size(); i++){
@@ -480,7 +480,7 @@ void Kth::build_from_throgh(const vector<pair<Transition_Type,int>>& through){
             int graph_id = map->get_graph_id( through[i].second );
             Transition_Type type = map->get_graph_id_type( through[i].second );
             // just backward search which point can connenct this points
-/* just setup check*/
+            /* just setup check*/
             // backward_build(map->get_index(EARLY, type, graph_id), object.size());
             backward_build(map->get_index(LATE, type, graph_id), object.size());
         }
@@ -493,7 +493,7 @@ void Kth::build_from_throgh(const vector<pair<Transition_Type,int>>& through){
 
 /* just setup check*/
         if(mode==EARLY){
-            LOG(ERROR) << "[Kth][build_from_through] early mode in all_leave" << endl;
+            LOG(ERROR) << "[Kth][build_from_through] early mode in all_leave" << '\n';
             continue;
         }
         float delay = 0;
@@ -503,7 +503,7 @@ void Kth::build_from_throgh(const vector<pair<Transition_Type,int>>& through){
 
         add_edge(source_kth, get_kth_id(x), delay, node.at[mode][type]);
     }
-    // for(auto x:all_leave) LOG(CERR) << " cant go from " << map->get_node_name(x) << endl;
+    // for(auto x:all_leave) LOG(CERR) << " cant go from " << map->get_node_name(x) << '\n';
 }
 // *********************************************
 // *       kth algorithm implementation        *
@@ -512,8 +512,8 @@ void Kth::build_from_throgh(const vector<pair<Transition_Type,int>>& through){
 void Kth::single_dest_dfs(int v) {
 	// Find dist[v], successor[v] after calling this function
 	// successor == -1: not visited, successor == -2: not reachable
-	// cout<<"DFS "<<v<<endl<<std::flush;
-    // cout << "single " << get_node_name(v) << endl;
+	// cout<<"DFS "<<v<<'\n'<<std::flush;
+    // cout << "single " << get_node_name(v) << '\n';
 	for (auto it=G[v].begin(); it!=G[v].end(); ++it) {
 		const Edge &e = *it;
 		int to = e.to;
@@ -523,7 +523,7 @@ void Kth::single_dest_dfs(int v) {
 		// Always choose "worst" path, that is, shortest dist, then smallest at
 		float relax = this->dist[to] + e.delay;
 		float new_at = this->at_dist[to] + e.at_delay;
-		// cout<<"Use "<<relax<<" relax "<<v<<endl;
+		// cout<<"Use "<<relax<<" relax "<<v<<'\n';
 		if (this->successor[v] == -1 || this->dist[v] > relax) {
 			// cout<<"RELAX\n";
 			this->dist[v] = relax;
@@ -561,7 +561,7 @@ bool Kth::build_single_dest_tree(int dest) {
 		if (this->successor[i] == -1) {
 			this->single_dest_dfs(i);
 		}
-		// cout<<"SUCC "<<successor[i]<<endl;
+		// cout<<"SUCC "<<successor[i]<<'\n';
 	}
 
 	/* Return false if dest isn't reachable. */
@@ -583,7 +583,6 @@ void Kth::extend(Prefix_node *path) {
 	// From "path", extend its childs
 	// A child can only be obtained by adding a sidetrack edge, in which its "from" on the path after last sidetrack of this path
 	// All its children are longer than "path"
-
 	// For every v from head of last sidetrack to t.
 	int v = path->eptr==NULL ? source_kth : path->eptr->to;
 	while (v != this->dest_kth) {
@@ -591,7 +590,7 @@ void Kth::extend(Prefix_node *path) {
 			Edge &e = *it;
 			if (successor[e.to] == -2 || e.id == this->use_edge[v]) continue;
 			Prefix_node *next_path = new Prefix_node(path, &e); // IMPORTANT, one should delete this after pop.
-//			cout << "Use " << path << " to extend "<<next_path<<" eptr="<<path->eptr<<endl<<std::flush;
+//			cout << "Use " << path << " to extend "<<next_path<<" eptr="<<path->eptr<<'\n'<<std::flush;
 			this->pq.push(next_path);
 		}
 
@@ -602,7 +601,7 @@ void Kth::extend(Prefix_node *path) {
 void Kth::get_explicit_path_helper(Path *exp_path, const Prefix_node *imp_path, int dest) {
 	// Recursive subroutine of get_explicit_path
 	// *** Assume dest havn't been pushed into path
-//	cout<<"NOW "<<imp_path<<" "<<imp_path->eptr<<endl<<std::flush;
+//	cout<<"NOW "<<imp_path<<" "<<imp_path->eptr<<'\n'<<std::flush;
 	int sz = exp_path->path.size(), dsz = exp_path->delay.size(), v;
 	if (imp_path->eptr == NULL) {
 		// Root of prefix tree
@@ -620,7 +619,7 @@ void Kth::get_explicit_path_helper(Path *exp_path, const Prefix_node *imp_path, 
 		exp_path->delay.emplace_back(dist[ v ] - this->dist[ this->successor[v] ]);
 		v = this->successor[v];
 	}
-	// cout<<"PUSH "<<v<<endl<<std::flush;
+	// cout<<"PUSH "<<v<<'\n'<<std::flush;
 	exp_path->path.emplace_back(v);
 	std::reverse(exp_path->path.begin() + sz, exp_path->path.end());
 	std::reverse(exp_path->delay.begin() + dsz, exp_path->delay.end());
@@ -667,7 +666,7 @@ void Kth::k_shortest_path(int k, vector<Path> &container) {
 	Prefix_node *root = new Prefix_node(); // Empty set represent SP itself
 	this->pq.push(root);
 	for (int i=0; i<k; i++) {
-		// cout<<"Extract path"<<i<<endl<<std::flush;
+		// cout<<"Extract path"<<i<<'\n'<<std::flush;
 		if (pq.empty()) {
 			container.resize(i);
 			break;
@@ -699,14 +698,14 @@ void Kth::print_path(const Path& p) {
     vector<float> pdelay = p.delay;
     reverse(path.begin(), path.end());
     reverse(pdelay.begin(), pdelay.end());
-    LOG(CERR) << std::setw(28) << get_node_name(path[0]) << std::setw(width) << 0 << std::setw(width) << 0 << endl;
+    LOG(CERR) << std::setw(28) << get_node_name(path[0]) << std::setw(width) << 0 << std::setw(width) << 0 << '\n';
 	for (int i=1; i<(int)path.size(); i++) {
         delay = pdelay[i-1];
         total += delay;
         LOG(CERR) << std::setw(28) << get_node_name(path[i]) << std::setw(width) << std::fixed << std::setprecision(3)
-        << delay << std::setw(width) << std::fixed << std::setprecision(3) << total << endl;
+        << delay << std::setw(width) << std::fixed << std::setprecision(3) << total << '\n';
 	}
-	LOG(CERR) <<  "Length: " << p.dist << endl << endl;
+	LOG(CERR) <<  "Length: " << p.dist << '\n' << '\n';
 }
 
 int Kth::get_type(int index) {
@@ -740,12 +739,28 @@ void Kth::clear(){
     mark.resize( map->num_node );
 }
 
-string turn_name(string name){
+void Path::print_name(ostream &fout, const string &name) {
     for(int i=0; i<(int)name.size(); i++){
-        if(name[i]==':')
-        name[i] = '/';
+        if (name[i]==':') fout << '/';
+        else fout << name[i];
     }
-    return name;
+}
+
+void Path::check_condensed_pin(ostream &fout, Graph *graph, int from_bc_id, int to_bc_id, float total) {
+    BC_map *bc = graph->get_bc_map();
+    int width = 8, from_gid = bc->get_graph_id(from_bc_id), to_gid = bc->get_graph_id(to_bc_id);
+    auto it = graph->adj[from_gid].find(to_gid);
+    ASSERT(it != graph->adj[from_gid].end());
+    Graph::Edge *eptr = it->second;
+    if (eptr->through == -1) return;
+    int gid = eptr->through;
+
+    const char *tab = "      ", *type_ch[2] = {"^   ", "v   "};
+    fout << tab << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << 0.0 << "  ";
+    fout        << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total << "   ";
+    fout << type_ch[bc->get_graph_id_type(from_bc_id)] << "  ";
+    print_name(fout, graph->nodes[gid].name);
+    fout << '\n';
 }
 
 void Path::output(ostream &fout, Graph *graph){
@@ -760,35 +775,52 @@ void Path::output(ostream &fout, Graph *graph){
     const char *tab = "      ", *spline = "----------------------------------------", *type_ch[2] = {"^   ", "v   "};
 
     // path[0] is SuperDest, path[n-1] is SuperSrc
-    fout << endl;
-	fout << "Endpoint:   " << turn_name(graph->nodes[bc->get_graph_id(path[1])].name) << endl;
-	fout << "Beginpoint: " << turn_name(graph->nodes[bc->get_graph_id(path[n-2])].name) << endl;
-	fout << "= Required Time              " << std::fixed << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << rat    << endl;
-	fout << "- Arrival Time               " << std::fixed << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << at     << endl;
-	fout << "= Slack Time                 " << std::fixed << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << rat-at << endl;
-	fout << tab << spline << endl;
-	fout << tab << "Delay     Arrival    Edge  Pin" << endl;
-	fout << tab << "          Time" << endl;
-	fout << tab << spline << endl;
+    fout << '\n';
+	fout << "Endpoint:   ";
+    print_name(fout, graph->nodes[bc->get_graph_id(path[1])].name);
+    fout << '\n';
+	fout << "Beginpoint: ";
+    print_name(fout, graph->nodes[bc->get_graph_id(path[n-2])].name);
+    fout << '\n';
+
+	fout << "= Required Time              " << std::fixed << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << rat    << '\n';
+	fout << "- Arrival Time               " << std::fixed << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << at     << '\n';
+	fout << "= Slack Time                 " << std::fixed << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << rat-at << '\n';
+	fout << tab << spline << '\n';
+	fout << tab << "Delay     Arrival    Edge  Pin" << '\n';
+	fout << tab << "          Time" << '\n';
+	fout << tab << spline << '\n';
+
+    /* Output first pin (special case, no need to print delay) */
 	fout << tab << "-         " << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total
-    << "   " << type_ch[bc->get_graph_id_type(path[n-2])] << "  " << turn_name(graph->nodes[bc->get_graph_id(path[n-2])].name);
+    << "   " << type_ch[bc->get_graph_id_type(path[n-2])] << "  ";
+    print_name(fout, graph->nodes[bc->get_graph_id(path[n-2])].name);
     if(mark[n-2]) fout << " ->";
-    fout << endl;
+    fout << '\n';
+    if (n-3 >= 1) {
+        check_condensed_pin(fout, graph, path[n-2], path[n-3], total);
+    }
+
+    /* Output remaining */
 	for (int i = n-3; i>=1; i--) {
 		total -= delay[i]; // Delay is negative
 		fout << tab << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << -delay[i] << "  ";
 		fout        << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total << "   ";
-		fout << type_ch[bc->get_graph_id_type(path[i])] << "  " << turn_name(graph->nodes[bc->get_graph_id(path[i])].name);
+		fout << type_ch[bc->get_graph_id_type(path[i])] << "  ";
+        print_name(fout, graph->nodes[bc->get_graph_id(path[i])].name);
         if(mark[i] ) fout << " ->";
-        fout << endl;
+        fout << '\n';
+        if (i-1 >= 1) {
+            check_condensed_pin(fout, graph, path[i], path[i-1], total);
+        }
 	}
-	fout << tab << spline << endl << endl;
+	fout << tab << spline << '\n' << '\n';
 }
 
 void Path::print() {
-	LOG(CERR) << "Path:\nEnd at " << this->path[0] << endl;
+	LOG(CERR) << "Path:\nEnd at " << this->path[0] << '\n';
 	for (int i=1; i<(int)path.size(); i++) {
-		LOG(CERR) << "delay " << std::setw(6) << delay[i-1] << " from " << this->path[i] << endl;
+		LOG(CERR) << "delay " << std::setw(6) << delay[i-1] << " from " << this->path[i] << '\n';
 	}
 	LOG(CERR) << "Length: " << this->dist << "\n\n";
 }

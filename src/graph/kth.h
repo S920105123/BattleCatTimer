@@ -18,6 +18,8 @@ struct Path {
 
     void print();
     void output(ostream &fout, Graph *graph);
+    void check_condensed_pin(ostream &fout, Graph *graph, int from_bc_id, int to_bc_id, float total);
+    void print_name(ostream &fout, const string &name);
 };
 
 class Kth {

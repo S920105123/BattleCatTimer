@@ -21,7 +21,7 @@ void Cell::read(File_Reader &in){
             add_pin(name, pin);
         }
         else{
-            LOG(WARNING) << "[Cell][read] unknow keyword: " << token << endl;
+            LOG(WARNING) << "[Cell][read] unknow keyword: " << token << '\n';
         }
     }
 }
@@ -37,52 +37,52 @@ void Cell::add_pin(const string& name, Pin* pin){
 }
 
 void Cell::print(const string &tab){
-    LOG(CERR) << tab << " Cell : " << type_name << endl;
+    LOG(CERR) << tab << " Cell : " << type_name << '\n';
 
     string nextTab = tab + "    ";
     for(auto i:pins) i.second->print(nextTab);
 
-    LOG(CERR) << endl;
+    LOG(CERR) << '\n';
 }
 
 float Cell::get_pin_capacitance(const string& pin_name){
     if(pins.find(pin_name)==pins.end()){
-        LOG(ERROR) << "[Cell][get_pin_capacitance] Cell: " << type_name << " no such pin " << pin_name << endl;
+        LOG(ERROR) << "[Cell][get_pin_capacitance] Cell: " << type_name << " no such pin " << pin_name << '\n';
     }else return pins[pin_name]->get_capacitance();
     return 0;
 }
 
 Direction_type Cell::get_pin_direction(const string& pin_name){
     if(pins.find(pin_name)==pins.end()){
-        LOG(ERROR) << "[Cell][get_pin_direction] Cell: " << type_name << " no such pin " << pin_name << endl;
+        LOG(ERROR) << "[Cell][get_pin_direction] Cell: " << type_name << " no such pin " << pin_name << '\n';
     }else return pins[pin_name]->get_direction();
     return OUTPUT;
 }
 
 bool Cell::get_pin_is_clock(const string& pin_name){
     if(pins.find(pin_name)==pins.end()){
-        LOG(ERROR) << "[Cell][get_pin_is_clock] Cell: " << type_name << " no such pin " << pin_name << endl;
+        LOG(ERROR) << "[Cell][get_pin_is_clock] Cell: " << type_name << " no such pin " << pin_name << '\n';
     }else return pins[pin_name]->get_is_clock();
     return false;
 }
 
 vector<TimingArc*>* Cell::get_pin_TimingArc(const string& pin_name, const string& src){
     if(pins.find(pin_name)==pins.end()){
-        LOG(ERROR) << "[Cell][get_pin_TimingArc] Cell: " << type_name << " no such pin " << pin_name << endl;
+        LOG(ERROR) << "[Cell][get_pin_TimingArc] Cell: " << type_name << " no such pin " << pin_name << '\n';
     }else return pins[pin_name]->get_TimingArc(src);
     return NULL;
 }
 
 vector<TimingArc*>* Cell::get_pin_total_TimingArc(const string& pin_name){
     if(pins.find(pin_name)==pins.end()){
-        LOG(ERROR) << "[Cell][get_pin_total_TimingArc] Cell: " << type_name << " no such pin " << pin_name << endl;
+        LOG(ERROR) << "[Cell][get_pin_total_TimingArc] Cell: " << type_name << " no such pin " << pin_name << '\n';
     }else return pins[pin_name]->get_total_TimingArc();
     return NULL;
 }
 
 Pin* Cell::get_pin_ptr(const string& pin_name){
     if(pins.find(pin_name)==pins.end()){
-        LOG(ERROR) << "[Cell][get_pin_ptr] Cell: " << type_name << " no such pin " << pin_name << endl;
+        LOG(ERROR) << "[Cell][get_pin_ptr] Cell: " << type_name << " no such pin " << pin_name << '\n';
     }else return pins[pin_name];
     return NULL;
 }

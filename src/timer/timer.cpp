@@ -34,7 +34,7 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
             graph = new Graph();
             graph->build(*verilog, *spef, *lib[EARLY], *lib[LATE]);
             Logger::add_timestamp("graph build ok");
-            
+
             // init graph
             open_timing(timing);
             init_timer();
@@ -153,7 +153,7 @@ void Timer::open_timing(const string& timing){
         else if(cmd=="at"){
             pin = in.next_token();
             string tmp = in.next_token();
-            if(tmp==":") LOG(ERROR) << "[Timer][open_timing] at pin is not primary " << pin << endl;
+            if(tmp==":") LOG(ERROR) << "[Timer][open_timing] at pin is not primary " << pin << '\n';
             early[RISE] = stof(tmp);
             early[FALL] = stof(in.next_token());
             late[RISE]  = stof(in.next_token());
@@ -164,7 +164,7 @@ void Timer::open_timing(const string& timing){
         else if(cmd=="slew"){
             pin = in.next_token();
             string tmp = in.next_token();
-            if(tmp==":") LOG(ERROR) << "[Timer][open_timing] slew pin is not primary " << pin << endl;
+            if(tmp==":") LOG(ERROR) << "[Timer][open_timing] slew pin is not primary " << pin << '\n';
             early[RISE] = stof(tmp);
             early[FALL] = stof(in.next_token());
             late[RISE]  = stof(in.next_token());
@@ -175,7 +175,7 @@ void Timer::open_timing(const string& timing){
         else if(cmd=="rat"){
             pin = in.next_token();
             string tmp = in.next_token();
-            if(tmp==":") LOG(ERROR) << "[Timer][open_timing] slew pin is not primary " << pin << endl;
+            if(tmp==":") LOG(ERROR) << "[Timer][open_timing] slew pin is not primary " << pin << '\n';
             early[RISE] = stof(tmp);
             early[FALL] = stof(in.next_token());
             late[RISE]  = stof(in.next_token());
@@ -186,13 +186,13 @@ void Timer::open_timing(const string& timing){
         else if(cmd=="load"){
             pin = in.next_token();
             string tmp = in.next_token();
-            if(tmp==":") LOG(ERROR) << "[Timer][open_timing] load pin is not primary out" << pin << endl;
+            if(tmp==":") LOG(ERROR) << "[Timer][open_timing] load pin is not primary out" << pin << '\n';
             float cap = stof(tmp);
 
             graph->set_load(pin, cap);
         }
         else{
-            LOG(ERROR) << "[Timer][open_timing] unknown keyword. " << cmd << endl;
+            LOG(ERROR) << "[Timer][open_timing] unknown keyword. " << cmd << '\n';
         }
     }
 }
@@ -293,7 +293,7 @@ void Timer::open_ops(const string& ops){
                 else if(op=="-max_paths") max_pahts = (int)stof(in.next_token());
                 else if(op=="-nworst")   nworst = (int)stof(in.next_token());
                 else if(op[0]=='-'){
-                    LOG(CERR) << "[Timer][open_ops] unknown parameter in report_timing: " << op << endl;
+                    LOG(CERR) << "[Timer][open_ops] unknown parameter in report_timing: " << op << '\n';
                     output.close();
                     my_exit();
                 }
@@ -323,7 +323,7 @@ void Timer::open_ops(const string& ops){
         //         else break;
         //     }while(true);
         //     if(op.size()) in.put_back(op);
-        //     output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_cppr_credit(pin1, pin2, type1, type2, mode) << endl;
+        //     output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_cppr_credit(pin1, pin2, type1, type2, mode) << '\n';
         // }
         // /* Timing assertions */
         // else if(cmd=="set_at"){
@@ -351,19 +351,19 @@ void Timer::open_ops(const string& ops){
         // /* Timing queryies */
         // else if(cmd=="report_at"){
         //     read_timing_assertion_option(in, name, mode, transition, val);
-        //     output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_at(name, mode, transition) << endl;
+        //     output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_at(name, mode, transition) << '\n';
         // }
         // else if(cmd=="report_rat"){
         //     read_timing_assertion_option(in, name, mode, transition, val);
-        //     output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_rat(name, mode, transition) << endl;
+        //     output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_rat(name, mode, transition) << '\n';
         // }
         // else if(cmd=="report_slack"){
         //     read_timing_assertion_option(in, name, mode, transition, val);
-        //     output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_slack(name, mode, transition) << endl;
+        //     output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_slack(name, mode, transition) << '\n';
         // }
         // else if(cmd=="report_slew"){
         //     read_timing_assertion_option(in, name, mode, transition, val);
-        //     output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_slew(name, mode, transition) << endl;
+        //     output << std::fixed << std::setprecision(OUTPUT_PRECISION) << graph->get_slew(name, mode, transition) << '\n';
         // }
         // else if(cmd=="report_worst_paths"){
         //     name = "";
@@ -416,7 +416,7 @@ void Timer::open_ops(const string& ops){
         //     graph->disconnect_pin(pin_name);
         // }
         else{
-            LOG(ERROR) << "[Timer][open_ops] unknown keyword " << cmd << endl;
+            LOG(ERROR) << "[Timer][open_ops] unknown keyword " << cmd << '\n';
         }
     }while(true);
 }
