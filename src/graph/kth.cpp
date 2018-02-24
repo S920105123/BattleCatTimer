@@ -795,7 +795,7 @@ void Path::output(ostream &fout, Graph *graph){
 	fout << tab << "-         " << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total
     << "   " << type_ch[bc->get_graph_id_type(path[n-2])] << "  ";
     print_name(fout, graph->nodes[bc->get_graph_id(path[n-2])].name);
-    if(mark[n-2]) fout << " ->";
+    // if(mark[n-2]) fout << " ->";
     fout << '\n';
     if (n-3 >= 1) {
         check_condensed_pin(fout, graph, path[n-2], path[n-3], total);
@@ -808,7 +808,7 @@ void Path::output(ostream &fout, Graph *graph){
 		fout        << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total << "   ";
 		fout << type_ch[bc->get_graph_id_type(path[i])] << "  ";
         print_name(fout, graph->nodes[bc->get_graph_id(path[i])].name);
-        if(mark[i] ) fout << " ->";
+        // if(mark[i] ) fout << " ->";
         fout << '\n';
         if (i-1 >= 1) {
             check_condensed_pin(fout, graph, path[i], path[i-1], total);
