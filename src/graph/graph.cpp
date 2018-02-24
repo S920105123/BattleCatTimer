@@ -846,8 +846,8 @@ void Graph::init_graph(){
 	Logger::add_timestamp("at ok");
 
 	cppr = new CPPR(this, clock_id);
-	cppr->build_tree();
-	Logger::add_timestamp("cppr ok");
+	// cppr->build_tree();
+	// Logger::add_timestamp("cppr ok");
 
    // #pragma omp parallel sections
     {
@@ -855,23 +855,26 @@ void Graph::init_graph(){
 		{
             LOG(CERR) << "tid : " << omp_get_thread_num() << " rat\n";
 		    calculate_rat();
+			Logger::add_timestamp("rat ok");
 			/* Do condensation,
 			   First level  - Remove input pin, cell delay merge with RC delay, also construct vector<int> clocks, data_pins
 			   Second level - Merge nodes with in-degree==1 or out-degree==1, but not removing (unimplemented)
 			*/
-			// this->first_level_condense();
+			this->first_level_condense();
+			Logger::add_timestamp("condense ok");
 		}
 		// #pragma omp section
         {
-         	cout << "tid : " << omp_get_thread_num() << " bc_map\n";
+         	cout << "tid : " << omp_get_thread_num() << " bc_map\n" << std::flush;
  			bc_map = new BC_map(this);
  			bc_map->build();
+         	cout << "build ok\n" << std::flush;
 			for(int i=0; i<NUM_THREAD; i++){
 				kths[i] = new Kth(bc_map, cppr, this);
 			}
+			Logger::add_timestamp("bcmap ok");
  		}
 	}
-	Logger::add_timestamp("bcmap rat ok");
 
 	/* slack is ok*/
 	// for(int i=0; i<(int)nodes.size(); i++){
@@ -893,6 +896,14 @@ void Graph::init_graph(){
 	sort(data_pin_slack.begin(), data_pin_slack.end());
 
 	Logger::add_timestamp("pick node ok");
+
+	int num = 0;
+	for(int i=0; i<nodes.size(); i++){
+		if(nodes[i].through == i){
+			if(adj[i].size()==1 and rev_adj[i].size()==1) num++;
+		}
+	}
+	LOG(CERR) << "can remove " << num << " nodes in second condense\n";
 }
 
 // ******************************************************
