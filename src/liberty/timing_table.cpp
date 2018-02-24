@@ -118,7 +118,7 @@ float TimingTable::liner_polation(float v1, float v2, float indx1, float indx2, 
 }
 
 float TimingTable::get_value_constant(){
-    if(values.size()) return values[0];
+    if(values.size()) return (float)( (int)(values[0]*10.0+0.5)/10.0 );
     else return 0;
 }
 

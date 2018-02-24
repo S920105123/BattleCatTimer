@@ -22,6 +22,8 @@ const string OUTPUT_PREFIX = "";
 class CPPR;
 class BC_map;
 class Kth;
+class Path;
+
 class Graph {
 
 public:
@@ -86,6 +88,9 @@ public:
 	float get_slew(const string &pin_name, Mode mode, Transition_Type transition);
 	float get_slack(const string &pin_name, Mode mode, Transition_Type transition);
 	float get_cppr_credit(const string& pin1, const string& pin2, Transition_Type type1, Transition_Type typ2, Mode mode);
+	vector<Path>* report_timing(const vector<pair<Transition_Type,string>>&from,
+					   		 const vector<pair<Transition_Type,string>>&through,
+					   		 const vector<pair<Transition_Type,string>>&to, int max_paths, int nworst);
 
 	/* unimplemented */
 	void set_load(const string& pin_name, float cap);
@@ -99,10 +104,6 @@ public:
 	void insert_net(const string& net_name);
 	void insert_gate(const string& inst_name, const string& cell_type);
 	void repower_gate(const string& inst_name, const string& cell_type);
-	void report_timing(ostream& fout,
-					   const vector<pair<Transition_Type,string>>&from,
-					   const vector<pair<Transition_Type,string>>&through,
-					   const vector<pair<Transition_Type,string>>&to, int max_paths, int nworst);
 
 	int add_node(const string &name, Node_type type = UNKNOWN);
 
@@ -128,7 +129,10 @@ public:
 	void print_graph();
 	void gen_test(string type, string filename);
 
+	BC_map* get_bc_map();
+
 private:
+	Kth* kths[NUM_THREAD];
 
 	int next_id;
 	int clock_id;
@@ -164,6 +168,7 @@ private:
 	friend class CPPR;
 	friend class BC_map;
 	friend class Kth;
+	friend class Path;
 };
 
 #endif

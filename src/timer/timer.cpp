@@ -21,6 +21,7 @@ void Timer::gen_test(const string& type, const string& tau, const string& output
 void Timer::run(const string& tau, const string& timing, const string& ops, const string&output_file){
     Logger::add_timestamp("start");
 
+    omp_set_num_threads(NUM_THREAD);
     /* important */
     omp_set_nested(4);
    #pragma omp parallel sections
@@ -41,17 +42,40 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
 
        #pragma omp section
         {
-            cout << "tid: " << omp_get_thread_num() << " open ops\n";
+            LOG(CERR)<< "tid: " << omp_get_thread_num() << " open ops\n";
             open_ops(ops);
         }
     }
+    vector< vector<Path>* > ans;
+    ans.resize((int)_from.size());
+    int i;
     output.open(output_file);
-    for(int i=0; i<(int)_from.size(); i++){
-        graph->report_timing(output, *_from[i], *_through[i], *_to[i], _max_paths[i], _nworst[i]);
+
+    #pragma omp parallel for schedule(dynamic) private(i)
+    for(i=0; i<(int)_from.size(); i++){
+        ans[i] = graph->report_timing(*_from[i], *_through[i], *_to[i], _max_paths[i], _nworst[i]);
+    }
+    Logger::add_timestamp("report_timing ok");
+    for(int i=0; i<(int)ans.size(); i++){
+        for(auto p:*ans[i])
+            p.output(output, graph);
     }
     output.close();
-    Logger::add_timestamp("report_timing ok");
+    Logger::add_timestamp("writing ok");
 
+    #pragma omp parallel for schedule(dynamic) private(i)
+    for(int i=0; i<(int)ans.size(); i++){
+        delete ans[i];
+    }
+    Logger::add_timestamp("free ok");
+
+    // for(i=0; i<(int)_from.size(); i++){
+    //     auto a = graph->report_timing(*_from[i], *_through[i], *_to[i], _max_paths[i], _nworst[i]);
+    //     for(auto p:*a)
+    //         p.output(output, graph);
+    // }
+    // output.close();
+    // Logger::add_timestamp("report_timing ok");
 }
 
 void Timer::clear_Timer(){
@@ -91,22 +115,22 @@ void Timer::open_tau(const string& tau){
     {
        #pragma omp section
         {
-            cout << "tid : " << omp_get_thread_num() << " open verilog\n";
+            LOG(CERR) << "tid : " << omp_get_thread_num() << " open verilog\n";
             verilog->open( file_verilog );
         }
        // #pragma omp section
        //  {
-       //      cout << "tid : " << omp_get_thread_num() << " open spef \n";
+       //      LOG(CERR) << "tid : " << omp_get_thread_num() << " open spef \n";
        //      spef->open( file_spef);
        //  }
        #pragma omp section
         {
-            cout << "tid : " << omp_get_thread_num() << " open lib \n";
+            LOG(CERR) << "tid : " << omp_get_thread_num() << " open lib \n";
             lib[EARLY]->open( file_lib_early);
         }
        #pragma omp section
         {
-            cout << "tid : " << omp_get_thread_num() << " open lib \n";
+            LOG(CERR) << "tid : " << omp_get_thread_num() << " open lib \n";
             lib[LATE]->open( file_lib_late );
         }
     }

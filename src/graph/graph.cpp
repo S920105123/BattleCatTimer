@@ -852,7 +852,7 @@ void Graph::init_graph(){
     {
 		// #pragma omp section
 		{
-            cout << "tid : " << omp_get_thread_num() << " rat\n";
+            LOG(CERR) << "tid : " << omp_get_thread_num() << " rat\n";
 		    calculate_rat();
 			/* Do condensation,
 			   First level  - Remove input pin, cell delay merge with RC delay, also construct vector<int> clocks, data_pins
@@ -865,6 +865,9 @@ void Graph::init_graph(){
          	cout << "tid : " << omp_get_thread_num() << " bc_map\n";
  			bc_map = new BC_map(this);
  			bc_map->build();
+			for(int i=0; i<NUM_THREAD; i++){
+				kths[i] = new Kth(bc_map, cppr, this);
+			}
  		}
 	}
 	Logger::add_timestamp("bcmap rat ok");
@@ -874,7 +877,7 @@ void Graph::init_graph(){
 		if(nodes[i].in_cppr) continue;
 		if(nodes[i].constrained_clk == -1 and nodes[i].type!=PRIMARY_OUT) continue;
 		// just pick ff:d and PRIMARY_OUT
-		// cout << get_name(i) << " added to slack\n";
+		// LOG(CERR) << get_name(i) << " added to slack\n";
 
 		/*just setup check*/
 		for(int mm=0; mm<1; mm++){
@@ -930,9 +933,7 @@ void Graph::repower_gate(const string& inst_name, const string& cell_type){
 	//LOG(CERR) << "repower_gate " << inst_name << " " << cell_type << endl;
 }
 
-
-void Graph::report_timing(ostream& fout,
-						  const vector<pair<Transition_Type,string>>&from,
+vector<Path>* Graph::report_timing(const vector<pair<Transition_Type,string>>&from,
 				   		  const vector<pair<Transition_Type,string>>&through,
 				   	      const vector<pair<Transition_Type,string>>&to, int max_paths, int nworst)
 {
@@ -965,7 +966,10 @@ void Graph::report_timing(ostream& fout,
 	// }
 	// LOG(CERR) << endl;
 
-	Kth kth(bc_map, cppr, this);
+	// Kth kth(bc_map, cppr, this);
+	cout << "tid = " << omp_get_thread_num() << endl << std::flush;
+	Kth& kth = *kths[omp_get_thread_num()];
+	kth.clear();
 	vector<pair<Transition_Type,int>> _through;
 	for(const auto &x:through){
 		_through.emplace_back(x.first, bc_map->get_index(LATE, x.first, get_index(x.second)));
@@ -997,11 +1001,17 @@ void Graph::report_timing(ostream& fout,
 		kth.build_from_dest(dest);
 	}
 
-	vector<Kth::Path> ans;
-	kth.k_shortest_path(max_paths, ans);
-	for (auto &k : ans) {
-		k.output(fout, this, this->bc_map);
-	}
+	vector<Path>* ans = new vector<Path>;
+	kth.k_shortest_path(max_paths, *ans);
+
+	return ans;
+	// for (auto &k : ans) {
+	// 	k.output(fout, this, this->bc_map);
+	// }
+}
+
+BC_map* Graph::get_bc_map(){
+	return bc_map;
 }
 
 void Graph::print_graph(){
