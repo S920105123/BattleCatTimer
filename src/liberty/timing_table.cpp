@@ -127,10 +127,10 @@ void TimingTable::print(const string &tab){
     LOG(CERR) << tab << " TimingTable : " << table_type << ", " << label_name << '\n';
 
     LOG(CERR) << tab << "  - index1: ";
-    for(auto f:index1) LOG(CERR) << f << ", "; LOG(CERR) << '\n';
+    for(auto &f:index1) LOG(CERR) << f << ", "; LOG(CERR) << '\n';
 
     LOG(CERR) << tab << "  - index2: ";
-    for(auto f:index2) LOG(CERR) << f << ", "; LOG(CERR) << '\n';
+    for(auto &f:index2) LOG(CERR) << f << ", "; LOG(CERR) << '\n';
 
     LOG(CERR) << tab << "  - values: \n";
     for(size_t i=0; i<index1.size(); i++){

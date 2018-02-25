@@ -21,6 +21,7 @@ struct Verilog {
 		vector< pair<string,string> > param;
 	};
 
+	~Verilog();
 	void open(const string &fname); // Use this function to initiate from a .v file.
 	const string& get_cell_type(const string &inst_name) const;
 

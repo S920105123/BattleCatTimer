@@ -56,6 +56,7 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
         ans[i] = graph->report_timing(*_from[i], *_through[i], *_to[i], _max_paths[i], _nworst[i]);
     }
     Logger::add_timestamp("report_timing ok");
+<<<<<<< HEAD
 
     #define GEN_TEST "AC"
 
@@ -79,6 +80,12 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
         }
     #endif
 
+=======
+    for(int i=0; i<(int)ans.size(); i++){
+        for(const auto &p : *ans[i])
+            p.output(output, graph);
+    }
+>>>>>>> 3eb18acd36ec7dcc94a157f8729094301a70d82f
     output.close();
     Logger::add_timestamp("writing ok");
 
@@ -98,11 +105,14 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
 }
 
 void Timer::clear_Timer(){
-    if(verilog) delete verilog;
-    if(spef) delete spef;
-    if(lib[0]) delete lib[0];
-    if(lib[1]) delete lib[1];
-    if(graph) delete graph;
+    if (verilog) delete verilog;
+    if (spef) delete spef;
+    if (lib[0]) delete lib[0];
+    if (lib[1]) delete lib[1];
+    if (graph) delete graph;
+    for (auto &ptr : _from) delete ptr;
+    for (auto &ptr : _to) delete ptr;
+    for (auto &ptr : _through) delete ptr;
 }
 
 void Timer::init_timer(){

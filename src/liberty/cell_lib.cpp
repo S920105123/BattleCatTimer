@@ -57,7 +57,7 @@ void CellLib::print_cell(const string& name){
 }
 
 void CellLib::print_template(){
-    for(auto i:table_template) i.second->print();
+    for (auto &i : table_template) i.second->print();
 }
 
 float CellLib::get_pin_capacitance(const string& cell_type, const string& pin_name){

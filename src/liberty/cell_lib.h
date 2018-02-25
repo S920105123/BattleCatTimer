@@ -16,8 +16,8 @@ public:
     }
 
     ~CellLib(){
-        for(auto it:table_template) delete it.second;
-        for(auto it:cells) delete it.second;
+        for (auto &it:table_template) delete it.second;
+        for (auto &it:cells) delete it.second;
     }
 
     void open(const string& filename);

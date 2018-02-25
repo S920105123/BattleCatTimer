@@ -16,7 +16,7 @@ public:
     }
 
     ~Cell(){
-        for(auto it:pins) delete it.second;
+        for (auto &it : pins) delete it.second;
     }
 
     void read(File_Reader &in);
@@ -26,7 +26,7 @@ public:
 
     void print(const string &tab="");
 
-    string get_type_name(){ return type_name; }
+    const string& get_type_name(){ return type_name; }
 
     float get_pin_capacitance(const string& pin_name);
     Direction_type get_pin_direction(const string& pin_name);

@@ -246,12 +246,13 @@ Graph::Edge::Edge(int src, int dest, Edge_type type) {
 	this->to = dest;
 	this->type = type;
 	this->through = -1;
+	this->tree = NULL;
 }
 
 Graph::Edge* Graph::add_edge(int src, int dest, Edge_type type) {
 	Edge *eptr = new Edge(src, dest, type);
-	this->adj[src].insert( {dest, eptr} );
-	this->rev_adj[dest].insert( {src, eptr} );
+	this->adj[src].emplace( dest, eptr );
+	this->rev_adj[dest].emplace( src, eptr );
 //	LOG(CERR) << "An edge built from " << this->get_name(src)<< " to " << this->get_name(dest);
 //	if (type == IN_CELL) {
 //		LOG(CERR) << " (In cell edge).\n";
@@ -323,13 +324,33 @@ Graph::Wire_mapping* Graph::get_wire_mapping(const string &wire_name) {
 // ***                Graph related                   ***
 // ******************************************************
 
-Graph::Graph(){
-	clock_id = -1;
-	cppr = NULL;
+Graph::Graph() {
+	this->clock_id = -1;
+	this->cppr = NULL;
+	this->bc_map = NULL;
 }
 
 Graph::~Graph(){
-	if(cppr) delete cppr;
+	if (cppr) delete cppr;
+	if (bc_map) delete bc_map;
+
+	for (auto &it_pair : this->wire_mapping) {
+		delete it_pair.second;
+	}
+
+	for(int i=0; i<NUM_THREAD; i++){
+		delete kths[i];
+	}
+
+	for (int i=0; i<(int)this->nodes.size(); i++) {
+		Node_type type = this->nodes[i].type;
+		if ((type == OUTPUT_PIN || type == PRIMARY_IN) && this->nodes[i].tree != NULL) {
+			delete this->nodes[i].tree;
+		}
+		for (auto &it_pair : this->adj[i]) {
+			delete it_pair.second;
+		}
+	}
 }
 
 void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_lib) {
@@ -899,7 +920,7 @@ void Graph::init_graph(){
 	Logger::add_timestamp("pick node ok");
 
 	int num = 0;
-	for(int i=0; i<nodes.size(); i++){
+	for(int i=0; i<(int)nodes.size(); i++){
 		if(nodes[i].through == i){
 			if(adj[i].size()==1 and rev_adj[i].size()==1) num++;
 		}
@@ -1038,16 +1059,16 @@ BC_map* Graph::get_bc_map(){
 }
 
 void Graph::print_graph(){
-	for(size_t i=0; i<nodes.size(); i++){
-		for(auto it : adj[i]){
+	for (size_t i=0; i<nodes.size(); i++) {
+		for (auto it : adj[i]) {
 			int to = it.first;
 			Edge *e = it.second;
-			if(e->type==IN_CELL){
-				for(size_t j=0; j<e->arcs[LATE].size(); j++){
+			if (e->type==IN_CELL) {
+				for (size_t j=0; j<e->arcs[LATE].size(); j++) {
 					TimingArc* arc = e->arcs[LATE][j];
-					for(int ii=0; ii<2; ii++){
-						for(int jj=0; jj<2; jj++){
-							if(!arc->is_transition_defined(TYPES[ii], TYPES[jj])) continue;
+					for (int ii=0; ii<2; ii++) {
+						for (int jj=0; jj<2; jj++) {
+							if (!arc->is_transition_defined(TYPES[ii], TYPES[jj])) continue;
 
 							cout << get_name(i) << ":" << get_transition_string(TYPES[ii]) << " -> ";
 							cout << get_name(to) << ":" << get_transition_string(TYPES[jj]) << " ";

@@ -57,12 +57,14 @@ bool isfloat(const string& s){
     }
 }
 
-string get_mode_string(Mode mode){
-    if(mode==LATE) return "Late";
-    else return "Early";
+const string& get_mode_string(Mode mode){
+    static string late_str = string("Late"), early_str = string("Early");
+    if(mode==LATE) return late_str;
+    else return early_str;
 }
 
-string get_transition_string(Transition_Type transition){
-    if(transition==RISE) return "Rise";
-    else return "Fall";
+const string& get_transition_string(Transition_Type transition){
+    static string rise_str = string("Rise"), fall_str = string("Fall");
+    if(transition==RISE) return rise_str;
+    else return fall_str;
 }

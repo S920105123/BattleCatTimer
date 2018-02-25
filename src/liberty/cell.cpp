@@ -40,7 +40,7 @@ void Cell::print(const string &tab){
     LOG(CERR) << tab << " Cell : " << type_name << '\n';
 
     string nextTab = tab + "    ";
-    for(auto i:pins) i.second->print(nextTab);
+    for(auto &i : pins) i.second->print(nextTab);
 
     LOG(CERR) << '\n';
 }

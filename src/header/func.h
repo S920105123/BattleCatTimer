@@ -18,7 +18,7 @@ bool at_worse_than(float a, float b, Mode mode);
 bool rat_worse_than(float a, float b, Mode mode);
 bool slew_worse_than(float s1, float s2, Mode mode);
 bool isfloat(const string& s);
-string get_mode_string(Mode mode);
-string get_transition_string(Transition_Type transition);
+const string& get_mode_string(Mode mode);
+const string& get_transition_string(Transition_Type transition);
 
 #endif /* end FUNC_H */
