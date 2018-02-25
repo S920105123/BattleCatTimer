@@ -247,12 +247,14 @@ void Kth::build_from_dest(const vector<int>& dest){
     source_kth = add_node(-1);
     dest_kth   = add_node(-1);
 
-    // four possible dest
     for(int i=0; i<(int)dest.size(); i++){
         int graph_id = map->get_graph_id( dest[i] );
+
         int map_id = dest[i];
         const auto& node = map->graph->nodes[graph_id];
         Mode mode = map->get_graph_id_mode(map_id);
+        // cout << "dest = " << node.name << std::endl;
+        ASSERT(map->graph->nodes[graph_id].exist==true);
 
         /* just setup check*/
         if(mode==EARLY){

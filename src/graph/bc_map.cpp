@@ -7,7 +7,7 @@ BC_map::BC_map(Graph* graph){
 
 int BC_map::get_index(Mode mode, Transition_Type type, int node_id){
     if(node_id >= (int)to_map_id[mode][type].size()){
-        LOG(CERR) << get_mode_string(mode) << " " << graph->get_name(node_id) << " no exist\n";
+        LOG(CERR) << node_id << " " <<get_mode_string(mode) << " " << graph->get_name(node_id) << " no exist\n";
         ASSERT(false);
     }
     return to_map_id[mode][type][node_id];
@@ -42,14 +42,12 @@ void BC_map::add_edge(int from, int to, float delay){
 
 void BC_map::build(){
     // add node
-    // every graph node has 4 nodes in map
+    // every graph node has 2 nodes in map
     num_node = 0;
-    to_map_id[LATE][RISE].resize(graph->nodes.size());
-    to_map_id[LATE][FALL].resize(graph->nodes.size());
     for(size_t i=0; i<graph->nodes.size(); i++){
         // to_map_id[EARLY][RISE].emplace_back(num_node++);
         // to_map_id[EARLY][FALL].emplace_back(num_node++);
-        if(!graph->nodes[i].exist) continue;
+        // if(!graph->nodes[i].exist) continue;
         to_map_id[LATE][RISE].emplace_back(num_node++);
         to_map_id[LATE][FALL].emplace_back(num_node++);
     }
@@ -57,17 +55,14 @@ void BC_map::build(){
     G.resize(num_node);
     Gr.resize(num_node);
     in.resize(num_node);
-    vis.resize(graph->nodes.size());
+    vis.resize(num_node);
+    // vis.resize(graph->nodes.size()+100);
     level.resize(num_node);
 
     // dfs build map
-    vector<int> clocks;
     for(int i=0; i<(int)graph->nodes.size(); i++)if(i!=graph->clock_id){
         Graph::Node &node = graph->nodes[i];
         if(!node.exist) continue;
-        if(node.type == CLOCK){
-            clocks.push_back(i);
-        }
         if(node.type == PRIMARY_IN or node.type == CLOCK){
             build_map(i);
             // add_edge(superSource, get_index(EARLY, RISE, i), 0);
@@ -91,18 +86,18 @@ void BC_map::build(){
         }
     }
 
-    for(size_t i=0; i < graph->nodes.size(); i++)if(graph->nodes[i].exist){
-        // int a = level[ get_index(EARLY, RISE, i) ];
-        // int b = level[ get_index(EARLY, FALL, i) ];
-        int c = level[ get_index(LATE, RISE, i) ];
-        int d = level[ get_index(LATE, FALL, i) ];
-        // cout << a << " " << b << " " << c << " " << d << '\n';
-        // if(a!=b || a!=c || a!=d || b!=c || b!=d || c!=d){
-        if(c!=d){
-            LOG(ERROR) << " level error\n";
-            LOG(CERR) << " level error\n";
-        }
-    }
+    // for(size_t i=0; i < graph->nodes.size(); i++)if(graph->nodes[i].exist){
+    //     // int a = level[ get_index(EARLY, RISE, i) ];
+    //     // int b = level[ get_index(EARLY, FALL, i) ];
+    //     int c = level[ get_index(LATE, RISE, i) ];
+    //     int d = level[ get_index(LATE, FALL, i) ];
+    //     // cout << a << " " << b << " " << c << " " << d << '\n';
+    //     // if(a!=b || a!=c || a!=d || b!=c || b!=d || c!=d){
+    //     if(c!=d){
+    //         LOG(ERROR) << " level error\n";
+    //         LOG(CERR) << " level error\n";
+    //     }
+    // }
 
     LOG(CERR) << "BCmap nodes = " << num_node << "\n";
 }
@@ -120,8 +115,8 @@ void BC_map::build_map(int root){
 
             // delay = e->tree? e->tree->get_delay(LATE, graph->get_name(to)):0;
             // cout << "Rc edge ?? ";
-            int from = e->from;
-            ASSERT(from == root);
+            // int from = e->from;
+            // ASSERT(from == root);
             // cout << graph->nodes[from].exist << " " << graph->nodes[to].exist << " ";
             // cout << graph->nodes[from].name << " " << graph->nodes[to].name << "\n";
 

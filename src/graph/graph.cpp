@@ -43,6 +43,7 @@ int Graph::get_index(const string &name) {
 	// Doesn't check exist for looking up condensed pins
 	auto it = this->trans.find(name);
 	if (it == this->trans.end()) {
+		// cout << "get index " << name << std::endl;
 		return this->add_node(name);
 	} else {
 		return it->second;
@@ -60,7 +61,8 @@ bool Graph::in_graph(const string &name) const {
 
 const string& Graph::get_name(int index) const {
 	static const string EMPTY = string("");
-	if (index > (int)this->nodes.size() || this->nodes[index].name.empty()) {
+	cout << "graph get name " << index << " " << nodes.size() << std::endl;
+	if (index >= (int)this->nodes.size() || this->nodes[index].name.empty()) {
 		LOG(WARNING) << "[Graph] Illegal index " << index << " when get name. (Node does not exist)" << '\n';
 		return EMPTY;
 	}
@@ -868,7 +870,6 @@ void Graph::init_graph(){
          	cout << "tid : " << omp_get_thread_num() << " bc_map\n" << std::flush;
  			bc_map = new BC_map(this);
  			bc_map->build();
-         	cout << "build ok\n" << std::flush;
 			for(int i=0; i<NUM_THREAD; i++){
 				kths[i] = new Kth(bc_map, cppr, this);
 			}
