@@ -128,6 +128,7 @@ public:
 	void init_graph();    // initial graph information,  call it after build a graph
 	void print_graph();
 	void gen_test(string type, string filename);
+	void gen_test_path(ofstream& fout, Path& path);
 
 	BC_map* get_bc_map();
 

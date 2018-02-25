@@ -61,7 +61,7 @@ bool Graph::in_graph(const string &name) const {
 
 const string& Graph::get_name(int index) const {
 	static const string EMPTY = string("");
-	cout << "graph get name " << index << " " << nodes.size() << std::endl;
+	// cout << "graph get name " << index << " " << nodes.size() << std::endl;
 	if (index >= (int)this->nodes.size() || this->nodes[index].name.empty()) {
 		LOG(WARNING) << "[Graph] Illegal index " << index << " when get name. (Node does not exist)" << '\n';
 		return EMPTY;
@@ -1119,6 +1119,57 @@ void Graph::gen_test(string type, string filename){
 		}
 		fout.close();
 	}
+}
+
+void Graph::gen_test_path(ofstream& fout, Path& path){
+	int type = rand()%2;
+	fout << "report_timing ";
+	vector<int> ans_pin;
+	vector<Transition_Type> ans_type;
+	if(path.path.size()<2) return;
+	int dest = bc_map->get_graph_id( path.path[1] );
+	int src = bc_map->get_graph_id( path.path[path.path.size()-2]);
+	for(int i=2; i<(int)path.path.size()-2; i++){
+		int x = bc_map->get_graph_id( path.path[i] );
+		Transition_Type type = bc_map->get_graph_id_type( path.path[i] );
+		ans_pin.emplace_back(x);
+		ans_type.emplace_back(type);
+		if(i>=2){
+			int to = bc_map->get_graph_id( path.path[i-1] );
+			auto e = adj[x].find( to );
+			ASSERT(e != adj[x].end());
+			if(e->second->through!=-1){
+				int xx = e->second->through;
+				ans_pin.emplace_back(xx);
+				ans_type.emplace_back(type);
+			}
+		}
+	}
+	if(type==1){ // speficy from
+		fout << "-from " ;
+		for(auto c:get_name(src)){
+			if(c==':') fout << "/";
+			else fout << c ;
+		}
+	}
+
+	for(int i=0; i<(int)ans_pin.size(); i++){
+		auto& name = get_name(ans_pin[i]);
+		if(ans_type[i]==RISE) fout << " -rise_through ";
+		else fout << " -fall_through ";
+		for(auto c:name){
+			if(c==':') fout << "/";
+			else fout << c;
+		}
+	}
+	if(type==2){ // speficy to
+		fout << "-to " ;
+		for(auto c:get_name(dest)){
+			if(c==':') fout << "/";
+			else fout << c ;
+		}
+	}
+	fout << '\n';
 }
 
 // ------------ For Testing ----------------

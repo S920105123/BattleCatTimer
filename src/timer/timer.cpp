@@ -56,10 +56,29 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
         ans[i] = graph->report_timing(*_from[i], *_through[i], *_to[i], _max_paths[i], _nworst[i]);
     }
     Logger::add_timestamp("report_timing ok");
-    for(int i=0; i<(int)ans.size(); i++){
-        for(auto p:*ans[i])
-            p.output(output, graph);
-    }
+
+    #define GEN_TEST "AC"
+
+    #ifdef GEN_TEST
+        ofstream test_out;
+        test_out.open(ops);
+        for(int i=0; i<(int)ans.size(); i++){
+            for(auto p:*ans[i]){
+                graph->gen_test_path(test_out, p);
+                p.output(output, graph);
+            }
+        }
+        test_out.close();
+    #endif
+
+    #ifndef GEN_TEST
+        for(int i=0; i<(int)ans.size(); i++){
+            for(auto p:*ans[i]){
+                p.output(output, graph);
+            }
+        }
+    #endif
+
     output.close();
     Logger::add_timestamp("writing ok");
 
