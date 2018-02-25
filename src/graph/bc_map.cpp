@@ -63,7 +63,8 @@ void BC_map::build(){
     for(int i=0; i<(int)graph->nodes.size(); i++)if(i!=graph->clock_id){
         Graph::Node &node = graph->nodes[i];
         if(!node.exist) continue;
-        if(node.type == PRIMARY_IN or node.type == CLOCK){
+        // if(node.type == PRIMARY_IN or node.type == CLOCK){
+        if(node.type == CLOCK){
             build_map(i);
             // add_edge(superSource, get_index(EARLY, RISE, i), 0);
             // add_edge(superSource, get_index(EARLY, FALL, i), 0);
@@ -99,7 +100,7 @@ void BC_map::build(){
     //     }
     // }
 
-    LOG(CERR) << "BCmap nodes = " << num_node << "\n";
+    LOG(NORMAL) << "BCmap nodes = " << num_node << "\n";
 }
 
 void BC_map::build_map(int root){

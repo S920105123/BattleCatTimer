@@ -42,7 +42,7 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
 
        #pragma omp section
         {
-            LOG(CERR)<< "tid: " << omp_get_thread_num() << " open ops\n";
+            //LOG(CERR)<< "tid: " << omp_get_thread_num() << " open ops\n";
             open_ops(ops);
         }
     }
@@ -56,7 +56,6 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
         ans[i] = graph->report_timing(*_from[i], *_through[i], *_to[i], _max_paths[i], _nworst[i]);
     }
     Logger::add_timestamp("report_timing ok");
-<<<<<<< HEAD
 
     #define GEN_TEST "AC"
 
@@ -80,12 +79,6 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
         }
     #endif
 
-=======
-    for(int i=0; i<(int)ans.size(); i++){
-        for(const auto &p : *ans[i])
-            p.output(output, graph);
-    }
->>>>>>> 3eb18acd36ec7dcc94a157f8729094301a70d82f
     output.close();
     Logger::add_timestamp("writing ok");
 
@@ -144,7 +137,7 @@ void Timer::open_tau(const string& tau){
     {
        #pragma omp section
         {
-            LOG(CERR) << "tid : " << omp_get_thread_num() << " open verilog\n";
+            //LOG(CERR) << "tid : " << omp_get_thread_num() << " open verilog\n";
             verilog->open( file_verilog );
         }
        // #pragma omp section
@@ -154,12 +147,12 @@ void Timer::open_tau(const string& tau){
        //  }
        #pragma omp section
         {
-            LOG(CERR) << "tid : " << omp_get_thread_num() << " open lib \n";
+            //LOG(CERR) << "tid : " << omp_get_thread_num() << " open lib \n";
             lib[EARLY]->open( file_lib_early);
         }
        #pragma omp section
         {
-            LOG(CERR) << "tid : " << omp_get_thread_num() << " open lib \n";
+            //LOG(CERR) << "tid : " << omp_get_thread_num() << " open lib \n";
             lib[LATE]->open( file_lib_late );
         }
     }

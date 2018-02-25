@@ -41,7 +41,7 @@ Logger::~Logger() {
 void Logger::add_timestamp(const string& event){
 	timestamp.emplace_back(event, time(NULL));
 
-	std::cerr << event << '\n' << std::flush;
+	// std::cerr << event << '\n' << std::flush;
 }
 
 Logger& Logger::Log(Log_type type, bool prefix) {

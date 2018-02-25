@@ -567,7 +567,7 @@ void Graph::first_level_condense() {
 			delete rc_eptr;
 		}
 	}
-	cout << "First level condense:\n    " << condensed << " out of " << this->nodes.size() << " nodes is removed. " << (double)condensed/this->nodes.size()*100.0 << "%\n";
+	LOG(NORMAL) << "First level condense:\n    " << condensed << " out of " << this->nodes.size() << " nodes is removed. " << (double)condensed/this->nodes.size()*100.0 << "%\n";
 }
 
 // ******************************************************
@@ -876,7 +876,7 @@ void Graph::init_graph(){
     {
 		// #pragma omp section
 		{
-            LOG(CERR) << "tid : " << omp_get_thread_num() << " rat\n";
+            //LOG(CERR) << "tid : " << omp_get_thread_num() << " rat\n";
 		    calculate_rat();
 			Logger::add_timestamp("rat ok");
 			/* Do condensation,
@@ -888,7 +888,7 @@ void Graph::init_graph(){
 		}
 		// #pragma omp section
         {
-         	cout << "tid : " << omp_get_thread_num() << " bc_map\n" << std::flush;
+         	//cout << "tid : " << omp_get_thread_num() << " bc_map\n" << std::flush;
  			bc_map = new BC_map(this);
  			bc_map->build();
 			for(int i=0; i<NUM_THREAD; i++){
@@ -919,13 +919,13 @@ void Graph::init_graph(){
 
 	Logger::add_timestamp("pick node ok");
 
-	int num = 0;
-	for(int i=0; i<(int)nodes.size(); i++){
-		if(nodes[i].through == i){
-			if(adj[i].size()==1 and rev_adj[i].size()==1) num++;
-		}
-	}
-	LOG(CERR) << "can remove " << num << " nodes in second condense\n";
+	// int num = 0;
+	// for(int i=0; i<(int)nodes.size(); i++){
+	// 	if(nodes[i].through == i){
+	// 		if(adj[i].size()==1 and rev_adj[i].size()==1) num++;
+	// 	}
+	// }
+	//LOG(CERR) << "can remove " << num << " nodes in second condense\n";
 }
 
 // ******************************************************
@@ -1038,8 +1038,8 @@ vector<Path>* Graph::report_timing(const vector<pair<Transition_Type,string>>&fr
 	}
 	else{
 		vector<int> dest;
-		int lim = min((int)data_pin_slack.size(), max_paths);
-		for(int i=0; i<lim; i++){
+		// int lim = min((int)data_pin_slack.size(), max_paths);
+		for(int i=0; i<(int)data_pin_slack.size(); i++){
 			dest.emplace_back(data_pin_slack[i].second);
 		}
 		kth.build_from_dest(dest);

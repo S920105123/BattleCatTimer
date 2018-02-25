@@ -277,6 +277,7 @@ void Kth::build_from_dest(const vector<int>& dest){
         Mode mode = map->get_graph_id_mode(x);
         Transition_Type type = map->get_graph_id_type(x);
         const auto& node = map->graph->nodes[ map->get_graph_id(x) ];
+        // cout << "src: " << map->graph->get_name(map->get_graph_id(x)) << std::endl;
         /* just setup check*/
         if(mode==EARLY){
             LOG(ERROR) << "[Kth][build_from_dest] early mode in dest " << '\n';
@@ -773,7 +774,8 @@ void Path::output(ostream &fout, Graph *graph) const {
     BC_map *bc = graph->get_bc_map();
 
     int width = 8, n = path.size();
-    float rat = delay[0], slack = this->dist, at = rat - slack, total = -delay[n-2];
+    float rat = delay[0], slack = this->dist, at = rat - slack, total = delay[n-2];
+    if(delay[n-2]!=0) total *= -1;
     const char *tab = "      ", *spline = "----------------------------------------", *type_ch[2] = {"^   ", "v   "};
 
     // path[0] is SuperDest, path[n-1] is SuperSrc
@@ -807,7 +809,9 @@ void Path::output(ostream &fout, Graph *graph) const {
     /* Output remaining */
 	for (int i = n-3; i>=1; i--) {
 		total -= delay[i]; // Delay is negative
-		fout << tab << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << -delay[i] << "  ";
+        float del = delay[i];
+        if(del!=0) del*=-1;
+		fout << tab << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << -del << "  ";
 		fout        << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total << "   ";
 		fout << type_ch[bc->get_graph_id_type(path[i])] << "  ";
         print_name(fout, graph->nodes[bc->get_graph_id(path[i])].name);
