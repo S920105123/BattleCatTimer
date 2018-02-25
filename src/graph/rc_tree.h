@@ -38,7 +38,7 @@ public:
     float get_downstream(Mode mode, const string& name);
 
     void print();
-    void add_pin_cap(const string&name, float cap);
+    void add_pin_cap(const string &name, float cap);
 
 private:
     void cal_downstream(int x, int pa);

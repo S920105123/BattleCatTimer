@@ -79,11 +79,14 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
 }
 
 void Timer::clear_Timer(){
-    if(verilog) delete verilog;
-    if(spef) delete spef;
-    if(lib[0]) delete lib[0];
-    if(lib[1]) delete lib[1];
-    if(graph) delete graph;
+    if (verilog) delete verilog;
+    if (spef) delete spef;
+    if (lib[0]) delete lib[0];
+    if (lib[1]) delete lib[1];
+    if (graph) delete graph;
+    for (auto &ptr : _from) delete ptr;
+    for (auto &ptr : _to) delete ptr;
+    for (auto &ptr : _through) delete ptr;
 }
 
 void Timer::init_timer(){

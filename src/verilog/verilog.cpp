@@ -60,7 +60,7 @@ void Verilog::open(const string &fname) {
 			tok = reader.next_token();
 		}
 		tok = reader.next_token();
-		gates.insert(make_pair(gt->cell_name, gt));
+		gates.emplace(gt->cell_name, gt);
 	}
 
 	LOG(NORMAL) << "Parse of verilog file is done." << '\n';
@@ -74,6 +74,12 @@ const string& Verilog::get_cell_type(const string &inst_name) const {
 		return undefined_str;
 	}
 	return it->second->cell_type;
+}
+
+Verilog::~Verilog() {
+	for (auto &it_pair : this->gates) {
+		delete it_pair.second;
+	}
 }
 
 // --------------- For Test ---------------
