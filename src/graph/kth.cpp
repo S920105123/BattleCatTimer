@@ -56,7 +56,7 @@ string Kth::get_node_name(int kth_id){
 void Kth::print(){
     LOG(CERR) << num_node << " " << G.size() << '\n';
     for(int i=0; i<num_node; i++){
-        for(auto x:G[i]){
+        for(auto &x : G[i]){
             int to = x.to;
             LOG(CERR) << get_node_name(i) << " -> " << get_node_name(to) << " " << x.delay << '\n';
         }
@@ -166,7 +166,7 @@ void Kth::build_from_src(const vector<pair<Transition_Type,int>>& through, int s
 
     // print();
     // build all ff:d to desk_kth
-    for(auto x:all_leave){
+    for(auto x : all_leave){
         // int src_id = map->get_graph_id(src);
         int leaf_id = map->get_graph_id(x);
         Transition_Type leaf_type = map->get_graph_id_type(x);
@@ -616,7 +616,7 @@ void Kth::get_explicit_path_helper(Path *exp_path, const Prefix_node *imp_path, 
 	}
 
 	// Go through all vertices from v to dest
-	while (v != dest) {
+	while (v != dest && v >= 0) {
 		exp_path->path.emplace_back(v);
 		exp_path->delay.emplace_back(dist[ v ] - this->dist[ this->successor[v] ]);
 		v = this->successor[v];
@@ -741,14 +741,14 @@ void Kth::clear(){
     mark.resize( map->num_node );
 }
 
-void Path::print_name(ostream &fout, const string &name) {
+void Path::print_name(ostream &fout, const string &name) const {
     for(int i=0; i<(int)name.size(); i++){
         if (name[i]==':') fout << '/';
         else fout << name[i];
     }
 }
 
-void Path::check_condensed_pin(ostream &fout, Graph *graph, int from_bc_id, int to_bc_id, float total) {
+void Path::check_condensed_pin(ostream &fout, Graph *graph, int from_bc_id, int to_bc_id, float total) const {
     BC_map *bc = graph->get_bc_map();
     int width = 8, from_gid = bc->get_graph_id(from_bc_id), to_gid = bc->get_graph_id(to_bc_id);
     auto it = graph->adj[from_gid].find(to_gid);
@@ -765,7 +765,7 @@ void Path::check_condensed_pin(ostream &fout, Graph *graph, int from_bc_id, int 
     fout << '\n';
 }
 
-void Path::output(ostream &fout, Graph *graph){
+void Path::output(ostream &fout, Graph *graph) const {
 	// Paths are using BC id
     const vector<int> &path = this->path;
     const vector<float> &delay = this->delay;
@@ -777,6 +777,7 @@ void Path::output(ostream &fout, Graph *graph){
     const char *tab = "      ", *spline = "----------------------------------------", *type_ch[2] = {"^   ", "v   "};
 
     // path[0] is SuperDest, path[n-1] is SuperSrc
+    if (path.empty()) return;
     fout << '\n';
 	fout << "Endpoint:   ";
     print_name(fout, graph->nodes[bc->get_graph_id(path[1])].name);

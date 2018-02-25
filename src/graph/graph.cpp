@@ -1059,16 +1059,16 @@ BC_map* Graph::get_bc_map(){
 }
 
 void Graph::print_graph(){
-	for(size_t i=0; i<nodes.size(); i++){
-		for(auto it : adj[i]){
+	for (size_t i=0; i<nodes.size(); i++) {
+		for (auto it : adj[i]) {
 			int to = it.first;
 			Edge *e = it.second;
-			if(e->type==IN_CELL){
-				for(size_t j=0; j<e->arcs[LATE].size(); j++){
+			if (e->type==IN_CELL) {
+				for (size_t j=0; j<e->arcs[LATE].size(); j++) {
 					TimingArc* arc = e->arcs[LATE][j];
-					for(int ii=0; ii<2; ii++){
-						for(int jj=0; jj<2; jj++){
-							if(!arc->is_transition_defined(TYPES[ii], TYPES[jj])) continue;
+					for (int ii=0; ii<2; ii++) {
+						for (int jj=0; jj<2; jj++) {
+							if (!arc->is_transition_defined(TYPES[ii], TYPES[jj])) continue;
 
 							cout << get_name(i) << ":" << get_transition_string(TYPES[ii]) << " -> ";
 							cout << get_name(to) << ":" << get_transition_string(TYPES[jj]) << " ";

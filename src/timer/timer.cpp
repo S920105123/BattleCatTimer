@@ -57,7 +57,7 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
     }
     Logger::add_timestamp("report_timing ok");
     for(int i=0; i<(int)ans.size(); i++){
-        for(auto p:*ans[i])
+        for(const auto &p : *ans[i])
             p.output(output, graph);
     }
     output.close();

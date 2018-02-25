@@ -78,10 +78,10 @@ void LuTableTemplate::print(const string &tab){
     LOG(CERR) << tab << "    - variable2 : " << get_variable_string(var2) << '\n';
 
     LOG(CERR) << tab << "    - index1 :" ;
-    for(auto f:index1) LOG(CERR) << f << " "; cout << '\n';
+    for(auto &f : index1) LOG(CERR) << f << " "; cout << '\n';
 
     LOG(CERR) << tab << "    - index2 :" ;
-    for(auto f:index2) LOG(CERR) << f << " "; cout << '\n';
+    for(auto &f : index2) LOG(CERR) << f << " "; cout << '\n';
 }
 
 Lu_Table_Variable LuTableTemplate::get_var1(){

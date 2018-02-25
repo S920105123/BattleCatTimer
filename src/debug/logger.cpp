@@ -28,7 +28,7 @@ Logger::~Logger() {
 	flog << "\n\n[Log] - "<<tstr<<"- ";
 	flog << "close log files\n";
 	int pre = 0, total = 0;
-	for (auto p:timestamp) {
+	for (const auto &p : timestamp) {
 		if(pre==0) pre = p.second;
 		total += p.second-pre;
 		std::cerr << std::setw(16) << p.first << "| delay: " << std::setw(3) << p.second - pre << "| total: " << std::setw(3) << total << '\n';

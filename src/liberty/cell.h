@@ -16,7 +16,7 @@ public:
     }
 
     ~Cell(){
-        for(auto it:pins) delete it.second;
+        for (auto &it : pins) delete it.second;
     }
 
     void read(File_Reader &in);

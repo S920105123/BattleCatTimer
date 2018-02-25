@@ -21,13 +21,14 @@ class Pin{
 	*/
 
 public:
-    Pin(CellLib* _cell_lib){
+    Pin(CellLib* _cell_lib) {
         cell_lib = _cell_lib;
         total_timingArc = new vector<TimingArc*>;
     }
 
-    ~Pin(){
-        for(auto it:timing) delete it.second;
+    ~Pin() {
+        for (auto &it : timing) delete it.second;
+        for (auto &it : *total_timingArc) delete it;
         delete total_timingArc;
     }
 
