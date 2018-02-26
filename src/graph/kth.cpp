@@ -41,27 +41,27 @@ void Kth::add_edge(int from, int to, float delay, float clock_delay){
     G[from][ G[from].size()-1 ].at_delay = clock_delay;
 }
 
-string Kth::get_node_name(int kth_id){
-    if(kth_id==source_kth) return "SuperSource";
-    if(kth_id==dest_kth)   return "SuperDest";
-    int map_id = to_bc_id[kth_id];
-    int graph_id = map->get_graph_id(map_id);
-    string name = map->graph->get_name(graph_id);
-    for(int i=0; i<(int)name.size(); i++){
-        if(name[i]==':') name[i] = '/';
-    }
-    return name;
-}
+// string Kth::get_node_name(int kth_id){
+//     if(kth_id==source_kth) return "SuperSource";
+//     if(kth_id==dest_kth)   return "SuperDest";
+//     int map_id = to_bc_id[kth_id];
+//     int graph_id = map->get_graph_id(map_id);
+//     string name = map->graph->get_name(graph_id);
+//     for(int i=0; i<(int)name.size(); i++){
+//         if(name[i]==':') name[i] = '/';
+//     }
+//     return name;
+// }
 
-void Kth::print(){
-    LOG(CERR) << num_node << " " << G.size() << '\n';
-    for(int i=0; i<num_node; i++){
-        for(auto &x : G[i]){
-            int to = x.to;
-            LOG(CERR) << get_node_name(i) << " -> " << get_node_name(to) << " " << x.delay << '\n';
-        }
-    }
-}
+// void Kth::print(){
+//     LOG(CERR) << num_node << " " << G.size() << '\n';
+//     for(int i=0; i<num_node; i++){
+//         for(auto &x : G[i]){
+//             int to = x.to;
+//             LOG(CERR) << get_node_name(i) << " -> " << get_node_name(to) << " " << x.delay << '\n';
+//         }
+//     }
+// }
 
 void Kth::mark_through(const vector<pair<Transition_Type,int>>& through){
 
@@ -489,7 +489,7 @@ void Kth::build_from_throgh(const vector<pair<Transition_Type,int>>& through){
         }
     }
     // source_kth to leaf
-    for(auto x:all_leave){
+    for(auto x : all_leave){
         Mode mode = map->get_graph_id_mode(x);
         Transition_Type type = map->get_graph_id_type(x);
         const auto& node = map->graph->nodes[map->get_graph_id(x)];
@@ -520,14 +520,14 @@ void Kth::single_dest_dfs(int v) {
 	for (auto it=G[v].begin(); it!=G[v].end(); ++it) {
 		const Edge &e = *it;
 		int to = e.to;
-		if (this->successor[to] == -1) single_dest_dfs(to);
-		if (this->successor[to] == -2) continue;
+		if (this->successor[to] == NOT_VISITED) single_dest_dfs(to);
+		if (this->successor[to] == NOT_REACHABLE) continue;
 
 		// Always choose "worst" path, that is, shortest dist, then smallest at
 		float relax = this->dist[to] + e.delay;
 		float new_at = this->at_dist[to] + e.at_delay;
 		// cout<<"Use "<<relax<<" relax "<<v<<'\n';
-		if (this->successor[v] == -1 || this->dist[v] > relax) {
+		if (this->successor[v] == NOT_VISITED || this->dist[v] > relax) {
 			// cout<<"RELAX\n";
 			this->dist[v] = relax;
 			this->at_dist[v] = new_at;
@@ -544,7 +544,7 @@ void Kth::single_dest_dfs(int v) {
 		}
 	}
 
-	if (this->successor[v] == -1) this->successor[v] = -2;
+	if (this->successor[v] == NOT_VISITED) this->successor[v] = NOT_REACHABLE;
 }
 
 bool Kth::build_single_dest_tree(int dest) {
@@ -553,7 +553,7 @@ bool Kth::build_single_dest_tree(int dest) {
 	this->dist.resize( this->G.size() );
 	this->at_dist.resize( this->G.size() );
 	this->use_edge.resize( this->G.size() );
-	std::fill(successor.begin(), successor.end(), -1);
+	std::fill(successor.begin(), successor.end(), NOT_VISITED);
 	this->successor[dest] = dest;
 	this->dist[dest] = 0.0;
 	this->at_dist[dest] = 0.0;
@@ -561,14 +561,14 @@ bool Kth::build_single_dest_tree(int dest) {
 
 	/* For each vertex v, find its distance to dest. */
 	for (int i=0; i<(int)this->G.size(); i++) {
-		if (this->successor[i] == -1) {
+		if (this->successor[i] == NOT_VISITED) {
 			this->single_dest_dfs(i);
 		}
 		// cout<<"SUCC "<<successor[i]<<'\n';
 	}
 
 	/* Return false if dest isn't reachable. */
-	if (this->successor[source_kth] == -2) return false;
+	if (this->successor[source_kth] == NOT_REACHABLE) return false;
 
 	/* For each edge e, compute its delta */
 	for (int i=0; i < (int)G.size(); i++) {
@@ -588,10 +588,10 @@ void Kth::extend(Prefix_node *path) {
 	// All its children are longer than "path"
 	// For every v from head of last sidetrack to t.
 	int v = path->eptr==NULL ? source_kth : path->eptr->to;
-	while (v != this->dest_kth) {
+	while (v != this->dest_kth && v != NOT_VISITED && v != NOT_REACHABLE) {
 		for (auto it = G[v].begin(); it != G[v].end(); ++it) {
 			Edge &e = *it;
-			if (successor[e.to] == -2 || e.id == this->use_edge[v]) continue;
+			if (successor[e.to] == NOT_REACHABLE || e.id == this->use_edge[v]) continue;
 			Prefix_node *next_path = new Prefix_node(path, &e); // IMPORTANT, one should delete this after pop.
 //			cout << "Use " << path << " to extend "<<next_path<<" eptr="<<path->eptr<<'\n'<<std::flush;
 			this->pq.push(next_path);
@@ -617,7 +617,7 @@ void Kth::get_explicit_path_helper(Path *exp_path, const Prefix_node *imp_path, 
 	}
 
 	// Go through all vertices from v to dest
-	while (v != dest && v >= 0) {
+	while (v != dest && v != NOT_VISITED && v != NOT_REACHABLE) {
 		exp_path->path.emplace_back(v);
 		exp_path->delay.emplace_back(dist[ v ] - this->dist[ this->successor[v] ]);
 		v = this->successor[v];
@@ -644,7 +644,7 @@ void Kth::get_explicit_path(Path *exp_path, const Prefix_node *imp_path) {
 	for (int i=0; i<(int)exp_path->path.size(); i++) {
 		int v = this->to_bc_id[ exp_path->path[i] ];
 		exp_path->path[i] = v;
-		if (v == -1) continue;
+		if (v == -1) continue; // SuperSrc/Dest has BC id == 1
 		if (this->mark[v]) {
 			exp_path->mark[i] = true;
 		}
@@ -694,22 +694,23 @@ void Kth::k_shortest_path(int k, vector<Path> &container) {
 	}
 }
 
-void Kth::print_path(const Path& p) {
-    float total = 0, delay = 0;
-    int width = 10;
-    vector<int> path = p.path;
-    vector<float> pdelay = p.delay;
-    reverse(path.begin(), path.end());
-    reverse(pdelay.begin(), pdelay.end());
-    LOG(CERR) << std::setw(28) << get_node_name(path[0]) << std::setw(width) << 0 << std::setw(width) << 0 << '\n';
-	for (int i=1; i<(int)path.size(); i++) {
-        delay = pdelay[i-1];
-        total += delay;
-        LOG(CERR) << std::setw(28) << get_node_name(path[i]) << std::setw(width) << std::fixed << std::setprecision(3)
-        << delay << std::setw(width) << std::fixed << std::setprecision(3) << total << '\n';
-	}
-	LOG(CERR) <<  "Length: " << p.dist << '\n' << '\n';
-}
+// void Kth::print_path(const Path& p) {
+//     /* Test function */
+//     float total = 0, delay = 0;
+//     int width = 10;
+//     vector<int> path = p.path;
+//     vector<float> pdelay = p.delay;
+//     reverse(path.begin(), path.end());
+//     reverse(pdelay.begin(), pdelay.end());
+//     LOG(CERR) << std::setw(28) << get_node_name(path[0]) << std::setw(width) << 0 << std::setw(width) << 0 << '\n';
+// 	for (int i=1; i<(int)path.size(); i++) {
+//         delay = pdelay[i-1];
+//         total += delay;
+//         LOG(CERR) << std::setw(28) << get_node_name(path[i]) << std::setw(width) << std::fixed << std::setprecision(3)
+//         << delay << std::setw(width) << std::fixed << std::setprecision(3) << total << '\n';
+// 	}
+// 	LOG(CERR) <<  "Length: " << p.dist << '\n' << '\n';
+// }
 
 int Kth::get_type(int index) {
 	// Return 0 if rising, 1 if falling
@@ -832,10 +833,10 @@ void Path::print() {
 	LOG(CERR) << "Length: " << this->dist << "\n\n";
 }
 
-vector<vector<Kth::Edge>>& Kth::getG() {
-	/* Just for unit test */
-	return this->G;
-}
+// vector<vector<Kth::Edge>>& Kth::getG() {
+// 	/* Just for unit test */
+// 	return this->G;
+// }
 
 void Kth::set_st(int s, int t) {
 	this->source_kth = s;

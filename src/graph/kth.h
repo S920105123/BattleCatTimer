@@ -9,6 +9,12 @@ class Graph;
 class CPPR;
 class BC_map;
 
+/* Used to describe the state of a vertex */
+enum {
+    NOT_REACHABLE = -2,
+    NOT_VISITED = -1
+};
+
 struct Path {
     // Explicit representation of a path
     float dist;
