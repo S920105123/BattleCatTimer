@@ -1143,7 +1143,7 @@ void Graph::gen_test(string type, string filename){
 }
 
 void Graph::gen_test_path(ofstream& fout, Path& path){
-	int type = rand()%2;
+	int type = rand()%2+1;
 	fout << "report_timing ";
 	vector<int> ans_pin;
 	vector<Transition_Type> ans_type;

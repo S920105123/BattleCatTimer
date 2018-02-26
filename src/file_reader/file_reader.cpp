@@ -13,6 +13,7 @@ void File_Reader::open(const string &filename){
 
     LOG(NORMAL) << "[File_Reader] open " << filename << " length = " << length << '\n';
     position = 0;
+    lineno = 1;
     in.read(buffer, length);
     in.close();
 }
@@ -28,10 +29,12 @@ bool File_Reader::is_specail(char c){
     return c=='(' or c==')' or
            c=='[' or c==']' or
            c=='{' or c=='}' or
-           c=='*' or c=='.' or c==':' or c=='\\' or c=='/';
+           c=='*' or c=='.' or c==':' or c=='\\' or c=='/'
+           or c=='=' or c=='^' or c=='>' or c=='+';
 }
 
 bool File_Reader::is_useful(char c){
+    if(c=='\n') lineno++;
     return c!=',' and c!=';' and c!=' ' and c!='\n' and isprint(c);
 }
 
@@ -101,7 +104,13 @@ string File_Reader::next_token(){
             return res;
         }
         else if(s[position] == 0) position++;
-        else ASSERT_NOT_REACHED();
+        else {
+            // for(int i=position; i<length; i++){
+            //     cout << s[i];
+            // }
+            // cout << std::endl;
+            ASSERT_NOT_REACHED();
+        }
     }
     return res;
 }

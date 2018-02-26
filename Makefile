@@ -131,6 +131,8 @@ main: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_OBJECT) timer.o
 all: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_OBJECT) timer.o
 	$(GCCFLAG) $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_OBJECT) file_reader.o timer.o  main.cpp  -o BattleCatTimer
 
+compare: compare.cpp file_reader.o $(HEADER_OBJECT)
+	$(GCCFLAG) $(HEADER_OBJECT) compare.cpp file_reader.o -o compare
 clean:
 	del *.o
 	del *.exe

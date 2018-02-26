@@ -210,6 +210,9 @@ bool Kth::forward_build(int now, int next_object){
     //     cout << " next_object level " << object[next_object] << '\n';
     // else cout << " next_object level " << " ok\n";
     if(map->G[now].size()==0){ // at primary out or ff:d
+        int graph_id = map->get_graph_id(now);
+        auto& node = map->graph->nodes[ graph_id ];
+        // if(next_object==(int)object.size() and node.type == DATA_PIN){
         if(next_object==(int)object.size()){
             all_leave.emplace_back(now);
             is_good[now] = true;
@@ -401,7 +404,9 @@ bool Kth::backward_build(int now, int next_object){
     //     cout << " next_object level " << object[next_object] << '\n';
     // else cout << " next_object level " << " ok\n";
     if(map->Gr[now].size()==0){
-        if(next_object>=(int)object.size()){
+        int graph_id = map->get_graph_id(now);
+        auto& node = map->graph->nodes[ graph_id ];
+        if(next_object>=(int)object.size() and node.type==CLOCK){
             all_leave.emplace_back(now);
             is_good[now] = true;
             return true;
@@ -775,12 +780,11 @@ void Path::output(ostream &fout, Graph *graph) const {
 
     int width = 8, n = path.size();
     float rat = delay[0], slack = this->dist, at = rat - slack, total = delay[n-2];
-    if(delay[n-2]!=0) total *= -1;
     const char *tab = "      ", *spline = "----------------------------------------", *type_ch[2] = {"^   ", "v   "};
 
     // path[0] is SuperDest, path[n-1] is SuperSrc
     if (path.empty()) return;
-    fout << '\n';
+    // fout << '\n';
 	fout << "Endpoint:   ";
     print_name(fout, graph->nodes[bc->get_graph_id(path[1])].name);
     fout << '\n';
@@ -809,9 +813,7 @@ void Path::output(ostream &fout, Graph *graph) const {
     /* Output remaining */
 	for (int i = n-3; i>=1; i--) {
 		total -= delay[i]; // Delay is negative
-        float del = delay[i];
-        if(del!=0) del*=-1;
-		fout << tab << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << -del << "  ";
+		fout << tab << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << -delay[i] << "  ";
 		fout        << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total << "   ";
 		fout << type_ch[bc->get_graph_id_type(path[i])] << "  ";
         print_name(fout, graph->nodes[bc->get_graph_id(path[i])].name);
