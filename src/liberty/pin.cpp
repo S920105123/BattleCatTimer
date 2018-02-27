@@ -32,6 +32,14 @@ void Pin::read(File_Reader &in){
 			EXPECT(in.next_token(), ":");
 			this->min_capacitance = std::stof(in.next_token());
 		}
+		else if(tok == "function"){
+			EXPECT(in.next_token(), ":");
+			in.next_token();
+		}
+		else if(tok == "three_state"){
+			EXPECT(in.next_token(), ":");
+			in.next_token();
+		}
 		else if (tok == "timing") {
 			EXPECT(in.next_token(), "(");
 			EXPECT(in.next_token(), ")");
@@ -44,17 +52,19 @@ void Pin::read(File_Reader &in){
 				if( arc->get_timing_type() != Timing_Type::SETUP_RISING and
 					arc->get_timing_type() != Timing_Type::SETUP_FALLING)
 					this->add_arc( arc->get_related_pin(), arc);
+				// else LOG(WARNING) << "EARLY lib pin: " << this->name << " discard timing: " << arc->get_timing_type_string() << '\n';
 			}else{ // Late
 				if( arc->get_timing_type() != Timing_Type::HOLD_RISING and
 					arc->get_timing_type() != Timing_Type::HOLD_FALLING)
 					this->add_arc( arc->get_related_pin(), arc);
+				// else LOG(WARNING) << "LATE lib pin: " << this->name << " discard timing: " << arc->get_timing_type_string() << '\n';
 			}
 			// this->timing.insert( make_pair(arc->get_related_pin(), arc) );
 		}
 		else {
 			if (tok == "}") level--;
 			if (tok == "{") level++;
-			LOG(WARNING) << "An unknown keyword \"" << tok << "\" is reached. (In .lib pin parser)" <<'\n';
+			LOG(WARNING) << "line: " << in.get_lineno() << ", An unknown keyword \"" << tok << "\" is reached. (In .lib pin parser)" <<'\n';
 		}
 		tok = in.next_token();
 	}

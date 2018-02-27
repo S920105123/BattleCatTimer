@@ -57,7 +57,7 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
     }
     Logger::add_timestamp("report_timing ok");
 
-    #define GEN_TEST "AC"
+    //#define GEN_TEST "AC"
 
     #ifdef GEN_TEST
         ofstream test_out;

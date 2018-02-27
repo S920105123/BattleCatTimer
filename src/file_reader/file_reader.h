@@ -17,6 +17,7 @@ public:
 
     void open(const string &filename);
     void put_back(const string& s);
+    int get_lineno(){ return lineno; }
 
 private:
     bool is_normal(char c);
@@ -27,5 +28,6 @@ private:
     stack<string> buf;
     int position;     // now position
     int length;       // file size
+    int lineno;
 };
 #endif /* end FILE_READER_H */

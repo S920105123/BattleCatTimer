@@ -98,14 +98,19 @@ void TimingArc::set_timing_sense(const string& val){
 }
 
 void TimingArc::set_timing_type(const string& val){
-    if(val=="rising_edge")       timing_type = RISING_EDGE;
-    else if(val=="falling_edge") timing_type = FALLING_EDGE;
-    else if(val=="setup_rising") timing_type = SETUP_RISING;
-    else if(val=="hold_rising")  timing_type = HOLD_RISING;
-    else if(val=="setup_falling") timing_type = SETUP_FALLING;
-    else if(val=="hold_falling")  timing_type = HOLD_FALLING;
-    else if(val=="combinational")timing_type = COMBINATINAL;
-    else if(val=="undefined")    timing_type = UNDEFINED_TIMING_TYPE;
+    if(val=="rising_edge")              timing_type = RISING_EDGE;
+    else if(val=="falling_edge")        timing_type = FALLING_EDGE;
+    else if(val=="setup_rising")        timing_type = SETUP_RISING;
+    else if(val=="hold_rising")         timing_type = HOLD_RISING;
+    else if(val=="setup_falling")       timing_type = SETUP_FALLING;
+    else if(val=="hold_falling")        timing_type = HOLD_FALLING;
+    else if(val=="combinational")       timing_type = COMBINATINAL;
+    else if(val=="clear")               timing_type = CLEAR;
+    else if(val=="preset")              timing_type = PRESET;
+    else if(val=="recovery_rising")     timing_type = RECOVERY_RISING;
+    else if(val=="recovery_falling")    timing_type = RECOVERY_FALLING;
+    else if(val=="three_state_disable") timing_type = THREE_STATE_DISABLE;
+    else if(val=="undefined")           timing_type = UNDEFINED_TIMING_TYPE;
     else{
         LOG(ERROR) << "[TimingArc] can't juge timing type: " << val << '\n';
         timing_type = COMBINATINAL;
@@ -123,10 +128,10 @@ string TimingArc::get_timing_type_string(){
         case SETUP_RISING: return "setup_rising";
         case HOLD_RISING:  return "hold_rising";
         case SETUP_FALLING:
-            LOG(WARNING) << "appear setup_falling\n";
+            // LOG(WARNING) << "appear setup_falling\n";
             return "setup_falling";
         case HOLD_FALLING:
-            LOG(WARNING) << "appear hold_falling\n";
+            // LOG(WARNING) << "appear hold_falling\n";
             return "hold_falling";
         case UNDEFINED_TIMING_TYPE: return "undefined";
         default: return "combinatinal";
@@ -269,16 +274,16 @@ float TimingArc::get_delay_constant(Transition_Type from, Transition_Type to){
     // }
     switch(timing_sense){
         case POSITIVE_UNATE:
-            if(from==RISE) return cell_rise_table->get_value_constant();
-            else return cell_fall_table->get_value_constant();
+            if(from==RISE) return cell_rise_table? cell_rise_table->get_value_constant():0;
+            else return cell_fall_table? cell_fall_table->get_value_constant():0;
             break;
         case NEGATIVE_UNATE:
-            if(from==FALL) return cell_rise_table->get_value_constant();
-            else return cell_fall_table->get_value_constant();
+            if(from==FALL) return cell_rise_table? cell_rise_table->get_value_constant():0;
+            else return cell_fall_table? cell_fall_table->get_value_constant():0;
             break;
         case NON_UNATE:
-            if(to==FALL) return cell_fall_table->get_value_constant();
-            else return cell_rise_table->get_value_constant();
+            if(to==FALL) return cell_fall_table? cell_fall_table->get_value_constant():0;
+            else return cell_rise_table? cell_rise_table->get_value_constant():0;
             break;
         case UNDEFINED_TIMING_SENSE:
             LOG(ERROR) << "[TimingArc][get_delay_constant] undefined timing sense.\n";
@@ -304,16 +309,16 @@ float TimingArc::get_slew_constant(Transition_Type from, Transition_Type to){
     // }
     switch(timing_sense){
         case POSITIVE_UNATE:
-            if(from==RISE) return rise_transition_table->get_value_constant();
-            else return fall_transition_table->get_value_constant();
+            if(from==RISE) return rise_transition_table? rise_transition_table->get_value_constant():0;
+            else return fall_transition_table? fall_transition_table->get_value_constant():0;
             break;
         case NEGATIVE_UNATE:
-            if(from==FALL) return rise_transition_table->get_value_constant();
-            else return fall_transition_table->get_value_constant();
+            if(from==FALL) return rise_transition_table? rise_transition_table->get_value_constant():0;
+            else return fall_transition_table? fall_transition_table->get_value_constant():0;
             break;
         case NON_UNATE:
-            if(to==FALL) return fall_transition_table->get_value_constant();
-            else return rise_transition_table->get_value_constant();
+            if(to==FALL) return fall_transition_table? fall_transition_table->get_value_constant():0;
+            else return rise_transition_table? rise_transition_table->get_value_constant():0;
             break;
         case UNDEFINED_TIMING_SENSE:
             LOG(ERROR) << "[TimingArc][get_slew_constant] undefined timing sense.\n";
@@ -342,17 +347,22 @@ float TimingArc::get_constraint_constant(Transition_Type from, Transition_Type t
     //     LOG(ERROR) << "[TimingArc][get_constraint_constant] rise_constraint_table==NULL, at " << at << endl;
     //     return 0;
     // }
-    string at;
-    switch(timing_sense){
-        case POSITIVE_UNATE:
-        case NEGATIVE_UNATE:
-        case NON_UNATE:
-            at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
-            LOG(WARNING) << "[TimingArc][get_constraint_constant] check timing_sense at " << at << '\n';
-            return 0;
-            break;
-        case UNDEFINED_TIMING_SENSE:
-            break;
+    // string at;
+    // switch(timing_sense){
+    //     case POSITIVE_UNATE:
+    //     case NEGATIVE_UNATE:
+    //     case NON_UNATE:
+    //         at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
+    //         LOG(WARNING) << "[TimingArc][get_constraint_constant] check timing_sense at " << at << '\n';
+    //         return 0;
+    //         break;
+    //     case UNDEFINED_TIMING_SENSE:
+    //         break;
+    // }
+    if((to==RISE and rise_constraint_table==NULL) or (to==FALL and fall_constraint_table==NULL)){
+        string at = cell->get_type_name() + " " + related_pin + " to " + to_pin;
+        LOG(WARNING) << "[TimingArc][get_constraint_constant] check timing_sense at " << at << '\n';
+        return 0;
     }
 
     if(to==RISE) return rise_constraint_table->get_value_constant(2);

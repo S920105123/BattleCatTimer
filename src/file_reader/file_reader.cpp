@@ -13,6 +13,7 @@ void File_Reader::open(const string &filename){
 
     LOG(NORMAL) << "[File_Reader] open " << filename << " length = " << length << '\n';
     position = 0;
+    lineno = 1;
     in.read(buffer, length);
     in.close();
 }
@@ -28,10 +29,12 @@ bool File_Reader::is_specail(char c){
     return c=='(' or c==')' or
            c=='[' or c==']' or
            c=='{' or c=='}' or
-           c=='*' or c=='.' or c==':' or c=='\\' or c=='/';
+           c=='*' or c=='.' or c==':' or c=='\\' or c=='/'
+           or c=='=' or c=='^' or c=='>' or c=='+';
 }
 
 bool File_Reader::is_useful(char c){
+    if(c=='\n') lineno++;
     return c!=',' and c!=';' and c!=' ' and c!='\n' and isprint(c);
 }
 
@@ -52,10 +55,12 @@ string File_Reader::next_token(){
         if(position+1<length && s[position]=='/' && s[position+1]=='/'){
             position+=2;
             while(position<length && s[position]!='\n') position++;
+            lineno++;
         }
         else if(position+1<length && s[position]=='/' && s[position+1]=='*'){ // /* */
             position += 2;
             do{
+                if(s[position]=='\n') lineno++;
                 if(position+1<length && s[position]=='*' and s[position+1]=='/'){
                     position+=2;
                     break;
@@ -68,7 +73,7 @@ string File_Reader::next_token(){
             position++;
             while(position<length && s[position]!='\"'){
                 if(s[position]!='\n') res += s[position++];
-                else LOG(WARNING) << "[*][File_Reader] there is a newline between \" \n", position++;
+                else LOG(WARNING) << "[*][File_Reader] there is a newline between \" \n", position++, lineno++;
             }
             position++;
             return res;
@@ -101,7 +106,17 @@ string File_Reader::next_token(){
             return res;
         }
         else if(s[position] == 0) position++;
-        else ASSERT_NOT_REACHED();
+        else if(position<length){
+            res += s[position++];
+            return res;
+        }
+        else{
+            for(int i=position; i<length; i++){
+                cout << s[i];
+            }
+            cout << std::endl;
+            ASSERT_NOT_REACHED();
+        }
     }
     return res;
 }
