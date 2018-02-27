@@ -883,8 +883,8 @@ void Graph::init_graph(){
 			   First level  - Remove input pin, cell delay merge with RC delay, also construct vector<int> clocks, data_pins
 			   Second level - Merge nodes with in-degree==1 or out-degree==1, but not removing (unimplemented)
 			*/
-			this->first_level_condense();
-			Logger::add_timestamp("condense ok");
+			// this->first_level_condense();
+			// Logger::add_timestamp("condense ok");
 		}
 		// #pragma omp section
         {
@@ -1166,12 +1166,10 @@ void Graph::gen_test_path(ofstream& fout, Path& path){
 			}
 		}
 	}
-	if(type==1){ // speficy from
-		fout << "-from " ;
-		for(auto c:get_name(src)){
-			if(c==':') fout << "/";
-			else fout << c ;
-		}
+	fout << "-from " ;
+	for(auto c:get_name(src)){
+		if(c==':') fout << "/";
+		else fout << c ;
 	}
 
 	for(int i=0; i<(int)ans_pin.size(); i++){
@@ -1183,12 +1181,10 @@ void Graph::gen_test_path(ofstream& fout, Path& path){
 			else fout << c;
 		}
 	}
-	if(type==2){ // speficy to
-		fout << "-to " ;
-		for(auto c:get_name(dest)){
-			if(c==':') fout << "/";
-			else fout << c ;
-		}
+	fout << " -to " ;
+	for(auto c:get_name(dest)){
+		if(c==':') fout << "/";
+		else fout << c ;
 	}
 	fout << '\n';
 }

@@ -20,8 +20,30 @@ void Cell::read(File_Reader &in){
             pin->read(in);
             add_pin(name, pin);
         }
+        else if(token=="cell_leakage_power"){
+            EXPECT(in.next_token(), ":");
+            in.next_token();
+        }
+        else if(token=="area"){
+            EXPECT(in.next_token(), ":");
+            in.next_token();
+        }
+        else if(token=="cell_footprint"){
+            EXPECT(in.next_token(), ":");
+            in.next_token();
+        }
+        else if(token=="ff" or token=="latch"){
+            EXPECT(in.next_token(), "(");
+            in.next_token(); in.next_token();
+            EXPECT(in.next_token(), ")");
+            EXPECT(in.next_token(), "{");
+            do{
+                token = in.next_token();
+                if(token=="}") break;
+            }while(true);
+        }
         else{
-            LOG(WARNING) << "[Cell][read] unknow keyword: " << token << '\n';
+            LOG(WARNING) << "[Cell][read] line: " << in.get_lineno() << ", unknow keyword: " << token << '\n';
         }
     }
 }

@@ -200,7 +200,7 @@ bool compare(Path* ans, Path* out,int show=0){
         return true;
     }
     else{
-        cout << "wa slack , ans: " <<  ans->slack << ", out: " << out->slack << endl;
+        if(show) cout << "wa slack , ans: " <<  ans->slack << ", out: " << out->slack << endl;
         return false;
     }
 }
