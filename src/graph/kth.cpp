@@ -750,22 +750,22 @@ void Path::print_name(ostream &fout, const string &name) const {
     }
 }
 
-void Path::check_condensed_pin(ostream &fout, Graph *graph, int from_bc_id, int to_bc_id, float total) const {
-    BC_map *bc = graph->get_bc_map();
-    int width = 8, from_gid = bc->get_graph_id(from_bc_id), to_gid = bc->get_graph_id(to_bc_id);
-    auto it = graph->adj[from_gid].find(to_gid);
-    ASSERT(it != graph->adj[from_gid].end());
-    Graph::Edge *eptr = it->second;
-    if (eptr->through == -1) return;
-    int gid = eptr->through;
-
-    const char *tab = "      ", *type_ch[2] = {"^   ", "v   "};
-    fout << tab << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << 0.0 << "  ";
-    fout        << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total << "   ";
-    fout << type_ch[bc->get_graph_id_type(from_bc_id)] << "  ";
-    print_name(fout, graph->nodes[gid].name);
-    fout << '\n';
-}
+// void Path::check_condensed_pin(ostream &fout, Graph *graph, int from_bc_id, int to_bc_id, float total) const {
+//     BC_map *bc = graph->get_bc_map();
+//     int width = 8, from_gid = bc->get_graph_id(from_bc_id), to_gid = bc->get_graph_id(to_bc_id);
+//     auto it = graph->adj[from_gid].find(to_gid);
+//     ASSERT(it != graph->adj[from_gid].end());
+//     Graph::Edge *eptr = it->second;
+//     if (eptr->through == -1) return;
+//     int gid = eptr->through;
+//
+//     const char *tab = "      ", *type_ch[2] = {"^   ", "v   "};
+//     fout << tab << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << 0.0 << "  ";
+//     fout        << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total << "   ";
+//     fout << type_ch[bc->get_graph_id_type(from_bc_id)] << "  ";
+//     print_name(fout, graph->nodes[gid].name);
+//     fout << '\n';
+// }
 
 void Path::output(ostream &fout, Graph *graph) const {
 	// Paths are using BC id
@@ -803,9 +803,9 @@ void Path::output(ostream &fout, Graph *graph) const {
     print_name(fout, graph->nodes[bc->get_graph_id(path[n-2])].name);
     // if(mark[n-2]) fout << " ->";
     fout << '\n';
-    if (n-3 >= 1) {
-        check_condensed_pin(fout, graph, path[n-2], path[n-3], total);
-    }
+    // if (n-3 >= 1) {
+    //     check_condensed_pin(fout, graph, path[n-2], path[n-3], total);
+    // }
 
     /* Output remaining */
 	for (int i = n-3; i>=1; i--) {
@@ -818,9 +818,9 @@ void Path::output(ostream &fout, Graph *graph) const {
         print_name(fout, graph->nodes[bc->get_graph_id(path[i])].name);
         // if(mark[i] ) fout << " ->";
         fout << '\n';
-        if (i-1 >= 1) {
-            check_condensed_pin(fout, graph, path[i], path[i-1], total);
-        }
+        // if (i-1 >= 1) {
+        //     check_condensed_pin(fout, graph, path[i], path[i-1], total);
+        // }
 	}
 	fout << tab << spline << '\n' << '\n';
 }

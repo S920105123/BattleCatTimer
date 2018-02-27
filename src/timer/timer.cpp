@@ -63,7 +63,7 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
         ofstream test_out;
         test_out.open(ops);
         for(int i=0; i<(int)ans.size(); i++){
-            for(auto p:*ans[i]){
+            for(const auto &p:*ans[i]){
                 graph->gen_test_path(test_out, p);
                 p.output(output, graph);
             }
@@ -73,7 +73,7 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
 
     #ifndef GEN_TEST
         for(int i=0; i<(int)ans.size(); i++){
-            for(auto p:*ans[i]){
+            for(const auto &p:*ans[i]){
                 p.output(output, graph);
             }
         }
