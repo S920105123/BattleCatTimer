@@ -514,11 +514,6 @@ void Graph::first_level_condense() {
 
 	for (int i = 0; i < (int)nodes.size(); i++) {
 		Node &node = nodes[i];
-
-		/* Collect data pins and clock pins */
-		if (node.type == CLOCK) this->clocks.push_back(i);
-		else if (node.type == DATA_PIN) this->data_pins.push_back(i);
-
 		if (node.type != INPUT_PIN) continue;
 		// cout << "Try removing " << node.name << '\n';
 
@@ -879,10 +874,12 @@ void Graph::init_graph(){
             //LOG(CERR) << "tid : " << omp_get_thread_num() << " rat\n";
 		    calculate_rat();
 			Logger::add_timestamp("rat ok");
-			/* Do condensation,
-			   First level  - Remove input pin, cell delay merge with RC delay, also construct vector<int> clocks, data_pins
-			   Second level - Merge nodes with in-degree==1 or out-degree==1, but not removing (unimplemented)
-			*/
+			for (int i = 0; i < (int)nodes.size(); i++) {
+				/* Collect data pins and clock pins */
+				Node &node = nodes[i];
+				if (node.type == CLOCK) this->clocks.push_back(i);
+				else if (node.type == DATA_PIN) this->data_pins.push_back(i);
+			}
 			// this->first_level_condense();
 			// Logger::add_timestamp("condense ok");
 		}
