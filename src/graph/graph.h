@@ -29,18 +29,15 @@ class Graph {
 public:
 
 	struct Node {
-		bool exist, in_cppr;
 		Transition_Type clk_edge; // Only set when type == CLOCK
-		int index, through;       // through: For the condensed input pins.
+		int index;
 		string name;
 		Node_type type;
 		RCTree *tree;
 
 		float at[2][2];           // Arrival time. e.g, at[EARLY][RISE]
 		float rat[2][2];          // Required arrival time.
-		float slew[2][2];
 		float slack[2][2];
-		int launching_clk[2][2];
 		int constrained_clk;      // Only set when type == DATA_PIN
 
 		Node(int index, const string& name, Node_type type);
@@ -49,7 +46,7 @@ public:
 	struct Edge {
 		// If "type"==IN_CELL, refer "arcs" for delay, "tree" otherwise.
 		Edge_type type;
-		int from , to, through; // Through will be specified after condense, it is the condensed input pin.
+		int from , to;
 		RCTree *tree;
 		vector<TimingArc*> arcs[2];
 
@@ -138,7 +135,7 @@ private:
 	int next_id;
 	int clock_id;
 	int clock_T;                                 // clock period from .timing
-	unordered_map<string, float> out_load;		 // out_load from .timing
+	// unordered_map<string, float> out_load;		 // out_load from .timing
 	unordered_map<string,int> trans;             // Transform name to index.
 	vector<Node> nodes;                          // nodes[i]: Node with index i.
 	vector< unordered_map<int, Edge*> > adj;     // Adjacency list of all nodes.

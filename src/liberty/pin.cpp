@@ -48,7 +48,7 @@ void Pin::read(File_Reader &in){
 			arc->set_cell_ptr(parent);
 			arc->set_to_pin(name);
 			ASSERT(cell_lib!=NULL);
-			if(cell_lib->get_timing_mode()==Mode::EARLY){
+			if(cell_lib->get_timing_mode()==EARLY){
 				if( arc->get_timing_type() != Timing_Type::SETUP_RISING and
 					arc->get_timing_type() != Timing_Type::SETUP_FALLING)
 					this->add_arc( arc->get_related_pin(), arc);

@@ -62,7 +62,6 @@ void BC_map::build(){
     // dfs build map
     for(int i=0; i<(int)graph->nodes.size(); i++)if(i!=graph->clock_id){
         Graph::Node &node = graph->nodes[i];
-        if(!node.exist) continue;
         // if(node.type == PRIMARY_IN or node.type == CLOCK){
         if(node.type == CLOCK){
             build_map(i);

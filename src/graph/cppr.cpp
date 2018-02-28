@@ -18,7 +18,7 @@ void CPPR::build_tree(){
 void CPPR::add_node(int node_id,int dep, int neg){
     to_node_id.push_back(node_id);
     to_tree_id[ node_id ] = to_node_id.size()-1;
-    graph->nodes[node_id].in_cppr = true;
+    // graph->nodes[node_id].in_cppr = true;
     negation.push_back(neg);
     level.push_back(dep);
     who.push_back(to_node_id.size()-1);
@@ -100,7 +100,7 @@ float CPPR::cppr_credit(Mode mode, int u, Transition_Type type_u, int v, Transit
     // cout << graph->nodes[lca].at[LATE][FALL]  << " " ;
     // cout << graph->nodes[lca].at[EARLY][RISE] << " " ;
     // cout << graph->nodes[lca].at[EARLY][FALL] << " "  << '\n';
-    if(mode==Mode::EARLY){ // hold
+    if(mode==EARLY){ // hold
         return graph->nodes[lca].at[LATE][type_u] - graph->nodes[lca].at[EARLY][type_u];
     }
     else{
