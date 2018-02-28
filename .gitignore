@@ -9,3 +9,5 @@
 testcase_v1.2/
 golden/
 create_ops.py
+.vscode/*
+.directory

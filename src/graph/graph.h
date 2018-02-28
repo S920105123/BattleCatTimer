@@ -165,6 +165,7 @@ private:
 	unordered_map<string, Wire_mapping*> wire_mapping;
 	CPPR *cppr;
 	BC_map* bc_map;
+	RCTree* rc_tree;
 
 	friend class CPPR;
 	friend class BC_map;

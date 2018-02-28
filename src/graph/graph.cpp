@@ -328,11 +328,13 @@ Graph::Graph() {
 	this->clock_id = -1;
 	this->cppr = NULL;
 	this->bc_map = NULL;
+	this->rc_tree = NULL;
 }
 
 Graph::~Graph(){
 	if (cppr) delete cppr;
 	if (bc_map) delete bc_map;
+	if (rc_tree) delete rc_tree;
 
 	for (auto &it_pair : this->wire_mapping) {
 		delete it_pair.second;
@@ -343,10 +345,10 @@ Graph::~Graph(){
 	}
 
 	for (int i=0; i<(int)this->nodes.size(); i++) {
-		Node_type type = this->nodes[i].type;
-		if ((type == OUTPUT_PIN || type == PRIMARY_IN) && this->nodes[i].tree != NULL) {
-			delete this->nodes[i].tree;
-		}
+		// Node_type type = this->nodes[i].type;
+		// if ((type == OUTPUT_PIN || type == PRIMARY_IN) && this->nodes[i].tree != NULL) {
+		// 	delete this->nodes[i].tree;
+		// }
 		for (auto &it_pair : this->adj[i]) {
 			delete it_pair.second;
 		}
@@ -444,6 +446,8 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 		mapping->sinks.emplace_back(sink);
 	}
 
+	SpefNet *net = NULL;
+	rc_tree = new RCTree(net, &vlog, lib_arr);
 	/* Construct external timing arc through wire mapping */
 	for (const auto &wire_pair : this->wire_mapping) {
 		// const string &wire_name = wire_pair.first;
@@ -452,9 +456,6 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 		if (from == -1) continue; // Isolated node.
 
 		// SpefNet *net = spef.get_spefnet_ptr(wire_name, 0);
-		SpefNet *net = NULL;
-		RCTree *tree = NULL;
-		tree = new RCTree(net, &vlog, lib_arr);
 		// if (net!=NULL) tree = new RCTree(net, &vlog, lib_arr);
 		// else{
 		// 	// add new spef
@@ -482,11 +483,11 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 		// }
 		// tree->build_tree();
 		// tree->cal();
-		nodes[from].tree = tree;
+		nodes[from].tree = rc_tree;
 		for (int to : mapping->sinks) {
-			nodes[to].tree = tree;
+			nodes[to].tree = rc_tree;
 			Edge *eptr = add_edge(from, to, RC_TREE);
-			eptr->tree = tree;
+			eptr->tree = rc_tree;
 		}
 	}
 
@@ -1140,7 +1141,7 @@ void Graph::gen_test(string type, string filename){
 }
 
 void Graph::gen_test_path(ofstream& fout, Path& path){
-	int type = rand()%2+1;
+	// int type = rand()%2+1;
 	fout << "report_timing ";
 	vector<int> ans_pin;
 	vector<Transition_Type> ans_type;
