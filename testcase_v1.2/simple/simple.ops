@@ -1,2 +1,0 @@
-report_timing -from f1/ck -rise_through u4/o -fall_through f1/q -fall_through u4/b
-report_timing -from f1/ck -fall_through u4/o -rise_through f1/q -rise_through u4/b
