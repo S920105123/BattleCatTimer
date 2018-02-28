@@ -257,7 +257,6 @@ void Kth::build_from_dest(const vector<int>& dest){
         const auto& node = map->graph->nodes[graph_id];
         Mode mode = map->get_graph_id_mode(map_id);
         // cout << "dest = " << node.name << std::endl;
-        ASSERT(map->graph->nodes[graph_id].exist==true);
 
         /* just setup check*/
         if(mode==EARLY){

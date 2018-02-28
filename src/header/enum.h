@@ -32,17 +32,20 @@ enum Timing_Type {
     UNDEFINED_TIMING_TYPE
 };
 
-enum Transition_Type {
+typedef bool Transition_Type;
+enum {
     RISE = 0,
     FALL
 };
 
-enum Direction_type {
+typedef bool Direction_type;
+enum {
 	INPUT = 0,
 	OUTPUT
 };
 
-enum Mode {
+typedef bool Mode;
+enum {
 	EARLY = 0,
 	LATE
 };

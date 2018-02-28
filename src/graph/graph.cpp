@@ -5,13 +5,10 @@
 // ******************************************************
 
 Graph::Node::Node(int index, const string &name, Node_type type) {
-	this->exist   = true;
 	this->name    = name;
 	this->index   = index;
 	this->tree    = NULL;
 	this->type    = type;
-	this->in_cppr = false;
-	this->through = index;
 	this->constrained_clk = -1;
 
 	// These undefined values is defined in header.h
@@ -21,10 +18,9 @@ Graph::Node::Node(int index, const string &name, Node_type type) {
 			Transition_Type type = TYPES[j];
 
 			this->slack[mode][type] = UNDEFINED_SLACK[mode];
-			this->slew[mode][type]  = UNDEFINED_SLEW[mode];
+			// this->slew[mode][type]  = UNDEFINED_SLEW[mode];
 			this->rat[mode][type]   = UNDEFINED_RAT[mode];
 			this->at[mode][type]    = UNDEFINED_AT[mode];
-			this->launching_clk[mode][type] = -1; // Undefined
 		}
 	}
 }
@@ -51,7 +47,7 @@ int Graph::get_index(const string &name) {
 }
 
 bool Graph::in_graph(int index) const {
-	return index < (int)this->nodes.size() && this->nodes[index].exist;
+	return index < (int)this->nodes.size();
 }
 
 bool Graph::in_graph(const string &name) const {
@@ -73,7 +69,7 @@ void Graph::set_at(const string &pin_name, float early_at[], float late_at[]) {
 	 // LOG(CERR) << "set_at(timing) " << pin_name << " " << early_at[RISE] << " " << early_at[FALL]
 	 // << " " << late_at[RISE] << " " << late_at[FALL] << '\n';
 	// string handle = cell_pin_concat( INPUT_PREFIX, pin_name );
-	string handle = pin_name;
+	const string &handle = pin_name;
 	if (!in_graph(handle)) {
 		LOG(ERROR) << "Try to modify arrival time of a node which is not primary input. (" << pin_name << ")" << '\n';
 		ASSERT_NOT_REACHED();
@@ -90,7 +86,7 @@ void Graph::set_rat(const string &pin_name, float early_rat[2], float late_rat[2
 	 // << " " << late_rat[RISE] << " " << late_rat[LATE] << '\n';
 
 	// string handle = cell_pin_concat( OUTPUT_PREFIX, pin_name );
-	string handle = pin_name;
+	const string &handle = pin_name;
 	if (!in_graph(handle)) {
 		LOG(ERROR) << "Try to modify required arrival time of a node which is not primary output. (" << pin_name << ")"  << '\n';
 		ASSERT_NOT_REACHED();
@@ -107,7 +103,7 @@ void Graph::set_at(const string &pin_name, Mode mode, Transition_Type transition
 	 // << get_transition_string(transition) << " " << val << '\n';
 
 	// string handle = cell_pin_concat( INPUT_PREFIX, pin_name );
-	string handle = pin_name;
+	const string &handle = pin_name;
 	if (!in_graph(handle)) {
 		LOG(ERROR) << "Try to modify arrival time of a node which is not primary input. (" << pin_name << ")" << '\n';
 		ASSERT_NOT_REACHED();
@@ -121,7 +117,7 @@ void Graph::set_rat(const string &pin_name, Mode mode, Transition_Type transitio
 	// << get_transition_string(transition) << " " << val << '\n';
 
 	// string handle = cell_pin_concat( OUTPUT_PREFIX, pin_name );
-	string handle = pin_name;
+	const string &handle = pin_name;
 	if (!in_graph(handle)) {
 		LOG(ERROR) << "Try to modify rat of a node which is not primary ouput. (" << pin_name << ")" << '\n';
 		ASSERT_NOT_REACHED();
@@ -135,13 +131,13 @@ void Graph::set_slew(const string &pin_name, Mode mode, Transition_Type transiti
 	// << get_transition_string(transition) << " " << val << '\n';
 
 	// string handle = cell_pin_concat( INPUT_PREFIX, pin_name );
-	string handle = pin_name;
+	const string &handle = pin_name;
 	if (!in_graph(handle)) {
 		LOG(ERROR) << "Try to modify slew of a node which is not primary input. (" << pin_name << ")" << '\n';
 		ASSERT_NOT_REACHED();
 	}
-	int index = this->get_index(handle);
-	this->nodes[index].slew[mode][transition] = val;
+	// int index = this->get_index(handle);
+	// this->nodes[index].slew[mode][transition] = val;
 }
 
 void Graph::set_slew(const string &pin_name, float early_slew[2], float late_slew[2]){
@@ -149,16 +145,16 @@ void Graph::set_slew(const string &pin_name, float early_slew[2], float late_sle
 	// << " " << late_slew[RISE] << " " << late_slew[FALL] << '\n';
 
 	// string handle = cell_pin_concat( INPUT_PREFIX, pin_name );
-	string handle = pin_name;
+	const string &handle = pin_name;
 	if (!in_graph(handle)) {
 		LOG(ERROR) << "Try to modify slew time of a node which is not primary output. (" << pin_name << ")"  << '\n';
 		ASSERT_NOT_REACHED();
 	}
-	int index = this->get_index(handle);
-	this->nodes[index].slew[EARLY][RISE] = early_slew[RISE];
-	this->nodes[index].slew[EARLY][FALL] = early_slew[FALL];
-	this->nodes[index].slew[LATE][RISE]  = late_slew[RISE];
-	this->nodes[index].slew[LATE][FALL]  = late_slew[FALL];
+	// int index = this->get_index(handle);
+	// this->nodes[index].slew[EARLY][RISE] = early_slew[RISE];
+	// this->nodes[index].slew[EARLY][FALL] = early_slew[FALL];
+	// this->nodes[index].slew[LATE][RISE]  = late_slew[RISE];
+	// this->nodes[index].slew[LATE][FALL]  = late_slew[FALL];
 }
 
 void Graph::set_clock(const string& pin_name,float period, float low){
@@ -176,7 +172,7 @@ void Graph::set_load(const string& pin_name, float cap){
 		LOG(CERR) << "[Graph][set_load] no such pin: " << pin_name << '\n';
 		return;
 	}
-	out_load[pin_name] = cap;
+	// out_load[pin_name] = cap;
 	// RCTree* tree = nodes[id].tree;
 	// if(tree==NULL) return;
 	// tree->add_pin_cap(pin_name, cap);
@@ -215,8 +211,9 @@ float Graph::get_slew(const string &pin_name, Mode mode, Transition_Type transit
 		LOG(WARNING) << "[Graph][get_slew] pin no exist , pin: " << pin_name << '\n';
 		return 0;
 	}
-	int index = this->get_index(pin_name);
-	return this->nodes[index].slew[mode][transition];
+	// int index = this->get_index(pin_name);
+	// return this->nodes[index].slew[mode][transition];
+	return UNDEFINED_SLEW[mode];
 }
 
 float Graph::get_slack(const string &pin_name, Mode mode, Transition_Type transition){
@@ -245,7 +242,6 @@ Graph::Edge::Edge(int src, int dest, Edge_type type) {
 	this->from = src;
 	this->to = dest;
 	this->type = type;
-	this->through = -1;
 	this->tree = NULL;
 }
 
@@ -371,7 +367,7 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 	/* Append each pin to the wire and construct internal timing arc  */
 	for (const auto &p : vlog.gates) {
 		const Verilog::Verilog_Gate *gt = p.second;
-		const string &cell_type = gt->cell_type, cell_name = gt->cell_name;
+		const string &cell_type = gt->cell_type, &cell_name = gt->cell_name;
 		for (const pair<string,string> &io_pair : gt->param) {
 			const string &pin_name = io_pair.first, &wire_name = io_pair.second;
 			// Check is clock
@@ -379,8 +375,6 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 			Direction_type direction = lib.get_pin_direction(cell_type, pin_name);
 			if (lib.get_pin_is_clock(cell_type, pin_name)) {
 				this->nodes[sink].type = CLOCK;
-				this->nodes[sink].launching_clk[EARLY][RISE] = this->nodes[sink].launching_clk[EARLY][FALL] =
-				this->nodes[sink].launching_clk[LATE][RISE]  = this->nodes[sink].launching_clk[LATE][FALL]  = sink;
 			} else {
 				if (direction == OUTPUT) {
 					this->nodes[sink].type = OUTPUT_PIN;
@@ -506,64 +500,64 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 	}
 }
 
-void Graph::first_level_condense() {
-	/* Remove the input pins, collect the data pins and clock pins
-	   Assume AT and RAT are ready                                 */
-
-	static int condensed = 0; // For bookkeeping
-
-	for (int i = 0; i < (int)nodes.size(); i++) {
-		Node &node = nodes[i];
-		if (node.type != INPUT_PIN) continue;
-		// cout << "Try removing " << node.name << '\n';
-
-		/* Condensation, this node should be clear if all edge is deleted, i.e., the "from" output pin
-		   does not connect to more than one input pins of a certain gate.                             */
-		Edge *rc_eptr = this->rev_adj[i].begin()->second;
-		int from = rc_eptr->from;
-		bool clear = true;
-		node.through = from;
-		ASSERT(this->rev_adj[i].size() == 1);
-		ASSERT(rc_eptr->type == RC_TREE);
-		ASSERT(rc_eptr->to == i);
-
-		auto it = this->adj[i].begin();
-		while (it != this->adj[i].end()) {
-			auto next_it = std::next(it);
-			Edge *arc_eptr = it->second;
-			int to = arc_eptr->to;
-			ASSERT(arc_eptr->from == i);
-			if (this->adj[from].find(to) != this->adj[from].end()) {
-				// cout<<nodes[from].name<< " goto " << nodes[to].name << '\n';
-				clear = false;
-			} else {
-				arc_eptr->from = from;
-				arc_eptr->through = i;
-				auto to_erase = this->rev_adj[to].find(i);
-				ASSERT(to_erase != this->rev_adj[to].end());
-				this->rev_adj[to].erase( to_erase );
-				this->adj[i].erase(it);
-				this->adj[from].emplace(to, arc_eptr);
-				this->rev_adj[to].emplace( from, arc_eptr );
-			}
-			it = next_it;
-		}
-
-		/* Removing this input pin if clear is true */
-		if (clear) {
-			condensed++;
-			ASSERT(adj[i].empty());
-			auto to_erase = this->adj[from].find(i);
-			ASSERT(to_erase != this->adj[from].end());
-			this->adj[from].erase( to_erase );
-
-			node.exist = false;
-			this->rev_adj[i].clear();
-			delete rc_eptr;
-		}
-	}
-	LOG(NORMAL) << "First level condense:\n    " << condensed << " out of " << this->nodes.size() << " nodes is removed. " << (double)condensed/this->nodes.size()*100.0 << "%\n";
-}
+// void Graph::first_level_condense() {
+// 	/* Remove the input pins, collect the data pins and clock pins
+// 	   Assume AT and RAT are ready                                 */
+//
+// 	static int condensed = 0; // For bookkeeping
+//
+// 	for (int i = 0; i < (int)nodes.size(); i++) {
+// 		Node &node = nodes[i];
+// 		if (node.type != INPUT_PIN) continue;
+// 		// cout << "Try removing " << node.name << '\n';
+//
+// 		/* Condensation, this node should be clear if all edge is deleted, i.e., the "from" output pin
+// 		   does not connect to more than one input pins of a certain gate.                             */
+// 		Edge *rc_eptr = this->rev_adj[i].begin()->second;
+// 		int from = rc_eptr->from;
+// 		bool clear = true;
+// 		node.through = from;
+// 		ASSERT(this->rev_adj[i].size() == 1);
+// 		ASSERT(rc_eptr->type == RC_TREE);
+// 		ASSERT(rc_eptr->to == i);
+//
+// 		auto it = this->adj[i].begin();
+// 		while (it != this->adj[i].end()) {
+// 			auto next_it = std::next(it);
+// 			Edge *arc_eptr = it->second;
+// 			int to = arc_eptr->to;
+// 			ASSERT(arc_eptr->from == i);
+// 			if (this->adj[from].find(to) != this->adj[from].end()) {
+// 				// cout<<nodes[from].name<< " goto " << nodes[to].name << '\n';
+// 				clear = false;
+// 			} else {
+// 				arc_eptr->from = from;
+// 				arc_eptr->through = i;
+// 				auto to_erase = this->rev_adj[to].find(i);
+// 				ASSERT(to_erase != this->rev_adj[to].end());
+// 				this->rev_adj[to].erase( to_erase );
+// 				this->adj[i].erase(it);
+// 				this->adj[from].emplace(to, arc_eptr);
+// 				this->rev_adj[to].emplace( from, arc_eptr );
+// 			}
+// 			it = next_it;
+// 		}
+//
+// 		/* Removing this input pin if clear is true */
+// 		if (clear) {
+// 			condensed++;
+// 			ASSERT(adj[i].empty());
+// 			auto to_erase = this->adj[from].find(i);
+// 			ASSERT(to_erase != this->adj[from].end());
+// 			this->adj[from].erase( to_erase );
+//
+// 			// node.exist = false;
+// 			this->rev_adj[i].clear();
+// 			delete rc_eptr;
+// 		}
+// 	}
+// 	LOG(NORMAL) << "First level condense:\n    " << condensed << " out of " << this->nodes.size() << " nodes is removed. " << (double)condensed/this->nodes.size()*100.0 << "%\n";
+// }
 
 // ******************************************************
 // ***                 Arrival Time                   ***
@@ -574,14 +568,14 @@ void Graph::at_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 	Node &node_from = this->nodes[from], &node_to = this->nodes[to];
 
 	if(nodes[from].type == CLOCK){
-		nodes[from].at[EARLY][RISE] = 0;
-		nodes[from].at[EARLY][FALL] = 0;
-		nodes[from].at[LATE][RISE] = 0;
-		nodes[from].at[LATE][FALL] = 0;
-		nodes[from].slew[EARLY][RISE] = 0;
-		nodes[from].slew[EARLY][FALL] = 0;
-		nodes[from].slew[LATE][RISE] = 0;
-		nodes[from].slew[LATE][FALL] = 0;
+		nodes[from].at[EARLY][RISE] = nodes[this->clock_id].at[EARLY][RISE];
+		nodes[from].at[EARLY][FALL] = nodes[this->clock_id].at[EARLY][FALL];
+		nodes[from].at[LATE][RISE] = nodes[this->clock_id].at[LATE][RISE];
+		nodes[from].at[LATE][FALL] = nodes[this->clock_id].at[LATE][FALL];
+		// nodes[from].slew[EARLY][RISE] = 0;
+		// nodes[from].slew[EARLY][FALL] = 0;
+		// nodes[from].slew[LATE][RISE] = 0;
+		// nodes[from].slew[LATE][FALL] = 0;
 	}
 	for (int i=0; i<2; i++) {
 		for (int j=0; j<2; j++) {
@@ -589,7 +583,7 @@ void Graph::at_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 			// No ++ in Transition_Type
 			if (!arc->is_transition_defined(type_from, type_to)) continue;
 			// float cap_load = node_to.tree->get_downstream(mode, node_to.name);
-			float input_slew = node_from.slew[mode][type_from];
+			// float input_slew = node_from.slew[mode][type_from];
 			/* Try to update at */
 			if (node_from.at[mode][type_from] != UNDEFINED_AT[mode]) {
 				float delay = arc->get_delay_constant(type_from, type_to);
@@ -598,22 +592,19 @@ void Graph::at_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 				if (at == UNDEFINED_AT[mode] || at_worse_than(new_at, at, mode)) {
 					// Always choose worst at.
 					at = new_at;
-					if (node_to.type != CLOCK) {
-						node_to.launching_clk[mode][type_to] = node_from.launching_clk[mode][type_from];
-					}
 				}
 			}
 
 			/* Try to update slew */
-			if (input_slew != UNDEFINED_SLEW[mode]) {
-				// float new_slew = arc->get_slew(type_from, type_to, input_slew, cap_load);
-				float new_slew = arc->get_slew_constant(type_from, type_to);
-				float &slew = node_to.slew[mode][type_to];
-				if (slew == UNDEFINED_SLEW[mode] || slew_worse_than(new_slew, slew, mode)) {
-					// Always choose worst slew.
-					slew = new_slew;
-				}
-			}
+			// if (input_slew != UNDEFINED_SLEW[mode]) {
+			// 	// float new_slew = arc->get_slew(type_from, type_to, input_slew, cap_load);
+			// 	float new_slew = arc->get_slew_constant(type_from, type_to);
+			// 	float &slew = node_to.slew[mode][type_to];
+			// 	if (slew == UNDEFINED_SLEW[mode] || slew_worse_than(new_slew, slew, mode)) {
+			// 		// Always choose worst slew.
+			// 		slew = new_slew;
+			// 	}
+			// }
 		}
 	}
 }
@@ -639,22 +630,19 @@ void Graph::at_update(Edge *eptr) {
 			float delay = eptr->tree->get_delay(mode, node_to.name);
 			for (int j=0; j<2; j++) {
 				Transition_Type type = TYPES[j];
-				float new_slew = eptr->tree->get_slew(mode, node_to.name, node_from.slew[mode][type]);
-				if (node_from.slew[mode][type] != UNDEFINED_SLEW[mode]) {
-					float &slew = node_to.slew[mode][type];
-					if ( slew == UNDEFINED_SLEW[mode] || slew_worse_than(new_slew, slew, mode) ) {
-						// Always choose worst slew
-						slew = new_slew;
-					}
-				}
+				// float new_slew = eptr->tree->get_slew(mode, node_to.name, node_from.slew[mode][type]);
+				// if (node_from.slew[mode][type] != UNDEFINED_SLEW[mode]) {
+				// 	float &slew = node_to.slew[mode][type];
+				// 	if ( slew == UNDEFINED_SLEW[mode] || slew_worse_than(new_slew, slew, mode) ) {
+				// 		// Always choose worst slew
+				// 		slew = new_slew;
+				// 	}
+				// }
 				if (node_from.at[mode][type] != UNDEFINED_AT[mode]) {
 					float &at = node_to.at[mode][type], new_at = node_from.at[mode][type] + delay;
 					if ( at == UNDEFINED_AT[mode] || at_worse_than(new_at, at, mode) ) {
 						// Always choose worst at
 						at = new_at;
-						if (node_to.type != CLOCK) {
-							node_to.launching_clk[mode][type] = node_from.launching_clk[mode][type];
-						}
 					}
 				}
 			}
@@ -691,11 +679,6 @@ void Graph::calculate_at() {
 		if (!visit[i]) {
 			visit[i] = true;
 			this->at_dfs(i, visit);
-		}
-		if (nodes[i].launching_clk[0][0]==-1) {
-			// cout<<nodes[i].name<<" launching from -1"<<'\n';
-		} else {
-			// cout<<nodes[i].name<<" launching from "<<nodes[nodes[i].launching_clk[0][0]].name<<'\n';
 		}
 	}
 }
@@ -863,7 +846,8 @@ void Graph::init_graph(){
     calculate_at();
 	Logger::add_timestamp("at ok");
 
-	cppr = new CPPR(this, clock_id);
+	cppr = NULL;
+	// cppr = new CPPR(this, clock_id);
 	// cppr->build_tree();
 	// Logger::add_timestamp("cppr ok");
 
@@ -879,6 +863,7 @@ void Graph::init_graph(){
 				Node &node = nodes[i];
 				if (node.type == CLOCK) this->clocks.push_back(i);
 				else if (node.type == DATA_PIN) this->data_pins.push_back(i);
+				ASSERT(node.type != UNKNOWN);
 			}
 			// this->first_level_condense();
 			// Logger::add_timestamp("condense ok");
@@ -1004,14 +989,12 @@ vector<Path>* Graph::report_timing(const vector<pair<Transition_Type,string>>&fr
 	kth.clear();
 	vector<pair<Transition_Type,int>> _through;
 	for(const auto &x:through){
-		int who_eat_me = nodes[get_index(x.second)].through;
-		_through.emplace_back(x.first, bc_map->get_index(LATE, x.first, who_eat_me) );
+		_through.emplace_back(x.first, bc_map->get_index(LATE, x.first, get_index(x.second)) );
 	}
 
 	if(to.size()){
 		for(const auto &x:from){
-			int who_eat_me = nodes[ get_index(x.second) ].through;
-			_through.emplace_back(x.first, bc_map->get_index(LATE, x.first, who_eat_me));
+			_through.emplace_back(x.first, bc_map->get_index(LATE, x.first, get_index(x.second)));
 		}
 		int to_id = get_index(to[0].second);
 		bool specify = to.size()==2? false:true;
@@ -1021,8 +1004,7 @@ vector<Path>* Graph::report_timing(const vector<pair<Transition_Type,string>>&fr
 	}
 	else if(from.size()){
 		for(const auto &x:to){
-			int who_eat_me = nodes[ get_index(x.second) ].through;
-			_through.emplace_back(x.first, bc_map->get_index(LATE, x.first, who_eat_me));
+			_through.emplace_back(x.first, bc_map->get_index(LATE, x.first, get_index(x.second)));
 		}
 		int from_id = get_index(from[0].second);
 		bool specify = from.size()==2? false:true; // only rise or fall ?
@@ -1156,11 +1138,6 @@ void Graph::gen_test_path(ofstream& fout, Path& path){
 			int to = bc_map->get_graph_id( path.path[i-1] );
 			auto e = adj[x].find( to );
 			ASSERT(e != adj[x].end());
-			if(e->second->through!=-1){
-				int xx = e->second->through;
-				ans_pin.emplace_back(xx);
-				ans_type.emplace_back(type);
-			}
 		}
 	}
 	fout << "-from " ;
