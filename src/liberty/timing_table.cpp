@@ -50,6 +50,7 @@ void TimingTable::set_name(const string& name){
 }
 
 int TimingTable::getValuesIndex(int i,int j){
+	return 0;
     // return i*index2.size() + j;
 }
 

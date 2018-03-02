@@ -1135,7 +1135,7 @@ void Graph::gen_test_path(ofstream& fout, Path& path){
 		int x = bc_map->get_graph_id( path.path[i] );
 		Transition_Type type = bc_map->get_graph_id_type( path.path[i] );
 		ans_pin.emplace_back(x);
-		ans_type.emplace_back(type);
+		ans_type.push_back(type);
 		if(i>=2){
 			int to = bc_map->get_graph_id( path.path[i-1] );
 			auto e = adj[x].find( to );

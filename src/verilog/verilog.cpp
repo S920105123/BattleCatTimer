@@ -14,8 +14,11 @@ void Verilog::open(const string &fname) {
 	tok = reader.next_token();
 	EXPECT(tok, "(");
 	while (tok != ")") {
+		if (tok.empty()) {
+			ASSERT_NOT_REACHED();
+			break;
+		}
 		tok = reader.next_token();
-		EXPECT_NOT(tok, "");
 	}
 
 	/* Reading inputs */
@@ -42,14 +45,20 @@ void Verilog::open(const string &fname) {
 
 	/* Reading cells */
 	while (tok != "endmodule") {
-		EXPECT_NOT(tok, "");
+		if (tok.empty()) {
+			ASSERT_NOT_REACHED();
+			break;
+		}
 		Verilog_Gate *gt = new Verilog_Gate;
 		gt->cell_type = tok;
 		gt->cell_name = reader.next_token();
 		EXPECT(reader.next_token(), "(");
 		tok = reader.next_token();  // In case empty argument list.
 		while (tok != ")") {
-			EXPECT_NOT(tok, "");
+			if (tok.empty()) {
+				ASSERT_NOT_REACHED();
+				break;
+			}
 			string inp, from;
 			EXPECT(tok, ".");
 			inp  = reader.next_token();
