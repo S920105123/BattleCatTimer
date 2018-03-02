@@ -4,7 +4,7 @@
 int main(int argc, char** argv)
 {
     if(argc<5){
-        cout << "no enough arg.\n";
+        cout << "no enough arguments.\n" << std::endl;
         my_exit();
     }
     Timer timer;

@@ -132,7 +132,9 @@ void Kth::build_from_src(const vector<int>& src,const vector<int>& through){
         else delay = -node.at[mode][type];
 
         add_edge(source_kth, get_kth_id(map_id), delay, clock_at);
-        forward_build(map_id, 0);
+		if(object.size() and mark[map_id] and map->level[map_id]==object[0])
+			forward_build(map_id, 1);
+		else forward_build(map_id, 0);
     }
     connect_leaves_to_dest();
 }
@@ -203,7 +205,9 @@ void Kth::build_from_dest(const vector<int>& dest, const vector<int>& through){
         else delay = node.rat[mode][type];
 
         // no through points
-        backward_build(map_id, 0);
+		if(object.size() and mark[map_id] and map->level[map_id]==object[0])
+			backward_build(map_id, 1);
+		else backward_build(map_id, 0);
         add_edge(get_kth_id(map_id), dest_kth, delay);
     }
 
@@ -215,7 +219,7 @@ void Kth::build_from_dest(const vector<int>& dest, const vector<int>& through){
 bool Kth::forward_build(int now, int next_object){
     if(vis[now]) return is_good[now];
     vis[now] = 1;
-
+	
     if(map->G[now].size()==0){
         int graph_id = map->get_graph_id(now);
         auto& node = map->graph->nodes[ graph_id ];
