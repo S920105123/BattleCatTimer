@@ -3,7 +3,7 @@
 void File_Reader::open(const string &filename){
     ifstream in(filename, std::ios::binary);
 
-    if(!in.good()) LOG(ERROR) << "[File_Reader] Fail to open " << filename << "\n";
+    if(!in.good()) cout  << "[File_Reader] Fail to open " << filename << "\n";
 
     in.seekg(0, in.end);
     length = in.tellg();

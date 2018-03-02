@@ -4,7 +4,7 @@
 #include "header.h"
 #include "logger.h"
 
-const bool ASSERT_FAILURE_CRASH = true; // Set false to disable crash from fail assertion
+const bool ASSERT_FAILURE_CRASH = false; // Set false to disable crash from fail assertion
 const bool NOT_REACHED = false;
 
 #define DEBUG_MODE_ON // Comment this line to completely turn off debug mode.

@@ -40,6 +40,10 @@ void Pin::read(File_Reader &in){
 			EXPECT(in.next_token(), ":");
 			in.next_token();
 		}
+		else if(tok == "nextstate_type"){
+			EXPECT(in.next_token(), ":");
+			in.next_token();
+		}
 		else if (tok == "timing") {
 			EXPECT(in.next_token(), "(");
 			EXPECT(in.next_token(), ")");
