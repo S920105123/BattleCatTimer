@@ -988,33 +988,33 @@ vector<Path>* Graph::report_timing(const vector<pair<Transition_Type,string>>&fr
 	// cout << "tid = " << omp_get_thread_num() << endl << std::flush;
 	Kth& kth = *kths[omp_get_thread_num()];
 	kth.clear();
-	vector<pair<Transition_Type,int>> _through;
-	for(const auto &x:through){
-		_through.emplace_back(x.first, bc_map->get_index(LATE, x.first, get_index(x.second)) );
+	vector<int> _through, _from, _to;
+	for(const auto &x: through){
+		_through.emplace_back( bc_map->get_index(LATE, x.first, get_index(x.second)) );
+	}
+	for(const auto &x: from){
+		_from.emplace_back( bc_map->get_index(LATE, x.first, get_index(x.second)) );
+	}
+	for(const auto &x: to){
+		_to.emplace_back( bc_map->get_index(LATE, x.first, get_index(x.second)) );
 	}
 
 	if(to.size()){
+		// add from to through
 		for(const auto &x:from){
-			_through.emplace_back(x.first, bc_map->get_index(LATE, x.first, get_index(x.second)));
+			_through.emplace_back( bc_map->get_index(LATE, x.first, get_index(x.second)) );
 		}
-		int to_id = get_index(to[0].second);
-		bool specify = to.size()==2? false:true;
-
-		int to_map_id = bc_map->get_index(LATE, to[0].first, to_id);
-		kth.build_from_dest(_through, to_map_id, specify);
+		kth.build_from_dest(_to, _through);
 	}
 	else if(from.size()){
+		// this for wounld't be executed
 		for(const auto &x:to){
-			_through.emplace_back(x.first, bc_map->get_index(LATE, x.first, get_index(x.second)));
+			_through.emplace_back( bc_map->get_index(LATE, x.first, get_index(x.second)) );
 		}
-		int from_id = get_index(from[0].second);
-		bool specify = from.size()==2? false:true; // only rise or fall ?
-
-		int from_map_id = bc_map->get_index(LATE, from[0].first, from_id);
-		kth.build_from_src(_through, from_map_id, specify);
+		kth.build_from_src(_from, _through);
 	}
 	else if(through.size()){
-		kth.build_from_throgh(_through );
+		kth.build_from_throgh(_through);
 	}
 	else{
 		vector<int> dest;
@@ -1022,7 +1022,8 @@ vector<Path>* Graph::report_timing(const vector<pair<Transition_Type,string>>&fr
 		for(int i=0; i<(int)data_pin_slack.size(); i++){
 			dest.emplace_back(data_pin_slack[i].second);
 		}
-		kth.build_from_dest(dest);
+		ASSERT(_through.size()==0);
+		kth.build_from_dest(dest,_through);
 	}
 
 	vector<Path>* ans = new vector<Path>;

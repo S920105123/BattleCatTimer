@@ -55,10 +55,12 @@ public:
 
 	Kth(BC_map *_map, CPPR *_cppr, Graph *_graph);
     void clear();
-    void build_from_src(const vector<pair<Transition_Type,int>>&, int src, bool only_src);
-    void build_from_dest(const vector<pair<Transition_Type,int>>&, int dest, bool only_dest);
-    void build_from_dest(const vector<int>& dest);
-    void build_from_throgh(const vector<pair<Transition_Type,int>>& through);
+    // void build_from_src(const vector<pair<Transition_Type,int>>&, int src, bool only_src);
+    // void build_from_dest(const vector<pair<Transition_Type,int>>&, int dest, bool only_dest);
+    // void build_from_dest(const vector<int>& dest);
+    void build_from_throgh(const vector<int>& through);
+    void build_from_dest(const vector<int>& dest,const vector<int>& through);
+    void build_from_src(const vector<int>& src,const vector<int>& through);
     int get_kth_id(int map_id);
     void add_edge(int from, int to, float delay);                    // from , to in bc map
     void add_edge(int from, int to, float delay, float clock_delay); // from , to in bc map
@@ -76,7 +78,9 @@ public:
 	void set_st(int s, int t);
 
 private:
-    void mark_through(const vector<pair<Transition_Type,int>>&);
+    void mark_through(const vector<int>& through);
+    void connect_leaves_to_src();
+    void connect_leaves_to_dest();
     bool forward_build(int now, int next_object);
     bool backward_build(int now, int next_object);
     int add_node(int bc_node_id);
@@ -94,7 +98,7 @@ private:
 
     vector<bool> mark;          // mark node in graph
     vector<int> object;         // the search order to build good map for kth
-    vector<int> all_leave;      //
+    vector<int> all_leaves;      //
 
     vector<float> dist;         // Shortest distance to dest
     vector<float> at_dist;      // For tie breaking, not real at, it means "how bad the at is", smaller value is worse
