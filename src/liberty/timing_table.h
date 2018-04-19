@@ -24,8 +24,8 @@ public:
 
     // look-up table use linear polation
     // input_val: input_slew, output_val: cload/output_slew
-    //float get_value(float input_val, float output_val);
-    float get_value_constant(int precision=1);                           // if liberty is constant
+    float get_value(float input_val, float output_val);
+    // float get_value_constant(int precision=1);                           // if liberty is constant
 
 private:
     // we use 1d array to store 2d data, so use this function to get 1d position
@@ -35,11 +35,10 @@ private:
             indx1   x    indx2
               v1   ans  v2
     */
-    //float liner_polation(float v1, float v2, float indx1, float indx2, float x);
+    float liner_polation(float v1, float v2, float indx1, float indx2, float x);
     string label_name, table_type;
-    //vector<float> index1, index2;
-    //vector<float> values;
-    float constant_values;
+    vector<float> index1, index2;
+    vector<float> values;
 
     CellLib *cell_lib;
 };
