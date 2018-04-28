@@ -37,7 +37,7 @@ string BC_map::get_node_name(int map_id){
 void BC_map::add_edge(int from, int to, float delay){
     G[from].emplace_back(from, to, delay);
     Gr[to].emplace_back(to, from, delay);
-    in[to]++;
+    in_degree[to]++;
 }
 
 void BC_map::build(){
@@ -51,54 +51,38 @@ void BC_map::build(){
         to_map_id[LATE][RISE].emplace_back(num_node++);
         to_map_id[LATE][FALL].emplace_back(num_node++);
     }
-    superSource = num_node++;
     G.resize(num_node);
     Gr.resize(num_node);
-    in.resize(num_node);
+    in_degree.resize(num_node);
     vis.resize(num_node);
-    // vis.resize(graph->nodes.size()+100);
     level.resize(num_node);
+	is_disable.resize(num_node);
+	is_valid.resize(num_node);
+	is_through.resize(num_node);
 
     // dfs build map
-    for(int i=0; i<(int)graph->nodes.size(); i++)if(i!=graph->clock_id){
+    for(int i=0; i<(int)graph->nodes.size(); i++) if(i!=graph->clock_id) {
         Graph::Node &node = graph->nodes[i];
-        // if(node.type == PRIMARY_IN or node.type == CLOCK){
-        if(node.type == CLOCK){
-            build_map(i);
-            // add_edge(superSource, get_index(EARLY, RISE, i), 0);
-            // add_edge(superSource, get_index(EARLY, FALL, i), 0);
-            // add_edge(superSource, get_index(LATE, RISE, i), 0);
-            // add_edge(superSource, get_index(LATE, FALL, i), 0);
-        }
+        if(node.type == CLOCK || node.type == PRIMARY_IN)
+			build_map(i);
     }
 
     //bfs build level
-    for(int i=0; i<num_node; i++) if(in[i]==0) {
-    	q.push(i);
+    queue<int>* q = new queue<int>();
+    for(int i=0; i<num_node; i++) if(in_degree[i]==0) {
+    	q->push(i);
 	}
 
-    while(!q.empty()){
-        int x = q.front(); q.pop();
+    while(!q->empty()){
+        int x = q->front(); q->pop();
         for(const auto& e:G[x]){
-            in[e.to]--;
-            if(in[e.to]==0) q.push(e.to);
+            in_degree[e.to]--;
+            if(in_degree[e.to]==0) q->push(e.to);
             level[e.to] = max(level[e.to], level[x]+1);
         }
     }
 
-    // for(size_t i=0; i < graph->nodes.size(); i++)if(graph->nodes[i].exist){
-    //     // int a = level[ get_index(EARLY, RISE, i) ];
-    //     // int b = level[ get_index(EARLY, FALL, i) ];
-    //     int c = level[ get_index(LATE, RISE, i) ];
-    //     int d = level[ get_index(LATE, FALL, i) ];
-    //     // cout << a << " " << b << " " << c << " " << d << '\n';
-    //     // if(a!=b || a!=c || a!=d || b!=c || b!=d || c!=d){
-    //     if(c!=d){
-    //         LOG(ERROR) << " level error\n";
-    //         LOG(CERR) << " level error\n";
-    //     }
-    // }
-
+	delete q;
     LOG(NORMAL) << "BCmap nodes = " << num_node << "\n";
 }
 
@@ -112,14 +96,14 @@ void BC_map::build_map(int root){
             // float delay = e->tree? e->tree->get_delay(EARLY, graph->get_name(to)):0;
             // add_edge(get_index(EARLY, RISE, root), get_index(EARLY, RISE, to), delay);
             // add_edge(get_index(EARLY, FALL, root), get_index(EARLY, FALL, to), delay);
-
+            //
             // delay = e->tree? e->tree->get_delay(LATE, graph->get_name(to)):0;
-            // cout << "Rc edge ?? ";
+            // // cout << "Rc edge ?? ";
             // int from = e->from;
             // ASSERT(from == root);
-            // cout << graph->nodes[from].exist << " " << graph->nodes[to].exist << " ";
-            // cout << graph->nodes[from].name << " " << graph->nodes[to].name << "\n";
-
+            // // cout << graph->nodes[from].exist << " " << graph->nodes[to].exist << " ";
+            // // cout << graph->nodes[from].name << " " << graph->nodes[to].name << "\n";
+            //
             float delay = 0;
             add_edge(get_index(LATE, RISE, root), get_index(LATE, RISE, to), -delay);
             add_edge(get_index(LATE, FALL, root), get_index(LATE, FALL, to), -delay);
@@ -135,11 +119,10 @@ void BC_map::build_map(int root){
 
                         for(const auto& arc:e->arcs[mode]){
                             if(!arc->is_transition_defined(from_type, to_type)) continue;
-                            // float input_slew = graph->nodes[root].slew[mode][from_type];
-                            // float cload = graph->nodes[to].tree->get_downstream(mode, graph->nodes[to].name);
+                            float input_slew = graph->nodes[root].slew[mode][from_type];
+                            float cload = graph->nodes[to].tree->get_downstream(mode, graph->nodes[to].name);
                             // float cload = e->tree->get_downstream(mode, graph->nodes[to].name);
-                            // float delay = arc->get_delay(from_type, to_type, input_slew, cload);
-                            float delay = arc->get_delay_constant(from_type, to_type);
+                            float delay = arc->get_delay(from_type, to_type, input_slew, cload);
 
                             if(mode==LATE) delay *= -1;
                             add_edge(get_index(mode, from_type, root), get_index(mode, to_type, to), delay);
@@ -150,4 +133,138 @@ void BC_map::build_map(int root){
         }
         build_map(to);
     }
+}
+
+/******************************************
+*           k shortest path               *
+******************************************/
+void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, int nworst, vector<Path>& ans)
+{
+/* get next_level */
+	std::sort(through.begin(), through.end(), [this](int a,int b) {
+				return this->level[a] < this->level[b];
+		   	});
+
+	mark_point(through, disable);
+
+	cout << "sorted through by level\n";
+	for(auto x:through) {
+		cout << get_node_name(x) << "(" << level[x] << ") -> ";
+	}
+	cout << '\n';
+
+/* mark searching space */
+	kth_start.clear(); // FF:clk or Pin
+	kth_dest.clear();  // FF:D or Pout
+	std::fill(vis.begin(), vis.end(), 0);
+
+	if(through.size()) {
+		for(int i=0; i<(int)through.size(); i++) {
+			if(level[ through[i] ] == next_level[ 0 ]) {
+				if(search_fout( through[i], 1)) {
+					is_valid[i] = 1;
+					search_fin( through[i] );
+				}
+			}
+			else break;
+		}
+	}
+	else {
+		ASSERT(next_level.size() == 0);
+		// take all of FF:clk and Pin as a start point
+		for(int i=0; i<(int)G.size(); i++){
+			// i is a FF:clk or Pin
+			if(Gr[i].size() == 0) {
+				kth_start.push_back(i);
+				if(search_fout(i, 0)) is_valid[i] = 1;
+			}
+		}
+	}
+
+	cout << "kth_start:" << kth_start.size() << "\n";
+	for(auto x:kth_start) {
+		cout << get_node_name(x) << ":" << level[x] << "\n";
+	} cout << '\n';
+
+	cout << "kth_dest:" << kth_dest.size() << "\n";
+	for(auto x:kth_dest) {
+		cout << get_node_name(x) << ":" << level[x] << "\n";
+	} cout << '\n';
+
+/* query kth */
+
+	if( kth_start.size() < kth_dest.size() ) {
+
+	}
+	else {
+
+	}
+}
+
+void BC_map::mark_point(const vector<int>& through, const vector<int>& disable) {
+
+
+	std::fill(is_valid.begin(), is_valid.end(), 0);
+	std::fill(is_disable.begin(), is_disable.end(), 0);
+	std::fill(is_through.begin(), is_through.end(), 0);
+	next_level.clear();
+
+    if(through.size()) next_level.emplace_back(level[through[0]]);
+    for(int i=1; i<(int)through.size(); i++) {
+        if(level[through[i]] != next_level.back()) {
+            next_level.emplace_back(level[through[i]]);
+        }
+    }
+
+	for(auto &x: disable) is_disable[x] = true;
+	for(auto &x: through) is_through[x] = true;
+}
+
+void BC_map::search_fin(int x) {
+	
+	is_valid[x] = true;
+	if(Gr[x].size() == 0) {
+		kth_start.push_back(x) ;
+		return;
+	}
+
+	if(vis[x]) return;
+	vis[x] = 1;
+
+	for(auto& e: Gr[x]) {
+		if(is_disable[e.to] == false) search_fin(e.to);
+	}
+}
+
+bool BC_map::search_fout(int x,int next_level_id) {
+
+	if(vis[x]) return is_valid[x];
+	vis[x] = true;
+
+	// no fout: FF:D or Pout
+	if(G[x].size()==0) {
+		if(next_level_id == (int)next_level.size()) {
+			kth_dest.push_back( x );
+			return is_valid[x] = true;
+		}
+		else return is_valid[x] = false;
+	}
+	else {
+		for(auto &e: G[x]) {
+			int to = e.to;
+			if(is_disable[to] == true) continue;
+
+			if(next_level_id == (int) next_level.size()) {
+				if(search_fout(to, next_level_id)) is_valid[x] = true;
+			}
+			/* next_level_id < next_level.size() */
+			else if(level[to] == next_level[next_level_id] and is_through[to]) {
+				if(search_fout(to, next_level_id+1)) is_valid[x] = true;
+			}
+			else if(level[to] < next_level[next_level_id]) {
+				if(search_fout(to, next_level_id)) is_valid[x] = true;
+			}
+		}
+		return is_valid[x];
+	}
 }

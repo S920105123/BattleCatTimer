@@ -11,14 +11,15 @@ Graph::Node::Node(int index, const string &name, Node_type type) {
 	this->type    = type;
 	this->constrained_clk = -1;
 
-	// These undefined values is defined in header.h
+
+// These undefined values is defined in header.h
 	for (int i=0; i<2; i++) {
 		for (int j=0; j<2; j++) {
 			Mode mode = MODES[i];
 			Transition_Type type = TYPES[j];
 
 			this->slack[mode][type] = UNDEFINED_SLACK[mode];
-			// this->slew[mode][type]  = UNDEFINED_SLEW[mode];
+			this->slew[mode][type]  = UNDEFINED_SLEW[mode];
 			this->rat[mode][type]   = UNDEFINED_RAT[mode];
 			this->at[mode][type]    = UNDEFINED_AT[mode];
 		}
@@ -324,21 +325,19 @@ Graph::Graph() {
 	this->clock_id = -1;
 	this->cppr = NULL;
 	this->bc_map = NULL;
-	this->rc_tree = NULL;
 }
 
 Graph::~Graph(){
 	if (cppr) delete cppr;
 	if (bc_map) delete bc_map;
-	if (rc_tree) delete rc_tree;
 
 	for (auto &it_pair : this->wire_mapping) {
 		delete it_pair.second;
 	}
 
-	for(int i=0; i<NUM_THREAD; i++){
-		delete kths[i];
-	}
+	//for(int i=0; i<NUM_THREAD; i++){
+	//	delete kths[i];
+	//}
 
 	for (int i=0; i<(int)this->nodes.size(); i++) {
 		// Node_type type = this->nodes[i].type;
@@ -440,43 +439,42 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 		mapping->sinks.emplace_back(sink);
 	}
 
-	SpefNet *net = NULL;
-	rc_tree = new RCTree(net, &vlog, lib_arr);
 	/* Construct external timing arc through wire mapping */
 	for (const auto &wire_pair : this->wire_mapping) {
-		// const string &wire_name = wire_pair.first;
+		const string &wire_name = wire_pair.first;
 		Wire_mapping *mapping = wire_pair.second;
 		int from = mapping->src;
 		if (from == -1) continue; // Isolated node.
 
-		// SpefNet *net = spef.get_spefnet_ptr(wire_name, 0);
-		// if (net!=NULL) tree = new RCTree(net, &vlog, lib_arr);
-		// else{
-		// 	// add new spef
-		// 	SpefNet *net = new SpefNet();
-		// 	net->set_total_cap(0);
-		// 	string root = get_name ( wire_mapping[wire_name]->src ), type="I", dir="O";
-		// 	Node_type node_type = nodes[get_index(root)].node_type;
-		// 	if(node_type==PRIMARY_IN)  type="P", dir="I";
-		// 	if(node_type==PRIMARY_OUT) type="P", dir="O";
-		//
-		// 	net->set_name(wire_name);
-		// 	net->add_conn(root, type, dir);
-		// 	for(auto &it: (*wire_mapping[wire_name]).sinks) {
-		// 		string name = get_name(it), type="I", dir="I";
-		// 		Node_type node_type = nodes[it].node_type;
-		// 		if(node_type==PRIMARY_IN)  type="P", dir="I";
-		// 		if(node_type==PRIMARY_OUT) type="P", dir="O";
-		//
-		// 		net->add_conn(name, type , dir);
-		// 		net->add_cap(name, 0);
-		// 		net->add_res(root, get_name(it), 0);
-		// 	}
-		// 	spef.add_net( wire_name, net);
-		// 	tree = new RCTree(net, &vlog, lib_arr);
-		// }
-		// tree->build_tree();
-		// tree->cal();
+		RCTree *rc_tree = NULL;
+		SpefNet *net = spef.get_spefnet_ptr(wire_name, 0);
+		if (net!=NULL) rc_tree = new RCTree(net, &vlog, lib_arr);
+		else{
+			// add new spef
+			net = new SpefNet();
+			net->set_total_cap(0);
+			string root = get_name ( wire_mapping[wire_name]->src ), type="I", dir="O";
+			Node_type node_type = nodes[get_index(root)].type;
+			if(node_type==PRIMARY_IN)  type="P", dir="I";
+			if(node_type==PRIMARY_OUT) type="P", dir="O";
+		
+			net->set_name(wire_name);
+			net->add_conn(root, type, dir);
+			for(auto &it: (*wire_mapping[wire_name]).sinks) {
+				string name = get_name(it), type="I", dir="I";
+				Node_type node_type = nodes[it].type;
+				if(node_type==PRIMARY_IN)  type="P", dir="I";
+				if(node_type==PRIMARY_OUT) type="P", dir="O";
+		
+				net->add_conn(name, type , dir);
+				net->add_cap(name, 0);
+				net->add_res(root, get_name(it), 0);
+			}
+			spef.add_net( wire_name, net);
+			rc_tree = new RCTree(net, &vlog, lib_arr);
+		}
+		rc_tree->build_tree();
+		rc_tree->cal();
 		nodes[from].tree = rc_tree;
 		for (int to : mapping->sinks) {
 			nodes[to].tree = rc_tree;
@@ -583,11 +581,12 @@ void Graph::at_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 			Transition_Type type_from = TYPES[i], type_to = TYPES[j];
 			// No ++ in Transition_Type
 			if (!arc->is_transition_defined(type_from, type_to)) continue;
-			// float cap_load = node_to.tree->get_downstream(mode, node_to.name);
-			// float input_slew = node_from.slew[mode][type_from];
+			float output_load = node_to.tree->get_downstream(mode, node_to.name);
+			float input_slew = node_from.slew[mode][type_from];
 			/* Try to update at */
 			if (node_from.at[mode][type_from] != UNDEFINED_AT[mode]) {
-				float delay = arc->get_delay_constant(type_from, type_to);
+				//float delay = arc->get_delay_constant(type_from, type_to);
+				float delay = arc->get_delay(type_from, type_to, input_slew, output_load);
 				float new_at = node_from.at[mode][type_from] + delay;
 				float &at = node_to.at[mode][type_to];
 				if (at == UNDEFINED_AT[mode] || at_worse_than(new_at, at, mode)) {
@@ -631,14 +630,14 @@ void Graph::at_update(Edge *eptr) {
 			float delay = eptr->tree->get_delay(mode, node_to.name);
 			for (int j=0; j<2; j++) {
 				Transition_Type type = TYPES[j];
-				// float new_slew = eptr->tree->get_slew(mode, node_to.name, node_from.slew[mode][type]);
-				// if (node_from.slew[mode][type] != UNDEFINED_SLEW[mode]) {
-				// 	float &slew = node_to.slew[mode][type];
-				// 	if ( slew == UNDEFINED_SLEW[mode] || slew_worse_than(new_slew, slew, mode) ) {
-				// 		// Always choose worst slew
-				// 		slew = new_slew;
-				// 	}
-				// }
+				float new_slew = eptr->tree->get_slew(mode, node_to.name, node_from.slew[mode][type]);
+				if (node_from.slew[mode][type] != UNDEFINED_SLEW[mode]) {
+					float &slew = node_to.slew[mode][type];
+					if ( slew == UNDEFINED_SLEW[mode] || slew_worse_than(new_slew, slew, mode) ) {
+						// Always choose worst slew
+						slew = new_slew;
+					}
+				}
 				if (node_from.at[mode][type] != UNDEFINED_AT[mode]) {
 					float &at = node_to.at[mode][type], new_at = node_from.at[mode][type] + delay;
 					if ( at == UNDEFINED_AT[mode] || at_worse_than(new_at, at, mode) ) {
@@ -699,7 +698,11 @@ void Graph::rat_arc_update(int from, int to, TimingArc *arc, Mode mode) {
 			if (!arc->is_transition_defined(type_from, type_to)) continue;
 			/* Try to update rat */
 			if (node_to.rat[mode][type_to] != UNDEFINED_RAT[mode]) {
-				float delay = arc->get_delay_constant(type_from, type_to);
+				//float delay = arc->get_delay_constant(type_from, type_to);
+				float output_load  = node_to.tree->get_downstream(mode, node_to.name);
+				float input_slew = node_from.slew[mode][type_from];
+				float delay = arc->get_delay(type_from, type_to, input_slew, output_load);
+
 				float new_rat = node_to.rat[mode][type_to] - delay;
 				float &rat = node_from.rat[mode][type_from];
 				if (rat == UNDEFINED_RAT[mode] || rat_worse_than(new_rat, rat, mode)) {
@@ -799,7 +802,9 @@ void Graph::init_rat_from_constraint() {
 				if (!cons.arc->is_transition_defined(type_clk, type_data)) continue; // This also checks what clock edge to be used
 				if (mode == EARLY) {
 					// Hold test
-					float delay = cons.arc->get_constraint_constant(type_clk, type_data);
+					// float delay = cons.arc->get_constraint_constant(type_clk, type_data);
+					float delay = cons.arc->get_constraint(type_clk, type_data, clk.slew[LATE][type_clk], data_pin.slew[EARLY][type_data]);
+
 					float &data_rat = data_pin.rat[EARLY][type_data];
 					float &clk_rat = clk.rat[LATE][type_clk];
 					float new_data_rat = clk.at[LATE][type_clk] + delay;
@@ -809,8 +814,8 @@ void Graph::init_rat_from_constraint() {
 					if (data_pin.at[EARLY][type_data] != UNDEFINED_AT[EARLY]) rat_relax(clk_rat, new_clk_rat, LATE);
 				} else {
 					// Setup test
-					// float delay = cons.arc->get_constraint(type_clk, type_data, clk.slew[EARLY][type_clk], data_pin.slew[LATE][type_data]);
-					float delay = cons.arc->get_constraint_constant(type_clk, type_data);
+					float delay = cons.arc->get_constraint(type_clk, type_data, clk.slew[EARLY][type_clk], data_pin.slew[LATE][type_data]);
+					// float delay = cons.arc->get_constraint_constant(type_clk, type_data);
 					float &data_rat = data_pin.rat[LATE][type_data];
 					float &clk_rat = clk.rat[EARLY][type_clk];
 					float new_data_rat = this->clock_T + clk.at[EARLY][type_clk] - delay;
@@ -844,6 +849,7 @@ void Graph::calculate_rat() {
 }
 
 void Graph::init_graph(){
+	Logger::add_timestamp("start init graph");
     calculate_at();
 	Logger::add_timestamp("at ok");
 
@@ -856,7 +862,6 @@ void Graph::init_graph(){
     {
 		// #pragma omp section
 		{
-            //LOG(CERR) << "tid : " << omp_get_thread_num() << " rat\n";
 		    calculate_rat();
 			Logger::add_timestamp("rat ok");
 			for (int i = 0; i < (int)nodes.size(); i++) {
@@ -866,49 +871,15 @@ void Graph::init_graph(){
 				else if (node.type == DATA_PIN) this->data_pins.push_back(i);
 				ASSERT(node.type != UNKNOWN);
 			}
-			// this->first_level_condense();
-			// Logger::add_timestamp("condense ok");
 		}
 		// #pragma omp section
         {
          	//cout << "tid : " << omp_get_thread_num() << " bc_map\n" << std::flush;
  			bc_map = new BC_map(this);
  			bc_map->build();
-			for(int i=0; i<NUM_THREAD; i++){
-				kths[i] = new Kth(bc_map, cppr, this);
-			}
 			Logger::add_timestamp("bcmap ok");
  		}
 	}
-
-	/* slack is ok*/
-	// for(int i=0; i<(int)nodes.size(); i++){
-	// 	if(nodes[i].in_cppr) continue;
-	// 	if(nodes[i].constrained_clk == -1 and nodes[i].type!=PRIMARY_OUT) continue;
-	for(auto &i:data_pins){
-		// just pick ff:d and PRIMARY_OUT
-		// LOG(CERR) << get_name(i) << " added to slack\n";
-
-		/*just setup check*/
-		for(int mm=0; mm<1; mm++){
-			for(int jj=0; jj<2; jj++){
-				Mode mode = LATE;
-				int map_id = bc_map->get_index(mode, TYPES[jj], i);
-				data_pin_slack.emplace_back(nodes[i].slack[mode][TYPES[jj]], map_id);
-			}
-		}
-	}
-	sort(data_pin_slack.begin(), data_pin_slack.end());
-
-	Logger::add_timestamp("pick node ok");
-
-	// int num = 0;
-	// for(int i=0; i<(int)nodes.size(); i++){
-	// 	if(nodes[i].through == i){
-	// 		if(adj[i].size()==1 and rev_adj[i].size()==1) num++;
-	// 	}
-	// }
-	//LOG(CERR) << "can remove " << num << " nodes in second condense\n";
 }
 
 // ******************************************************
@@ -951,88 +922,31 @@ void Graph::repower_gate(const string& inst_name, const string& cell_type){
 	//LOG(CERR) << "repower_gate " << inst_name << " " << cell_type << '\n';
 }
 
-vector<Path>* Graph::report_timing(const vector<pair<Transition_Type,string>>&from,
-				   		  const vector<pair<Transition_Type,string>>&through,
-				   	      const vector<pair<Transition_Type,string>>&to, int max_paths, int nworst)
+vector<Path>* Graph::report_timing(const vector<pair<Transition_Type,string>>&through,
+				   	      		   const vector<pair<Transition_Type,string>>&disable, int nworst)
 {
-	// LOG(CERR) << "report_timing ";
-	// LOG(CERR) << "-max_paths " << max_paths << " ";
-	// LOG(CERR) << "-nworst " << nworst << " ";
-	// for(auto i:from){
-	// 	if(i.first==Transition_Type::FALL){
-	// 		LOG(CERR) << "-fall_from " << i.second << " ";
-	// 	}
-	// 	if(i.first==Transition_Type::RISE){
-	// 		LOG(CERR) << "-rise_from " << i.second << " ";
-	// 	}
-	// }
-	// for(auto i:through){
-	// 	if(i.first==Transition_Type::FALL){
-	// 		LOG(CERR) << "-fall_through " << i.second << " ";
-	// 	}
-	// 	if(i.first==Transition_Type::RISE){
-	// 		LOG(CERR) << "-rise_through " << i.second << " ";
-	// 	}
-	// }
-	// for(auto i:to){
-	// 	if(i.first==Transition_Type::FALL){
-	// 		LOG(CERR) << "-fall_to " << i.second << " ";
-	// 	}
-	// 	if(i.first==Transition_Type::RISE){
-	// 		LOG(CERR) << "-rise_to " << i.second << " ";
-	// 	}
-	// }
-	// LOG(CERR) << '\n';
-
-	// Kth kth(bc_map, cppr, this);
-	// cout << "tid = " << omp_get_thread_num() << endl << std::flush;
-	Kth& kth = *kths[omp_get_thread_num()];
-	kth.clear();
-	vector<int> _through, _from, _to;
+	vector<int> _through, _disable;
+	// turn to bc_map id
 	for(const auto &x: through){
 		_through.emplace_back( bc_map->get_index(LATE, x.first, get_index(x.second)) );
 	}
-	for(const auto &x: from){
-		_from.emplace_back( bc_map->get_index(LATE, x.first, get_index(x.second)) );
-	}
-	for(const auto &x: to){
-		_to.emplace_back( bc_map->get_index(LATE, x.first, get_index(x.second)) );
+	for(const auto &x: disable){
+		_disable.emplace_back( bc_map->get_index(LATE, x.first, get_index(x.second)) );
 	}
 
-	if(to.size()){
-		// add from to through
-		for(const auto &x:from){
-			_through.emplace_back( bc_map->get_index(LATE, x.first, get_index(x.second)) );
-		}
-		kth.build_from_dest(_to, _through);
+
+	cout << "report timing:\n";
+	for(const auto &x: _through){
+		cout << "through: " << bc_map->get_node_name(x) << '\n';
 	}
-	else if(from.size()){
-		// this for wounld't be executed
-		for(const auto &x:to){
-			_through.emplace_back( bc_map->get_index(LATE, x.first, get_index(x.second)) );
-		}
-		kth.build_from_src(_from, _through);
-	}
-	else if(through.size()){
-		kth.build_from_throgh(_through);
-	}
-	else{
-		vector<int> dest;
-		// int lim = min((int)data_pin_slack.size(), max_paths);
-		for(int i=0; i<(int)data_pin_slack.size(); i++){
-			dest.emplace_back(data_pin_slack[i].second);
-		}
-		ASSERT(_through.size()==0);
-		kth.build_from_dest(dest,_through);
+	for(const auto &x: _disable){
+		cout << "disable: " << bc_map->get_node_name(x) << '\n';
 	}
 
 	vector<Path>* ans = new vector<Path>;
-	kth.k_shortest_path(max_paths, *ans);
+	bc_map->k_shortest_path(_through, _disable, nworst, *ans);
 
 	return ans;
-	// for (auto &k : ans) {
-	// 	k.output(fout, this, this->bc_map);
-	// }
 }
 
 BC_map* Graph::get_bc_map(){
@@ -1053,7 +967,7 @@ void Graph::print_graph(){
 
 							cout << get_name(i) << ":" << get_transition_string(TYPES[ii]) << " -> ";
 							cout << get_name(to) << ":" << get_transition_string(TYPES[jj]) << " ";
-							cout << arc->get_delay_constant(TYPES[ii], TYPES[jj]) << '\n';
+							// cout << arc->get_delay_constant(TYPES[ii], TYPES[jj]) << '\n';
 						}
 					}
 				}

@@ -139,6 +139,6 @@ clean:
 	del *.log
 
 rm_clean:
-	rm *.o
-	rm *.exe
-	rm *.log
+	rm -f *.o
+	rm -f *.exe
+	rm -f *.log

@@ -14,7 +14,7 @@ public:
     TimingTable(CellLib *_cell_lib, const string& _table_tpye){
         cell_lib = _cell_lib;
         table_type = _table_tpye;
-        constant_values = 0;
+        // constant_values = 0;
     }
 
     void read(File_Reader &in);

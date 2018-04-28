@@ -46,38 +46,23 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
             open_ops(ops);
         }
     }
+	Logger::add_timestamp("start report timing");
     vector< vector<Path>* > ans;
-    ans.resize((int)_from.size());
+    ans.resize((int)_through.size());
     int i;
     output.open(output_file);
 
-    #pragma omp parallel for schedule(dynamic) private(i)
-    for(i=0; i<(int)_from.size(); i++){
-        ans[i] = graph->report_timing(*_from[i], *_through[i], *_to[i], _max_paths[i], _nworst[i]);
+//    #pragma omp parallel for schedule(dynamic) private(i)
+    for(i=0; i<(int)_through.size(); i++){
+        ans[i] = graph->report_timing(*_through[i], *_disable[i], _nworst[i]);
     }
     Logger::add_timestamp("report_timing ok");
 
-    //#define GEN_TEST "AC"
-
-    #ifdef GEN_TEST
-        ofstream test_out;
-        test_out.open(ops);
-        for(int i=0; i<(int)ans.size(); i++){
-            for(const auto &p:*ans[i]){
-                graph->gen_test_path(test_out, p);
-                p.output(output, graph);
-            }
-        }
-        test_out.close();
-    #endif
-
-    #ifndef GEN_TEST
-        for(int i=0; i<(int)ans.size(); i++){
-            for(const auto &p:*ans[i]){
-                p.output(output, graph);
-            }
-        }
-    #endif
+	for(int i=0; i<(int)ans.size(); i++){
+		for(const auto &p:*ans[i]){
+			p.output(output, graph);
+		}
+	}
 
     output.close();
     Logger::add_timestamp("writing ok");
@@ -87,14 +72,6 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
         delete ans[i];
     }
     Logger::add_timestamp("free ok");
-
-    // for(i=0; i<(int)_from.size(); i++){
-    //     auto a = graph->report_timing(*_from[i], *_through[i], *_to[i], _max_paths[i], _nworst[i]);
-    //     for(auto p:*a)
-    //         p.output(output, graph);
-    // }
-    // output.close();
-    // Logger::add_timestamp("report_timing ok");
 }
 
 void Timer::clear_Timer(){
@@ -103,9 +80,8 @@ void Timer::clear_Timer(){
     if (lib[0]) delete lib[0];
     if (lib[1]) delete lib[1];
     if (graph) delete graph;
-    for (auto &ptr : _from) delete ptr;
-    for (auto &ptr : _to) delete ptr;
     for (auto &ptr : _through) delete ptr;
+    for (auto &ptr : _disable) delete ptr;
 }
 
 void Timer::init_timer(){
@@ -265,39 +241,38 @@ void Timer::open_ops(const string& ops){
         /* tau 2018 */
         if(cmd=="report_timing"){
             string op, pin;
-            vector<pair<Transition_Type, string>> *through, *from , *to;
-            through = new vector<pair<Transition_Type,string>>();
-            from = new vector<pair<Transition_Type,string>>();
-            to = new vector<pair<Transition_Type,string>>();
-            int max_pahts = 1, nworst = 1;
+            vector<pair<Transition_Type, string>> *through, *disable;
+            through = new vector<pair<Transition_Type,string>>(); 
+			disable = new vector<pair<Transition_Type,string>>();
+            int nworst = 1;
             do{
                 op = in.next_token();
                 if(op=="") break;
                 if(op=="-from"){
                     read_pin_name(in, pin);
-                    from->emplace_back(RISE, pin);
-                    from->emplace_back(FALL, pin);
+                    through->emplace_back(RISE, pin);
+                    through->emplace_back(FALL, pin);
                 }
                 else if(op=="-rise_from"){
                     read_pin_name(in, pin);
-                    from->emplace_back(RISE, pin);
+                    through->emplace_back(RISE, pin);
                 }
                 else if(op=="-fall_from"){
                     read_pin_name(in, pin);
-                    from->emplace_back(FALL, pin);
+                    through->emplace_back(FALL, pin);
                 }
                 else if(op=="-to"){
                     read_pin_name(in, pin);
-                    to->emplace_back(RISE, pin);
-                    to->emplace_back(FALL, pin);
+                    through->emplace_back(RISE, pin);
+                    through->emplace_back(FALL, pin);
                 }
                 else if(op=="-rise_to"){
                     read_pin_name(in, pin);
-                    to->emplace_back(RISE, pin);
+                    through->emplace_back(RISE, pin);
                 }
                 else if(op=="-fall_to"){
                     read_pin_name(in, pin);
-                    to->emplace_back(FALL, pin);
+                    through->emplace_back(FALL, pin);
                 }
                 else if(op=="-through"){
                     read_pin_name(in, pin);
@@ -312,8 +287,20 @@ void Timer::open_ops(const string& ops){
                     read_pin_name(in, pin);
                     through->emplace_back(FALL, pin);
                 }
-                else if(op=="-max_paths") max_pahts = (int)stof(in.next_token());
-                else if(op=="-nworst")   nworst = (int)stof(in.next_token());
+                else if(op=="-disable"){
+                    read_pin_name(in, pin);
+                    disable->emplace_back(RISE, pin);
+                    disable->emplace_back(FALL, pin);
+                }
+                else if(op=="-rise_disable"){
+                    read_pin_name(in, pin);
+                    disable->emplace_back(RISE, pin);
+                }
+                else if(op=="-fall_disable"){
+                    read_pin_name(in, pin);
+                    disable->emplace_back(FALL, pin);
+                }
+                else if(op=="-nworst")  nworst = (int)stof(in.next_token());
                 else if(op[0]=='-'){
                     LOG(CERR) << "[Timer][open_ops] unknown parameter in report_timing: " << op << '\n';
                     output.close();
@@ -322,12 +309,9 @@ void Timer::open_ops(const string& ops){
                 else break;
             }while(true);
             if(op.size()) in.put_back(op);
-            _from.emplace_back(from);
-            _to.emplace_back(to);
             _through.emplace_back(through);
+			_disable.emplace_back(disable);
             _nworst.emplace_back(nworst);
-            _max_paths.emplace_back(max_pahts);
-            // graph->report_timing(output, from, through, to, max_pahts, nworst);
         }
         // else if(cmd=="report_cppr_credit"){
         //     string pin1, pin2;

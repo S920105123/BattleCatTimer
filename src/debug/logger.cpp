@@ -28,12 +28,18 @@ Logger::~Logger() {
 	flog << "\n\n[Log] - "<<tstr<<"- ";
 	flog << "close log files\n";
 	int pre = 0, total = 0;
-	// for (const auto &p : timestamp) {
-	//		if(pre==0) pre = p.second;
-	//		total += p.second-pre;
-	//		std::cerr << std::setw(16) << p.first << "| delay: " << std::setw(3) << p.second - pre << "| total: " << std::setw(3) << total << '\n';
-	//		pre = p.second;
-	//	}
+
+	int space = 0;
+	for(const auto& p: timestamp) {
+		space = std::max(space, (int)p.first.size());
+	}
+
+	for (const auto &p : timestamp) {
+		if(pre==0) pre = p.second;
+		total += p.second-pre;
+		std::cerr << std::setw(space+1) << p.first << "| delay: " << std::setw(3) << p.second - pre << "| total: " << std::setw(3) << total << '\n';
+		pre = p.second;
+	}
 	std::cerr << "Log error : " << error_num << ", warning : " << warning_num << '\n';
 	flog.close();
 }
@@ -41,7 +47,7 @@ Logger::~Logger() {
 void Logger::add_timestamp(const string& event){
 	timestamp.emplace_back(event, time(NULL));
 
-	// std::cerr << event << '\n' << std::flush;
+	 std::cerr << event << '\n' << std::flush;
 }
 
 Logger& Logger::Log(Log_type type, bool prefix) {

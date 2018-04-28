@@ -11,7 +11,6 @@
 #include "rc_tree.h"
 #include "cppr.h"
 #include "bc_map.h"
-#include "kth.h"
 
 typedef enum { RC_TREE, IN_CELL } Edge_type;
 typedef enum { PRIMARY_IN, PRIMARY_OUT, INPUT_PIN, OUTPUT_PIN, CLOCK, DATA_PIN, UNKNOWN } Node_type;
@@ -37,6 +36,7 @@ public:
 
 		float at[2][2];           // Arrival time. e.g, at[EARLY][RISE]
 		float rat[2][2];          // Required arrival time.
+		float slew[2][2];
 		float slack[2][2];
 		int constrained_clk;      // Only set when type == DATA_PIN
 
@@ -85,9 +85,9 @@ public:
 	float get_slew(const string &pin_name, Mode mode, Transition_Type transition);
 	float get_slack(const string &pin_name, Mode mode, Transition_Type transition);
 	float get_cppr_credit(const string& pin1, const string& pin2, Transition_Type type1, Transition_Type typ2, Mode mode);
-	vector<Path>* report_timing(const vector<pair<Transition_Type,string>>&from,
-					   		 const vector<pair<Transition_Type,string>>&through,
-					   		 const vector<pair<Transition_Type,string>>&to, int max_paths, int nworst);
+	vector<Path>* report_timing(const vector<pair<Transition_Type,string>>&through,
+					   		    const vector<pair<Transition_Type,string>>&disable, 
+								int nworst);
 
 	/* unimplemented */
 	void set_load(const string& pin_name, float cap);
@@ -130,7 +130,6 @@ public:
 	BC_map* get_bc_map();
 
 private:
-	Kth* kths[NUM_THREAD];
 
 	int next_id;
 	int clock_id;
@@ -142,7 +141,6 @@ private:
 	vector< unordered_map<int, Edge*> > rev_adj; // Reverse adjacency list.
 	vector< Constraint > constraints;            // Conatraint edges
 	vector< int > clocks, data_pins;             // Clock nodes
-	vector<pair<float,int>> data_pin_slack;      // slack of data_pin <slack, map_id>
 
 	// Graph related
 	void first_level_condense();
@@ -161,8 +159,7 @@ private:
 	// sink = vector of input pin index (sink pins)
 	unordered_map<string, Wire_mapping*> wire_mapping;
 	CPPR *cppr;
-	BC_map* bc_map;
-	RCTree* rc_tree;
+	BC_map *bc_map;
 
 	friend class CPPR;
 	friend class BC_map;
