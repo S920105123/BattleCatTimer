@@ -4,7 +4,7 @@
 #include <omp.h>
 #include <algorithm>
 #include <utility>
-#include <time.h>
+#include <limits>
 
 #include <iostream>
 #include <iomanip>
@@ -70,5 +70,7 @@ const Transition_Type TYPES[2] = { RISE, FALL };
 const Mode MODES[2] = { EARLY, LATE };
 
 const int NUM_THREAD = 8;
+
+const float INF = std::numeric_limits<float>::infinity();
 
 #endif /* end HEADER_H */
