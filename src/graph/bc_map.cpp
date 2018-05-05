@@ -1,8 +1,18 @@
 #include "bc_map.h"
 
-
-BC_map::BC_map(Graph* graph){
+BC_map::BC_map(Graph* graph, CPPR* cppr){
     this->graph = graph;
+	this->cppr = cppr;
+
+	for(int i=0; i<NUM_THREAD; i++) {
+		kths[i] = new Kth(this, cppr, graph);
+	}
+}
+
+BC_map::~BC_map() {
+	for(int i=0; i<NUM_THREAD; i++) {
+		delete kths[i];
+	}
 }
 
 int BC_map::get_index(Mode mode, Transition_Type type, int node_id){
@@ -37,6 +47,9 @@ string BC_map::get_node_name(int map_id){
 void BC_map::add_edge(int from, int to, float delay){
     G[from].emplace_back(from, to, delay);
     Gr[to].emplace_back(to, from, delay);
+
+	G[from].back().rev_edge = &Gr[to].back();
+	Gr[to].back().rev_edge = &G[from].back();
     in_degree[to]++;
 }
 
@@ -138,71 +151,34 @@ void BC_map::build_map(int root){
 /******************************************
 *           k shortest path               *
 ******************************************/
-void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, int nworst, vector<Path>& ans)
+void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, int k, vector<Path*>& ans)
 {
 /* get next_level */
-	std::sort(through.begin(), through.end(), [this](int a,int b) {
-				return this->level[a] < this->level[b];
-		   	});
-
 	mark_point(through, disable);
 
-	cout << "sorted through by level\n";
-	for(auto x:through) {
-		cout << get_node_name(x) << "(" << level[x] << ") -> ";
-	}
-	cout << '\n';
-
 /* mark searching space */
-	kth_start.clear(); // FF:clk or Pin
-	kth_dest.clear();  // FF:D or Pout
-	std::fill(vis.begin(), vis.end(), 0);
-
-	if(through.size()) {
-		for(int i=0; i<(int)through.size(); i++) {
-			if(level[ through[i] ] == next_level[ 0 ]) {
-				if(search_fout( through[i], 1)) {
-					is_valid[i] = 1;
-					search_fin( through[i] );
-				}
-			}
-			else break;
-		}
-	}
-	else {
-		ASSERT(next_level.size() == 0);
-		// take all of FF:clk and Pin as a start point
-		for(int i=0; i<(int)G.size(); i++){
-			// i is a FF:clk or Pin
-			if(Gr[i].size() == 0) {
-				kth_start.push_back(i);
-				if(search_fout(i, 0)) is_valid[i] = 1;
-			}
-		}
-	}
-
-	cout << "kth_start:" << kth_start.size() << "\n";
-	for(auto x:kth_start) {
-		cout << get_node_name(x) << ":" << level[x] << "\n";
-	} cout << '\n';
-
-	cout << "kth_dest:" << kth_dest.size() << "\n";
-	for(auto x:kth_dest) {
-		cout << get_node_name(x) << ":" << level[x] << "\n";
-	} cout << '\n';
+	search(through);
 
 /* query kth */
-
 	if( kth_start.size() < kth_dest.size() ) {
-
+		std::function<void(Kth*, int, int, vector<Path*>&)> f = [](Kth* kth, int src, int k, vector<Path*>& container) {
+			//	kth->KSP_from_source(src, k, container);
+		};
+		do_kth(kth_start, k, f, ans);
 	}
 	else {
-
+		std::function<void(Kth*, int, int, vector<Path*>&)> f = [](Kth* kth, int dest, int k, vector<Path*>& container) {
+			 // kth->KSP_to_destination(dest, k, container);
+		};
+		do_kth(kth_dest, k, f, ans);
 	}
 }
 
-void BC_map::mark_point(const vector<int>& through, const vector<int>& disable) {
+void BC_map::mark_point(vector<int>& through, const vector<int>& disable) {
 
+	std::sort(through.begin(), through.end(), [this](int a,int b) {
+				return this->level[a] < this->level[b];
+		   	});
 
 	std::fill(is_valid.begin(), is_valid.end(), 0);
 	std::fill(is_disable.begin(), is_disable.end(), 0);
@@ -220,8 +196,44 @@ void BC_map::mark_point(const vector<int>& through, const vector<int>& disable) 
 	for(auto &x: through) is_through[x] = true;
 }
 
+void BC_map::search(vector<int>& through) {
+
+	kth_start.clear(); // FF:clk or Pin
+	kth_dest.clear();  // FF:D or Pout
+	std::fill(vis.begin(), vis.end(), 0);
+
+	// clean the mark of the edges
+	for(auto &e: valid_edge)  e->valid = false;
+	valid_edge.clear();
+
+	if(through.size()) {
+		for(auto &x: through) {
+			// start from the point has the lowest level
+			if(level[x] == next_level[0]) {
+				if(search_fout(x, 1)) {
+					is_valid[x] = 1;
+					search_fin(x);
+				}
+			}
+			else break;
+		}
+	}
+	else {
+		ASSERT(next_level.size() == 0);
+		// take all of FF:clk and Pin as a start point
+		for(int i=0; i<(int)G.size(); i++){
+			// i is a FF:clk or Pin
+			if(Gr[i].size() == 0) {
+				kth_start.push_back(i);
+				if(search_fout(i, 0)) is_valid[i] = 1;
+			}
+		}
+	}
+}
+
 void BC_map::search_fin(int x) {
 	
+	// any point found by the search_fin is valid
 	is_valid[x] = true;
 	if(Gr[x].size() == 0) {
 		kth_start.push_back(x) ;
@@ -233,6 +245,11 @@ void BC_map::search_fin(int x) {
 
 	for(auto& e: Gr[x]) {
 		if(is_disable[e.to] == false) search_fin(e.to);
+
+		valid_edge.push_back( &e );
+		valid_edge.push_back( e.rev_edge );
+		e.valid = true;
+		e.rev_edge->valid = true;
 	}
 }
 
@@ -254,17 +271,77 @@ bool BC_map::search_fout(int x,int next_level_id) {
 			int to = e.to;
 			if(is_disable[to] == true) continue;
 
+			bool ok = false;
 			if(next_level_id == (int) next_level.size()) {
-				if(search_fout(to, next_level_id)) is_valid[x] = true;
+				if(search_fout(to, next_level_id)) ok = true;
 			}
 			/* next_level_id < next_level.size() */
 			else if(level[to] == next_level[next_level_id] and is_through[to]) {
-				if(search_fout(to, next_level_id+1)) is_valid[x] = true;
+				if(search_fout(to, next_level_id+1)) ok = true;
 			}
 			else if(level[to] < next_level[next_level_id]) {
-				if(search_fout(to, next_level_id)) is_valid[x] = true;
+				if(search_fout(to, next_level_id)) ok = true;
+			}
+			else { 
+				// we don't look at the point which level is greater than the next_level
+			}
+			
+			if(ok) {
+				is_valid[x] = true;
+				valid_edge.push_back( &e );
+				valid_edge.push_back( e.rev_edge );
+				e.valid = true;
+				e.rev_edge->valid = true;
 			}
 		}
 		return is_valid[x];
 	}
+}
+
+void BC_map::do_kth(const vector<int>& condidate, size_t k, std::function<void(Kth*,int,int,vector<Path*>&)> fun, vector<Path*>& ans) {
+
+	auto compare_path = [](const Path* a, const Path* b) {
+		return a->delay < b->delay;
+	};
+	priority_queue<Path*, vector<Path*>, decltype(compare_path)> path_heap(compare_path);
+	threshold = std::numeric_limits<float>().max();
+
+	// enumerate every condidat to do kth-sortest path with cppr
+    #pragma omp parallel for
+	for(size_t i=0; i<condidate.size(); i++) 
+	{
+		int tid = omp_get_thread_num();
+		int st = condidate[i];
+
+		Kth* kth = kths[tid];
+		kth->clear();
+		path_kth[tid].clear();
+		fun(kth, st, k, path_kth[tid]);
+
+		// update path heap
+		#pragma omp critical
+		{
+			size_t index = 0;
+			while(path_heap.size() < k and index<path_kth[tid].size()) {
+				path_heap.push( path_kth[tid][index++] );
+			}
+
+			while(index<path_kth[tid].size() and (-path_heap.top()->dist) < (-path_kth[tid][index]->dist) ) {
+				delete path_heap.top();
+				path_heap.pop();
+
+				path_heap.push( path_kth[tid][index++] );
+			}
+
+			// update threshold
+			if(path_heap.size() >=k ) threshold = -path_heap.top()->dist;
+		}
+	}
+
+	ans.clear();
+	while(!path_heap.empty()) {
+		ans.emplace_back( path_heap.top() );
+		path_heap.pop();
+	}
+	std::reverse(ans.begin(), ans.end());
 }

@@ -853,9 +853,9 @@ void Graph::init_graph(){
     calculate_at();
 	Logger::add_timestamp("at ok");
 
-	cppr = NULL;
-	// cppr = new CPPR(this, clock_id);
-	// cppr->build_tree();
+	// cppr = NULL;
+	 cppr = new CPPR(this, clock_id);
+	 cppr->build_tree();
 	// Logger::add_timestamp("cppr ok");
 
    // #pragma omp parallel sections
@@ -875,7 +875,7 @@ void Graph::init_graph(){
 		// #pragma omp section
         {
          	//cout << "tid : " << omp_get_thread_num() << " bc_map\n" << std::flush;
- 			bc_map = new BC_map(this);
+ 			bc_map = new BC_map(this, cppr);
  			bc_map->build();
 			Logger::add_timestamp("bcmap ok");
  		}
@@ -922,7 +922,7 @@ void Graph::repower_gate(const string& inst_name, const string& cell_type){
 	//LOG(CERR) << "repower_gate " << inst_name << " " << cell_type << '\n';
 }
 
-vector<Path>* Graph::report_timing(const vector<pair<Transition_Type,string>>&through,
+vector<Path*>* Graph::report_timing(const vector<pair<Transition_Type,string>>&through,
 				   	      		   const vector<pair<Transition_Type,string>>&disable, int nworst)
 {
 	vector<int> _through, _disable;
@@ -943,7 +943,7 @@ vector<Path>* Graph::report_timing(const vector<pair<Transition_Type,string>>&th
 		cout << "disable: " << bc_map->get_node_name(x) << '\n';
 	}
 
-	vector<Path>* ans = new vector<Path>;
+	vector<Path*>* ans = new vector<Path*>;
 	bc_map->k_shortest_path(_through, _disable, nworst, *ans);
 
 	return ans;

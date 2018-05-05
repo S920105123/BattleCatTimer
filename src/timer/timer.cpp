@@ -47,7 +47,7 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
         }
     }
 	Logger::add_timestamp("start report timing");
-    vector< vector<Path>* > ans;
+    vector< vector<Path*>* > ans;
     ans.resize((int)_through.size());
     int i;
     output.open(output_file);
@@ -59,8 +59,9 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
     Logger::add_timestamp("report_timing ok");
 
 	for(int i=0; i<(int)ans.size(); i++){
-		for(const auto &p:*ans[i]){
-			p.output(output, graph);
+		for(auto p:*ans[i]){
+			p->output(output, graph);
+			delete p;
 		}
 	}
 

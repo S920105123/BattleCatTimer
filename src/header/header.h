@@ -29,6 +29,8 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <functional>
+#include <atomic>
 
 #include "func.h"
 #include "enum.h"

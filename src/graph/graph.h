@@ -85,7 +85,7 @@ public:
 	float get_slew(const string &pin_name, Mode mode, Transition_Type transition);
 	float get_slack(const string &pin_name, Mode mode, Transition_Type transition);
 	float get_cppr_credit(const string& pin1, const string& pin2, Transition_Type type1, Transition_Type typ2, Mode mode);
-	vector<Path>* report_timing(const vector<pair<Transition_Type,string>>&through,
+	vector<Path*>* report_timing(const vector<pair<Transition_Type,string>>&through,
 					   		    const vector<pair<Transition_Type,string>>&disable, 
 								int nworst);
 

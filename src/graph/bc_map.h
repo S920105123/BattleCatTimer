@@ -12,14 +12,17 @@ class Kth;
 struct Edge{
     int from, to;
     float delay;
+	bool valid;
+	Edge* rev_edge;
     Edge(){}
-    Edge(int f,int t,float d):from(f),to(t),delay(d){}
+    Edge(int f,int t,float d):from(f),to(t),delay(d), valid(false), rev_edge(nullptr){}
 };
 
 class BC_map {
 
 public:
-    BC_map(Graph* graph);
+    BC_map(Graph* graph, CPPR* cppr);
+	~BC_map();
 
     void build();
     int get_index(Mode mode,Transition_Type type, int node_id);
@@ -29,33 +32,43 @@ public:
     string get_node_name(int map_id);
 	void k_shortest_path(vector<int>& _through,
 						 const vector<int>& _disable,
-						 int nworst,
-						 vector<Path>& ans);
+						 int k,
+						 vector<Path*>& ans);
 
+	std::atomic<float> threshold;
 
 private:
     void add_edge(int from, int to, float delay);
     void build_map(int root);
 
-	void mark_point(const vector<int>& through, const vector<int>& disable);
+	void mark_point(vector<int>& through, const vector<int>& disable);
+
+	// iterate the all condidates with calling function fun
+    void do_kth(const vector<int>& condidate, size_t k, std::function<void(Kth*,int,int,vector<Path*>&)> fun, vector<Path*>& ans);
 	void search_fin(int x);
 	bool search_fout(int x, int next_level_id);
-
-    vector<int> to_map_id[2][2];       // graph node id to bc map id
-    vector<int> level, in_degree, vis;
+	void search(vector<int>& through);
 
 	/* kth */
 	vector<bool> is_valid;
 	vector<bool> is_disable, is_through;
 	vector<int> next_level;
 	vector<int> kth_start, kth_dest;
+	vector<Edge*> valid_edge;   // To clean the mark of the edge of each query, we store the valid edge and clean it after we get the k shortest_path.
+
+	vector<Path*> path_kth[NUM_THREAD];
+	Kth* kths[NUM_THREAD];
 
     Graph* graph;
+	CPPR* cppr;
     int num_node;
     int superSource;
 
     vector<vector<Edge>> G;
     vector<vector<Edge>> Gr;
+
+    vector<int> to_map_id[2][2];       // graph node id to bc map id
+    vector<int> level, in_degree, vis;
 
     friend class Kth;
 };
