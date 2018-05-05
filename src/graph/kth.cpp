@@ -25,18 +25,20 @@ void Kth::clear() {
     trash_can.clear();
 }
 
-void Kth::KSP_to_destination(int dest, vector<Path> &result_container) {
+void Kth::KSP_to_destination(int dest, int k, vector<Path> &result_container) {
     result_container.clear();
-    this->clear();
+    this -> clear();
+    this -> dest = dest;
 
-    KSP(dest, result_container, bc_map -> G, bc_map -> Gr);
+    KSP(k, result_container, bc_map -> G, bc_map -> Gr);
 }
 
-void Kth::KSP_from_source(int src, vector<Path> &result_container) {
+void Kth::KSP_from_source(int src, int k, vector<Path> &result_container) {
     result_container.clear();
-    this->clear();
+    this -> clear();
+    this -> dest = src;
 
-    KSP(src, result_container, bc_map -> Gr, bc_map -> G);
+    KSP(k, result_container, bc_map -> Gr, bc_map -> G);
 }
 
 // *********************************************
@@ -91,7 +93,6 @@ bool Kth::build_SDSP_tree(int dest, const vector<vector<Edge>> &radj) {
        Here, we use "successor" array to store visited information.
        We also collect the possible source vertices in this part.   */
 	int dest_id = set_id(dest);
-    this -> dest = dest;
     get_topological_order(dest, radj);
 
     /* Return false if given destination is not reachable. */
