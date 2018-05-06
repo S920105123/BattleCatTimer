@@ -25,7 +25,7 @@ void Kth::clear() {
     trash_can.clear();
 }
 
-void Kth::KSP_to_destination(int dest, int k, vector<Path> &result_container) {
+void Kth::KSP_to_destination(int dest, int k, vector<Path*> &result_container) {
     result_container.clear();
     this -> clear();
     this -> dest = dest;
@@ -33,7 +33,7 @@ void Kth::KSP_to_destination(int dest, int k, vector<Path> &result_container) {
     KSP(k, result_container, bc_map -> G, bc_map -> Gr);
 }
 
-void Kth::KSP_from_source(int src, int k, vector<Path> &result_container) {
+void Kth::KSP_from_source(int src, int k, vector<Path*> &result_container) {
     result_container.clear();
     this -> clear();
     this -> dest = src;
@@ -68,7 +68,7 @@ void Kth::get_topological_order(int v, const vector<vector<Edge>> &radj) {
 
     successor[ set_id(v) ] = VISITED;
     for (const auto &edg : radj[v]) {
-        if (!bc_map -> is_valid[edg.to]) continue;
+        if (!edg.valid) continue;
         int id = set_id(edg.to);
         if (successor[id] == NOT_VISITED) {
             get_topological_order(edg.to, radj);
@@ -111,7 +111,7 @@ bool Kth::build_SDSP_tree(int dest, const vector<vector<Edge>> &radj) {
             continue;
         }
         for (const auto &edg : radj[v]) {
-            if (!bc_map -> is_valid[edg.to]) continue;
+            if (!edg.valid) continue;
             int to_id = LUT[edg.to];
             float relax = dist[v_id] + edg.delay;
             if (relax < dist[to_id]) {
@@ -140,6 +140,12 @@ bool Kth::build_SDSP_tree(int dest, const vector<vector<Edge>> &radj) {
 	return true;
 }
 
+void Kth::queueing(Prefix_node *path) {
+    if (path -> delta < bc_map -> threshold) {
+        pq.push(path);
+    }
+}
+
 void Kth::extend(Prefix_node *path, const vector<vector<Edge>> &adj) {
 	/* From "path", extend its childs
 	   A child can only be obtained by adding a sidetrack edge,
@@ -156,14 +162,14 @@ void Kth::extend(Prefix_node *path, const vector<vector<Edge>> &adj) {
             for (const Edge &edg : pseudo_edge) {
                 if (edg.to == successor[v_id]) continue;
                 Prefix_node *next_path = new Prefix_node(this, path, edg.from, edg.to, edg.delay);
-    			this->pq.push(next_path);
+                queueing(next_path);
             }
         }
         else {
             for (const Edge &edg : adj[v]) {
                 if (LUT.find(edg.to) == LUT.end() || edg.to == successor[v_id]) continue;
     			Prefix_node *next_path = new Prefix_node(this, path, edg.from, edg.to, edg.delay);
-    			this->pq.push(next_path);
+                queueing(next_path);
     		}
         }
 
@@ -213,13 +219,14 @@ void Kth::get_explicit_path(Path *exp_path, const Prefix_node *imp_path) {
 	get_explicit_path_helper(exp_path, imp_path, dest);
 }
 
-void Kth::KSP(int k, vector<Path> &container, const vector<vector<Edge>> &adj, const vector<vector<Edge>> &radj) {
+void Kth::KSP(int k, vector<Path*> &container, const vector<vector<Edge>> &adj, const vector<vector<Edge>> &radj) {
     /*
         Algorithm: Eppistein's k shortest path algorithm
             dist: Shortest distance to "dest".
             successor: Parent in shortest path tree.
             bc_to_kth: A hash table that maps vertices in search space to [0, N-1],
                         N is number of vertex in search space.
+            bc_map -> threshold: Bounding condition, the path is considered possibly critical only if it is shorter than threshold
     */
 
 	if (!build_SDSP_tree(this->dest, radj)) return;
@@ -234,10 +241,18 @@ void Kth::KSP(int k, vector<Path> &container, const vector<vector<Edge>> &adj, c
 		}
 		Prefix_node *next_path = pq.top();
 		pq.pop();
-		get_explicit_path(&container[i], next_path);
+        container[i] = new Path();
+		get_explicit_path(container[i], next_path);
 		if (i+1 < k) this -> extend(next_path, adj);
 		this -> trash_can.emplace_back(next_path);
 	}
+
+    /* Update threshold */
+    if (!container.empty()) {
+        if (bc_map -> threshold > container.back() -> dist) {
+            bc_map -> threshold = container.back() -> dist;
+        }
+    }
 
 	/* Clean nodes */
 	for (Prefix_node *it : trash_can) {

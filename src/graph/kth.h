@@ -18,6 +18,7 @@ struct Path {
     vector<int> path;
     vector<float> delay;
 
+    Path() {};
     void print();
     void output(ostream &fout, Graph *graph) const;
     void print_name(ostream &fout, const string &name) const;
@@ -49,8 +50,8 @@ public:
     // Kth algorithm interface
     void clear();
     Kth(BC_map *_map, CPPR *_cppr, Graph *_graph);
-    void KSP_to_destination(int dest, int k, vector<Path> &result_container);
-    void KSP_from_source(int src, int k, vector<Path> &result_container);
+    void KSP_to_destination(int dest, int k, vector<Path*> &result_container);
+    void KSP_from_source(int src, int k, vector<Path*> &result_container);
 
 private:
     BC_map *bc_map;
@@ -74,12 +75,13 @@ private:
     std::priority_queue<Prefix_node*, vector<Prefix_node*>, Prefix_node::Compare> pq;
     vector<Prefix_node*> trash_can;
     int set_id(int v);
-    void KSP(int k, vector<Path> &container, const vector<vector<Edge>> &adj, const vector<vector<Edge>> &radj);
+    void KSP(int k, vector<Path*> &container, const vector<vector<Edge>> &adj, const vector<vector<Edge>> &radj);
     void get_explicit_path_helper(Path *exp_path, const Prefix_node *imp_path, int dest);
     void get_explicit_path(Path *exp_path, const Prefix_node *imp_path);
     bool build_SDSP_tree(int dest, const vector<vector<Edge>> &radj);
     void get_topological_order(int v, const vector<vector<Edge>> &radj);
     void extend(Prefix_node *path, const vector<vector<Edge>> &adj);
+    void queueing(Prefix_node *path);
 
     inline float get_delta(const Sidetrack_Edge &edg) {
         return edg.delay + dist[ LUT[edg.to] ] - dist[ LUT[edg.from] ];
