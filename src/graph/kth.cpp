@@ -106,7 +106,7 @@ bool Kth::build_SDSP_tree(int dest, const vector<vector<Edge>> &radj) {
     for (int i=topo_order.size()-1; i>=0; i--) {
         int v = topo_order[i], v_id = LUT[v];
         if (radj[v].size() == 0) {
-            /* The calculation of delay  will be later. */
+            /* The calculation of delay will be later. */
             this->pseudo_edge.emplace_back(pseudo_src, v, 0.0);
             continue;
         }
@@ -141,6 +141,8 @@ bool Kth::build_SDSP_tree(int dest, const vector<vector<Edge>> &radj) {
 }
 
 void Kth::queueing(Prefix_node *path) {
+    /* A function to push something into priority queue
+       This function exist because there will be more optimization done before pushing into queue. */
     if (path -> delta < bc_map -> threshold) {
         pq.push(path);
     }
