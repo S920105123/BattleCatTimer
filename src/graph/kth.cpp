@@ -29,20 +29,23 @@ void Kth::KSP_to_destination(int dest, int k, vector<Path*> &result_container) {
     result_container.clear();
     this -> clear();
     this -> dest = dest;
+    this -> from_src = false;
     cout << graph->nodes[bc_map->get_graph_id(dest)].name << " as destination\n";
     KSP(k, result_container, bc_map -> G, bc_map -> Gr);
+    for(auto &x : result_container) {
+        /* Without reversing pseudo source, we can see it as pseudo destination. */
+		std::reverse( x->delay.begin(), x->delay.end() );
+		std::reverse( x->path.begin(), prev(x->path.end()) );
+	}
 }
 
 void Kth::KSP_from_source(int src, int k, vector<Path*> &result_container) {
     result_container.clear();
     this -> clear();
     this -> dest = src;
+    this -> from_src = true;
     cout << graph->nodes[bc_map->get_graph_id(src)].name << " as source\n";
     KSP(k, result_container, bc_map -> Gr, bc_map -> G);
-	for(auto &x : result_container) {
-		std::reverse( x->delay.begin(), x->delay.end() );
-		std::reverse( x->path.begin(), x->path.end() );
-	}
 }
 
 // *********************************************
@@ -140,7 +143,13 @@ bool Kth::build_SDSP_tree(const vector<vector<Edge*>> &radj) {
     this -> pseudo_src = -1;
     int id = set_id(pseudo_src);
     for (auto &edg : pseudo_edge) {
-        edg.delay = graph->nodes[bc_map -> get_graph_id(edg.to)].rat[bc_map -> get_graph_id_mode(edg.to)][bc_map -> get_graph_id_type(edg.to)];
+        if (this -> from_src) {
+            edg.delay = graph->nodes[bc_map -> get_graph_id(edg.to)].rat[bc_map -> get_graph_id_mode(edg.to)][bc_map -> get_graph_id_type(edg.to)];
+        }
+        else {
+            edg.delay = graph->nodes[bc_map -> get_graph_id(dest)].rat[bc_map -> get_graph_id_mode(dest)][bc_map -> get_graph_id_type(dest)];
+        }
+
         float relax = dist[ LUT[edg.to] ] + edg.delay; // + CPPR - at[clk]
         if (relax < dist[id]) {
             dist[id] = relax;
@@ -347,24 +356,28 @@ void Path::print_name(ostream &fout, const string &name) const {
 // }
 
 void Path::output(ostream &fout, Graph *graph) const {
-	// Paths are using BC id
-    cout << "Let's output path..\n" << std::flush;
-    for (auto x : path) cout << x << " ";
-    cout << "\n" << std::flush;
+	/*
+        Path are using BC id.
+        The path are in normal order:
+        source -> v1 -> v2 -> v3 -> v4 -> ... -> psuedo destination
+    */
     BC_map *bc = graph->get_bc_map();
 
     int width = 8, n = path.size();
     float rat = delay[0], slack = this->dist, at = rat - slack, total = delay[n-2];
     const char *tab = "      ", *spline = "----------------------------------------", *type_ch[2] = {"^   ", "v   "};
+    cout << "Let's output path...\n";
+    for (int v : path) cout << v << " ";
+    cout << '\n' << std::flush;
 
     // path[0] is SuperDest, path[n-1] is SuperSrc
     if (path.empty()) return;
     // fout << '\n';
 	fout << "Endpoint:   ";
-    print_name(fout, graph->nodes[bc->get_graph_id(path[1])].name);
+    print_name(fout, graph->nodes[bc->get_graph_id(path[n-2])].name);
     fout << '\n';
 	fout << "Beginpoint: ";
-    print_name(fout, graph->nodes[bc->get_graph_id(path[n-1])].name);
+    print_name(fout, graph->nodes[bc->get_graph_id(path[0])].name);
     fout << '\n';
 
 	fout << "= Required Time              " << std::fixed << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << rat    << '\n';
@@ -377,13 +390,13 @@ void Path::output(ostream &fout, Graph *graph) const {
 
     /* Output first pin (special case, no need to print delay) */
 	fout << tab << "-         " << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total
-    << "   " << type_ch[bc->get_graph_id_type(path[n-1])] << "  ";
-    print_name(fout, graph->nodes[bc->get_graph_id(path[n-1])].name);
+    << "   " << type_ch[bc->get_graph_id_type(path[0])] << "  ";
+    print_name(fout, graph->nodes[bc->get_graph_id(path[0])].name);
     // if(mark[n-2]) fout << " ->";
     fout << '\n';
 
     /* Output remaining */
-	for (int i = n-2; i>=1; i--) {
+	for (int i = 1; i<n-1; i++) {
 		total -= delay[i]; // Delay is negative
 		fout << tab << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << -delay[i] << "  ";
 		fout        << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total << "   ";
@@ -396,8 +409,8 @@ void Path::output(ostream &fout, Graph *graph) const {
 }
 
 void Path::print() {
-	LOG(CERR) << "Path:\nEnd at " << this->path[0] << '\n';
-	for (int i=1; i<(int)path.size(); i++) {
+	LOG(CERR) << "Path:\nEnd at " << path[path.size()-2] << '\n';
+	for (int i=0; i<(int)path.size(); i++) {
 		LOG(CERR) << "delay " << std::setw(6) << delay[i-1] << " from " << this->path[i] << '\n';
 	}
 	LOG(CERR) << "Length: " << this->dist << "\n\n";

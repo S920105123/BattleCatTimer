@@ -242,7 +242,7 @@ void BC_map::search(vector<int>& through) {
 		// take all of FF:clk and Pin as a start point
 		for(int i=0; i<(int)G.size(); i++){
 			// i is a FF:clk or Pin
-			if(Gr[i].size() == 0) {
+			if(G[i].size() != 0 && Gr[i].size() == 0) {
 				kth_start.push_back(i);
 				if(search_fout(i, 0)) is_valid[i] = 1;
 			}
@@ -369,7 +369,7 @@ void BC_map::do_kth(const vector<int>& condidate, size_t k, std::function<void(K
 			if(path_heap.size() >=k ) threshold = path_heap.top()->dist;
 		}
 	}
-    cout << "I am good\n" << std::flush;
+
 	ans.clear();
 	while(!path_heap.empty()) {
 		ans.emplace_back( path_heap.top() );

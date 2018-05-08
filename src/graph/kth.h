@@ -58,6 +58,9 @@ private:
     CPPR *cppr;
     Graph *graph;
 
+    /* A bool to indicate the direction */
+    bool from_src;
+
     /* Lookup table that maps bc map id to [0, N]. */
     unordered_map<int, int> LUT;
 
