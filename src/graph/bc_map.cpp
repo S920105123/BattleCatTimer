@@ -160,15 +160,25 @@ void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, i
 	search(through);
 
 /* query kth */
-	if( kth_start.size() < kth_dest.size() ) {
-		std::function<void(Kth*, int, int, vector<Path*>&)> f = [](Kth* kth, int src, int k, vector<Path*>& container) {
-			//	kth->KSP_from_source(src, k, container);
+	if(kth_start.size()>0 and  kth_start.size() < kth_dest.size() ) {
+		cout << "kth from start\n";
+		for(auto& i:kth_start) {
+			cout << this->get_node_name(i) << '\n';
+		}
+
+		auto f = [](Kth* kth, int src, int k, vector<Path*>& container) {
+			kth->KSP_from_source(src, k, container);
 		};
 		do_kth(kth_start, k, f, ans);
 	}
 	else {
-		std::function<void(Kth*, int, int, vector<Path*>&)> f = [](Kth* kth, int dest, int k, vector<Path*>& container) {
-			 // kth->KSP_to_destination(dest, k, container);
+		cout << "kth from dest\n";
+		for(auto& i:kth_dest) {
+			cout << this->get_node_name(i) << '\n';
+		}
+
+		auto f = [](Kth* kth, int dest, int k, vector<Path*>& container) {
+			 kth->KSP_to_destination(dest, k, container);
 		};
 		do_kth(kth_dest, k, f, ans);
 	}
@@ -301,10 +311,10 @@ bool BC_map::search_fout(int x,int next_level_id) {
 void BC_map::do_kth(const vector<int>& condidate, size_t k, std::function<void(Kth*,int,int,vector<Path*>&)> fun, vector<Path*>& ans) {
 
 	auto compare_path = [](const Path* a, const Path* b) {
-		return a->delay < b->delay;
+		return a->dist < b->dist;
 	};
 	priority_queue<Path*, vector<Path*>, decltype(compare_path)> path_heap(compare_path);
-	threshold = std::numeric_limits<float>().max();
+	threshold = 0; // slack should less than threshold
 
 	// enumerate every condidat to do kth-sortest path with cppr
     #pragma omp parallel for
@@ -321,20 +331,25 @@ void BC_map::do_kth(const vector<int>& condidate, size_t k, std::function<void(K
 		// update path heap
 		#pragma omp critical
 		{
+			cout << "\ntid: " << tid << " launch kth: " << this->get_node_name(st) << '\n';
+			for(auto& p:path_kth[tid]) p->print();
+
 			size_t index = 0;
 			while(path_heap.size() < k and index<path_kth[tid].size()) {
 				path_heap.push( path_kth[tid][index++] );
 			}
 
-			while(index<path_kth[tid].size() and (-path_heap.top()->dist) < (-path_kth[tid][index]->dist) ) {
-				delete path_heap.top();
+			while(index<path_kth[tid].size() and path_heap.top()->dist > path_kth[tid][index]->dist ) {
+				auto pt = path_heap.top();
+		//		delete path_heap.top();
 				path_heap.pop();
+				delete pt;
 
 				path_heap.push( path_kth[tid][index++] );
 			}
 
 			// update threshold
-			if(path_heap.size() >=k ) threshold = -path_heap.top()->dist;
+			if(path_heap.size() >=k ) threshold = path_heap.top()->dist;
 		}
 	}
 

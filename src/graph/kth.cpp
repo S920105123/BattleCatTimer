@@ -16,7 +16,7 @@ void Kth::clear() {
     LUT.clear();
     topo_order.clear();
     pseudo_edge.clear();
-    while (pq.empty()) {
+    while (!pq.empty()) {
         Prefix_node *tmp = pq.top();
         pq.pop();
         delete tmp;
@@ -39,6 +39,10 @@ void Kth::KSP_from_source(int src, int k, vector<Path*> &result_container) {
     this -> dest = src;
 
     KSP(k, result_container, bc_map -> Gr, bc_map -> G);
+	for(auto &x: result_container) {
+		std::reverse( x->delay.begin(), x->delay.end() );
+		std::reverse( x->path.begin(), x->path.end() );
+	}
 }
 
 // *********************************************

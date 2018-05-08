@@ -61,7 +61,7 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
 	for(int i=0; i<(int)ans.size(); i++){
 		for(auto p:*ans[i]){
 			p->output(output, graph);
-			delete p;
+//			delete p;
 		}
 	}
 
@@ -70,7 +70,7 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
 
     #pragma omp parallel for schedule(dynamic) private(i)
     for(int i=0; i<(int)ans.size(); i++){
-        delete ans[i];
+ //       delete ans[i];
     }
     Logger::add_timestamp("free ok");
 }
