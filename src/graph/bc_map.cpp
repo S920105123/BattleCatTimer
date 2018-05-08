@@ -173,6 +173,7 @@ void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, i
 		for(auto& i:kth_start) {
 			cout << this->get_node_name(i) << '\n';
 		}
+		cout << "total starts: " << kth_start.size() << "\n";
 
 		auto f = [](Kth* kth, int src, int k, vector<Path*>& container) {
 			kth->KSP_from_source(src, k, container);
@@ -184,6 +185,7 @@ void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, i
 		for(auto& i:kth_dest) {
 			cout << this->get_node_name(i) << '\n';
 		}
+		cout << "total dest: " << kth_dest.size() << "\n";
 
 		auto f = [](Kth* kth, int dest, int k, vector<Path*>& container) {
 			 kth->KSP_to_destination(dest, k, container);
@@ -241,8 +243,9 @@ void BC_map::search(vector<int>& through) {
 		ASSERT(next_level.size() == 0);
 		// take all of FF:clk and Pin as a start point
 		for(int i=0; i<(int)G.size(); i++){
+			const auto& node = graph->nodes[ get_graph_id(i) ];
 			// i is a FF:clk or Pin
-			if(Gr[i].size() == 0) {
+			if(node.type == CLOCK or node.type == PRIMARY_IN){
 				kth_start.push_back(i);
 				if(search_fout(i, 0)) is_valid[i] = 1;
 			}
