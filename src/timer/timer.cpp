@@ -243,7 +243,7 @@ void Timer::open_ops(const string& ops){
         if(cmd=="report_timing"){
             string op, pin;
             vector<pair<Transition_Type, string>> *through, *disable;
-            through = new vector<pair<Transition_Type,string>>(); 
+            through = new vector<pair<Transition_Type,string>>();
 			disable = new vector<pair<Transition_Type,string>>();
             int nworst = 1;
             do{

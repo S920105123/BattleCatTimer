@@ -78,7 +78,7 @@ private:
     void KSP(int k, vector<Path*> &container, const vector<vector<Edge*>> &adj, const vector<vector<Edge*>> &radj);
     void get_explicit_path_helper(Path *exp_path, const Prefix_node *imp_path, int dest);
     void get_explicit_path(Path *exp_path, const Prefix_node *imp_path);
-    bool build_SDSP_tree(int dest, const vector<vector<Edge*>> &radj);
+    bool build_SDSP_tree(const vector<vector<Edge*>> &radj);
     void get_topological_order(int v, const vector<vector<Edge*>> &radj);
     void extend(Prefix_node *path, const vector<vector<Edge*>> &adj);
     void queueing(Prefix_node *path);

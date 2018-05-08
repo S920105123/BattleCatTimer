@@ -29,7 +29,7 @@ void Kth::KSP_to_destination(int dest, int k, vector<Path*> &result_container) {
     result_container.clear();
     this -> clear();
     this -> dest = dest;
-
+    cout << graph->nodes[bc_map->get_graph_id(dest)].name << " as destination\n";
     KSP(k, result_container, bc_map -> G, bc_map -> Gr);
 }
 
@@ -37,9 +37,9 @@ void Kth::KSP_from_source(int src, int k, vector<Path*> &result_container) {
     result_container.clear();
     this -> clear();
     this -> dest = src;
-
+    cout << graph->nodes[bc_map->get_graph_id(src)].name << " as source\n";
     KSP(k, result_container, bc_map -> Gr, bc_map -> G);
-	for(auto &x: result_container) {
+	for(auto &x : result_container) {
 		std::reverse( x->delay.begin(), x->delay.end() );
 		std::reverse( x->path.begin(), x->path.end() );
 	}
@@ -73,7 +73,7 @@ void Kth::get_topological_order(int v, const vector<vector<Edge*>> &radj) {
     successor[ set_id(v) ] = VISITED;
     for (const auto &p_e : radj[v]) {
 		const auto& edg = *p_e;
-		cout << bc_map->get_node_name(v) << " " << bc_map->get_node_name(edg.to) << " " << edg.valid << '\n';
+		// cout << bc_map->get_node_name(v) << " " << bc_map->get_node_name(edg.to) << " " << edg.valid << '\n';
         if (!edg.valid) continue;
         int id = set_id(edg.to);
         if (successor[id] == NOT_VISITED) {
@@ -83,7 +83,7 @@ void Kth::get_topological_order(int v, const vector<vector<Edge*>> &radj) {
     this -> topo_order.push_back(v);
 }
 
-bool Kth::build_SDSP_tree(int dest, const vector<vector<Edge*>> &radj) {
+bool Kth::build_SDSP_tree(const vector<vector<Edge*>> &radj) {
 	/*
         Algorithm:
             Use **REVERSE** adjacency list, build a single source destination tree to "dest".
@@ -98,11 +98,11 @@ bool Kth::build_SDSP_tree(int dest, const vector<vector<Edge*>> &radj) {
 	/* Create an entry for dest, and do initialization.
        Here, we use "successor" array to store visited information.
        We also collect the possible source vertices in this part.   */
-	cout << "start build sdsp tree " << this->bc_map->get_node_name( dest ) << '\n';
+	// cout << "start build sdsp tree " << this->bc_map->get_node_name( dest ) << '\n';
 	int dest_id = set_id(dest);
     get_topological_order(dest, radj);
-	for(auto &x:topo_order) cout << bc_map->get_node_name(x) << " -> ";
-	cout << "\ntopo_order ok\n";
+	// for(auto &x:topo_order) cout << bc_map->get_node_name(x) << " -> ";
+	// cout << "\ntopo_order ok\n";
 
     /* Return false if given destination is not reachable. */
 
@@ -130,7 +130,7 @@ bool Kth::build_SDSP_tree(int dest, const vector<vector<Edge*>> &radj) {
             }
         }
     }
-	cout << "dp dist ok\n";
+	// cout << "dp dist ok\n" << std::flush;
 
     if (this -> pseudo_edge.empty()) {
         return false;
@@ -148,7 +148,7 @@ bool Kth::build_SDSP_tree(int dest, const vector<vector<Edge*>> &radj) {
         }
     }
 
-	cout << "create pseudo ok\n";
+	// cout << "create pseudo ok\n" << std::flush;
 	return true;
 }
 
@@ -210,7 +210,7 @@ void Kth::get_explicit_path_helper(Path *exp_path, const Prefix_node *imp_path, 
 	while (v != end) {
         int v_id = LUT[v];
 		exp_path -> path.emplace_back(v);
-		exp_path -> delay.emplace_back(dist[ v_id ] - this->dist[ this->successor[v_id] ]);
+		exp_path -> delay.emplace_back(dist[ v_id ] - this->dist[ LUT[this->successor[v_id]] ]);
 		v = this -> successor[ v_id ];
 	}
 
@@ -230,8 +230,10 @@ void Kth::get_explicit_path(Path *exp_path, const Prefix_node *imp_path) {
 
 	exp_path -> dist = dist[ LUT[pseudo_src] ] + imp_path -> delta;
 	exp_path -> path.clear();
+    exp_path -> delay.clear();
 
 	get_explicit_path_helper(exp_path, imp_path, dest);
+    // cout << "Find a path:"; for (int v : exp_path -> path) cout << v << " "; cout << "\n";
 }
 
 void Kth::KSP(int k, vector<Path*> &container, const vector<vector<Edge*>> &adj, const vector<vector<Edge*>> &radj) {
@@ -243,8 +245,7 @@ void Kth::KSP(int k, vector<Path*> &container, const vector<vector<Edge*>> &adj,
                         N is number of vertex in search space.
             bc_map -> threshold: Bounding condition, the path is considered possibly critical only if it is shorter than threshold
     */
-
-	if (!build_SDSP_tree(this->dest, radj)) return;
+	if (!build_SDSP_tree(radj)) return;
 	container.resize(k);
 
 	Prefix_node *root = new Prefix_node();
@@ -261,13 +262,6 @@ void Kth::KSP(int k, vector<Path*> &container, const vector<vector<Edge*>> &adj,
 		if (i+1 < k) this -> extend(next_path, adj);
 		this -> trash_can.emplace_back(next_path);
 	}
-
-    /* Update threshold */
-    if (!container.empty()) {
-        if (bc_map -> threshold > container.back() -> dist) {
-            bc_map -> threshold = container.back() -> dist;
-        }
-    }
 
 	/* Clean nodes */
 	for (Prefix_node *it : trash_can) {
@@ -354,9 +348,9 @@ void Path::print_name(ostream &fout, const string &name) const {
 
 void Path::output(ostream &fout, Graph *graph) const {
 	// Paths are using BC id
-    const vector<int> &path = this->path;
-    const vector<float> &delay = this->delay;
-    // const vector<bool> &mark = this->mark;
+    cout << "Let's output path..\n" << std::flush;
+    for (auto x : path) cout << x << " ";
+    cout << "\n" << std::flush;
     BC_map *bc = graph->get_bc_map();
 
     int width = 8, n = path.size();
@@ -370,7 +364,7 @@ void Path::output(ostream &fout, Graph *graph) const {
     print_name(fout, graph->nodes[bc->get_graph_id(path[1])].name);
     fout << '\n';
 	fout << "Beginpoint: ";
-    print_name(fout, graph->nodes[bc->get_graph_id(path[n-2])].name);
+    print_name(fout, graph->nodes[bc->get_graph_id(path[n-1])].name);
     fout << '\n';
 
 	fout << "= Required Time              " << std::fixed << std::setw(7) << std::setprecision(OUTPUT_PRECISION) << rat    << '\n';
@@ -383,13 +377,13 @@ void Path::output(ostream &fout, Graph *graph) const {
 
     /* Output first pin (special case, no need to print delay) */
 	fout << tab << "-         " << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total
-    << "   " << type_ch[bc->get_graph_id_type(path[n-2])] << "  ";
-    print_name(fout, graph->nodes[bc->get_graph_id(path[n-2])].name);
+    << "   " << type_ch[bc->get_graph_id_type(path[n-1])] << "  ";
+    print_name(fout, graph->nodes[bc->get_graph_id(path[n-1])].name);
     // if(mark[n-2]) fout << " ->";
     fout << '\n';
 
     /* Output remaining */
-	for (int i = n-3; i>=1; i--) {
+	for (int i = n-2; i>=1; i--) {
 		total -= delay[i]; // Delay is negative
 		fout << tab << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << -delay[i] << "  ";
 		fout        << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION) << std::setw(width) << total << "   ";

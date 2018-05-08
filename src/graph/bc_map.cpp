@@ -161,11 +161,11 @@ void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, i
 /* mark searching space */
 	search(through);
 
-	cout << "magic edge\n";
-	for(auto&e : Gr[522932]) {
-		cout << get_node_name(e->from) << " " << get_node_name(e->to) << "\n";
-	}
-	cout << '\n';
+	// cout << "magic edge\n";
+	// for(auto&e : Gr[522932]) {
+	// 	cout << get_node_name(e->from) << " " << get_node_name(e->to) << "\n";
+	// }
+	// cout << '\n';
 
 /* query kth */
 	if(kth_start.size()>0 and  kth_start.size() < kth_dest.size() ) {
@@ -251,7 +251,7 @@ void BC_map::search(vector<int>& through) {
 }
 
 void BC_map::search_fin(int x) {
-	
+
 	// any point found by the search_fin is valid
 	is_valid[x] = true;
 	if(Gr[x].size() == 0) {
@@ -264,15 +264,15 @@ void BC_map::search_fin(int x) {
 
 	for(auto& p_e: Gr[x]) {
 		auto& e = *p_e;
-		cout << "search fin " << get_node_name(x) << " " << get_node_name(e.to) << "\n";
+		// cout << "search fin " << get_node_name(x) << " " << get_node_name(e.to) << "\n";
 		if(is_disable[e.to] == false) search_fin(e.to);
 
 		valid_edge.push_back( &e );
 		valid_edge.push_back( e.rev_edge );
 		e.valid = true;
 		e.rev_edge->valid = true;
-		cout << get_node_name(e.from) << "(" << e.from << ") " << get_node_name(e.to) << "(" << e.to << ") is valid\n";
-		cout << "rev: " << get_node_name(e.rev_edge->from) << "(" << e.rev_edge->from << ") " << get_node_name(e.rev_edge->to) << "(" << e.rev_edge->to << ") is valid\n";
+		// cout << get_node_name(e.from) << "(" << e.from << ") " << get_node_name(e.to) << "(" << e.to << ") is valid\n";
+		// cout << "rev: " << get_node_name(e.rev_edge->from) << "(" << e.rev_edge->from << ") " << get_node_name(e.rev_edge->to) << "(" << e.rev_edge->to << ") is valid\n";
 	}
 }
 
@@ -306,13 +306,13 @@ bool BC_map::search_fout(int x,int next_level_id) {
 			else if(level[to] < next_level[next_level_id]) {
 				if(search_fout(to, next_level_id)) ok = true;
 			}
-			else { 
+			else {
 				// we don't look at the point which level is greater than the next_level
 			}
-			
+
 			if(ok) {
-				cout << get_node_name(e.from) << "(" << e.from << ") " << get_node_name(e.to) << "(" << e.to << ") is valid\n";
-				cout << "rev: " << get_node_name(e.rev_edge->from) << "(" << e.rev_edge->from << ") " << get_node_name(e.rev_edge->to) << "(" << e.rev_edge->to << ") is valid\n";
+				// cout << get_node_name(e.from) << "(" << e.from << ") " << get_node_name(e.to) << "(" << e.to << ") is valid\n";
+				// cout << "rev: " << get_node_name(e.rev_edge->from) << "(" << e.rev_edge->from << ") " << get_node_name(e.rev_edge->to) << "(" << e.rev_edge->to << ") is valid\n";
 				is_valid[x] = true;
 				valid_edge.push_back( &e );
 				valid_edge.push_back( e.rev_edge );
@@ -334,7 +334,7 @@ void BC_map::do_kth(const vector<int>& condidate, size_t k, std::function<void(K
 
 	// enumerate every condidat to do kth-sortest path with cppr
     #pragma omp parallel for
-	for(size_t i=0; i<condidate.size(); i++) 
+	for(size_t i=0; i<condidate.size(); i++)
 	{
 		int tid = omp_get_thread_num();
 		int st = condidate[i];
@@ -342,19 +342,20 @@ void BC_map::do_kth(const vector<int>& condidate, size_t k, std::function<void(K
 		Kth* kth = kths[tid];
 		kth->clear();
 		path_kth[tid].clear();
+
 		fun(kth, st, k, path_kth[tid]);
 
 		// update path heap
 		#pragma omp critical
 		{
-			cout << "\ntid: " << tid << " launch kth: " << this->get_node_name(st) << '\n';
-			for(auto& p:path_kth[tid]) p->print();
-
+			// cout << "\ntid: " << tid << " launch kth: " << this->get_node_name(st) << '\n';
+			// for(auto& p:path_kth[tid]) p->print();
 			size_t index = 0;
 			while(path_heap.size() < k and index<path_kth[tid].size()) {
 				path_heap.push( path_kth[tid][index++] );
 			}
 
+            // cout << "Size " << path_heap.size()  << "\n" << std::flush;
 			while(index<path_kth[tid].size() and path_heap.top()->dist > path_kth[tid][index]->dist ) {
 				auto pt = path_heap.top();
 				//delete path_heap.top();
@@ -368,7 +369,7 @@ void BC_map::do_kth(const vector<int>& condidate, size_t k, std::function<void(K
 			if(path_heap.size() >=k ) threshold = path_heap.top()->dist;
 		}
 	}
-
+    cout << "I am good\n" << std::flush;
 	ans.clear();
 	while(!path_heap.empty()) {
 		ans.emplace_back( path_heap.top() );
