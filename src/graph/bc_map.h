@@ -14,7 +14,7 @@ struct Edge{
     float delay;
 	bool valid;
 	Edge* rev_edge;
-    Edge(){}
+    Edge():from(0), to(0), delay(0), valid(0), rev_edge(nullptr){}
     Edge(int f,int t,float d):from(f),to(t),delay(d), valid(false), rev_edge(nullptr){}
 };
 
@@ -64,8 +64,8 @@ private:
     int num_node;
     int superSource;
 
-    vector<vector<Edge>> G;
-    vector<vector<Edge>> Gr;
+    vector<vector<Edge*>> G;
+    vector<vector<Edge*>> Gr;
 
     vector<int> to_map_id[2][2];       // graph node id to bc map id
     vector<int> level, in_degree, vis;

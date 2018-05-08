@@ -66,12 +66,14 @@ int Kth::set_id(int v) {
     }
 }
 
-void Kth::get_topological_order(int v, const vector<vector<Edge>> &radj) {
+void Kth::get_topological_order(int v, const vector<vector<Edge*>> &radj) {
     /* A DFS program to construct topological order
        Use "successor" array to store visited information in this function. */
 
     successor[ set_id(v) ] = VISITED;
-    for (const auto &edg : radj[v]) {
+    for (const auto &p_e : radj[v]) {
+		const auto& edg = *p_e;
+		cout << bc_map->get_node_name(v) << " " << bc_map->get_node_name(edg.to) << " " << edg.valid << '\n';
         if (!edg.valid) continue;
         int id = set_id(edg.to);
         if (successor[id] == NOT_VISITED) {
@@ -81,7 +83,7 @@ void Kth::get_topological_order(int v, const vector<vector<Edge>> &radj) {
     this -> topo_order.push_back(v);
 }
 
-bool Kth::build_SDSP_tree(int dest, const vector<vector<Edge>> &radj) {
+bool Kth::build_SDSP_tree(int dest, const vector<vector<Edge*>> &radj) {
 	/*
         Algorithm:
             Use **REVERSE** adjacency list, build a single source destination tree to "dest".
@@ -96,8 +98,11 @@ bool Kth::build_SDSP_tree(int dest, const vector<vector<Edge>> &radj) {
 	/* Create an entry for dest, and do initialization.
        Here, we use "successor" array to store visited information.
        We also collect the possible source vertices in this part.   */
+	cout << "start build sdsp tree " << this->bc_map->get_node_name( dest ) << '\n';
 	int dest_id = set_id(dest);
     get_topological_order(dest, radj);
+	for(auto &x:topo_order) cout << bc_map->get_node_name(x) << " -> ";
+	cout << "\ntopo_order ok\n";
 
     /* Return false if given destination is not reachable. */
 
@@ -114,7 +119,8 @@ bool Kth::build_SDSP_tree(int dest, const vector<vector<Edge>> &radj) {
             this->pseudo_edge.emplace_back(pseudo_src, v, 0.0);
             continue;
         }
-        for (const auto &edg : radj[v]) {
+        for (const auto &p_edg : radj[v]) {
+			const auto &edg = *p_edg;
             if (!edg.valid) continue;
             int to_id = LUT[edg.to];
             float relax = dist[v_id] + edg.delay;
@@ -124,6 +130,7 @@ bool Kth::build_SDSP_tree(int dest, const vector<vector<Edge>> &radj) {
             }
         }
     }
+	cout << "dp dist ok\n";
 
     if (this -> pseudo_edge.empty()) {
         return false;
@@ -141,6 +148,7 @@ bool Kth::build_SDSP_tree(int dest, const vector<vector<Edge>> &radj) {
         }
     }
 
+	cout << "create pseudo ok\n";
 	return true;
 }
 
@@ -152,7 +160,7 @@ void Kth::queueing(Prefix_node *path) {
     }
 }
 
-void Kth::extend(Prefix_node *path, const vector<vector<Edge>> &adj) {
+void Kth::extend(Prefix_node *path, const vector<vector<Edge*>> &adj) {
 	/* From "path", extend its childs
 	   A child can only be obtained by adding a sidetrack edge,
         whose "from" after last sidetrack of this path.         */
@@ -172,7 +180,8 @@ void Kth::extend(Prefix_node *path, const vector<vector<Edge>> &adj) {
             }
         }
         else {
-            for (const Edge &edg : adj[v]) {
+            for (const auto& p_edg : adj[v]) {
+				const Edge& edg = *p_edg;
                 if (LUT.find(edg.to) == LUT.end() || edg.to == successor[v_id]) continue;
     			Prefix_node *next_path = new Prefix_node(this, path, edg.from, edg.to, edg.delay);
                 queueing(next_path);
@@ -225,7 +234,7 @@ void Kth::get_explicit_path(Path *exp_path, const Prefix_node *imp_path) {
 	get_explicit_path_helper(exp_path, imp_path, dest);
 }
 
-void Kth::KSP(int k, vector<Path*> &container, const vector<vector<Edge>> &adj, const vector<vector<Edge>> &radj) {
+void Kth::KSP(int k, vector<Path*> &container, const vector<vector<Edge*>> &adj, const vector<vector<Edge*>> &radj) {
     /*
         Algorithm: Eppistein's k shortest path algorithm
             dist: Shortest distance to "dest".

@@ -45,11 +45,13 @@ string BC_map::get_node_name(int map_id){
 }
 
 void BC_map::add_edge(int from, int to, float delay){
-    G[from].emplace_back(from, to, delay);
-    Gr[to].emplace_back(to, from, delay);
+	Edge *e = new Edge(from, to, delay);
+	Edge *re = new Edge(to, from, delay);
 
-	G[from].back().rev_edge = &Gr[to].back();
-	Gr[to].back().rev_edge = &G[from].back();
+    G[from].emplace_back(e);
+    Gr[to].emplace_back(re);
+	e->rev_edge = re;
+	re->rev_edge = e;
     in_degree[to]++;
 }
 
@@ -89,9 +91,9 @@ void BC_map::build(){
     while(!q->empty()){
         int x = q->front(); q->pop();
         for(const auto& e:G[x]){
-            in_degree[e.to]--;
-            if(in_degree[e.to]==0) q->push(e.to);
-            level[e.to] = max(level[e.to], level[x]+1);
+            in_degree[e->to]--;
+            if(in_degree[e->to]==0) q->push(e->to);
+            level[e->to] = max(level[e->to], level[x]+1);
         }
     }
 
@@ -159,6 +161,12 @@ void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, i
 /* mark searching space */
 	search(through);
 
+	cout << "magic edge\n";
+	for(auto&e : Gr[522932]) {
+		cout << get_node_name(e->from) << " " << get_node_name(e->to) << "\n";
+	}
+	cout << '\n';
+
 /* query kth */
 	if(kth_start.size()>0 and  kth_start.size() < kth_dest.size() ) {
 		cout << "kth from start\n";
@@ -222,6 +230,7 @@ void BC_map::search(vector<int>& through) {
 			if(level[x] == next_level[0]) {
 				if(search_fout(x, 1)) {
 					is_valid[x] = 1;
+					vis[x] = 0;
 					search_fin(x);
 				}
 			}
@@ -253,13 +262,17 @@ void BC_map::search_fin(int x) {
 	if(vis[x]) return;
 	vis[x] = 1;
 
-	for(auto& e: Gr[x]) {
+	for(auto& p_e: Gr[x]) {
+		auto& e = *p_e;
+		cout << "search fin " << get_node_name(x) << " " << get_node_name(e.to) << "\n";
 		if(is_disable[e.to] == false) search_fin(e.to);
 
 		valid_edge.push_back( &e );
 		valid_edge.push_back( e.rev_edge );
 		e.valid = true;
 		e.rev_edge->valid = true;
+		cout << get_node_name(e.from) << "(" << e.from << ") " << get_node_name(e.to) << "(" << e.to << ") is valid\n";
+		cout << "rev: " << get_node_name(e.rev_edge->from) << "(" << e.rev_edge->from << ") " << get_node_name(e.rev_edge->to) << "(" << e.rev_edge->to << ") is valid\n";
 	}
 }
 
@@ -277,7 +290,8 @@ bool BC_map::search_fout(int x,int next_level_id) {
 		else return is_valid[x] = false;
 	}
 	else {
-		for(auto &e: G[x]) {
+		for(auto& p_e: G[x]) {
+			auto& e = *p_e;
 			int to = e.to;
 			if(is_disable[to] == true) continue;
 
@@ -297,6 +311,8 @@ bool BC_map::search_fout(int x,int next_level_id) {
 			}
 			
 			if(ok) {
+				cout << get_node_name(e.from) << "(" << e.from << ") " << get_node_name(e.to) << "(" << e.to << ") is valid\n";
+				cout << "rev: " << get_node_name(e.rev_edge->from) << "(" << e.rev_edge->from << ") " << get_node_name(e.rev_edge->to) << "(" << e.rev_edge->to << ") is valid\n";
 				is_valid[x] = true;
 				valid_edge.push_back( &e );
 				valid_edge.push_back( e.rev_edge );
@@ -341,7 +357,7 @@ void BC_map::do_kth(const vector<int>& condidate, size_t k, std::function<void(K
 
 			while(index<path_kth[tid].size() and path_heap.top()->dist > path_kth[tid][index]->dist ) {
 				auto pt = path_heap.top();
-		//		delete path_heap.top();
+				//delete path_heap.top();
 				path_heap.pop();
 				delete pt;
 
