@@ -16,6 +16,7 @@ public:
 	static void turn_off();    // Turn off logger (Logger is on by default)
 	static void turn_on();     // Turn on logger (Logger is on by default)
 	static void add_timestamp(const string& event);
+	static void add_record(const string& name, int val);
 
 	// Type may be NORMAL, WARNING, ERROR or CERR, print date if "prefix" is true.
 	static Logger& Log(Log_type type = NORMAL, bool prefix = true);
@@ -34,6 +35,7 @@ private:
 	static Logger* logger_instance;
 	static int error_num, warning_num;
 	static vector<pair<string,int>> timestamp;
+	static map<string, int> record;
 	bool on;
 	std::ofstream flog;
 	std::ostream *cur_stream;

@@ -161,19 +161,13 @@ void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, i
 /* mark searching space */
 	search(through);
 
-	// cout << "magic edge\n";
-	// for(auto&e : Gr[522932]) {
-	// 	cout << get_node_name(e->from) << " " << get_node_name(e->to) << "\n";
-	// }
-	// cout << '\n';
-
 /* query kth */
 	if(kth_start.size()>0 and  kth_start.size() < kth_dest.size() ) {
-		cout << "kth from start\n";
-		for(auto& i:kth_start) {
-			cout << this->get_node_name(i) << '\n';
-		}
-		cout << "total starts: " << kth_start.size() << "\n";
+		//cout << "kth from start\n";
+		//for(auto& i:kth_start) {
+			//cout << this->get_node_name(i) << '\n';
+		//}
+		//cout << "total starts: " << kth_start.size() << "\n";
 
 		auto f = [](Kth* kth, int src, int k, vector<Path*>& container) {
 			kth->KSP_from_source(src, k, container);
@@ -181,11 +175,11 @@ void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, i
 		do_kth(kth_start, k, f, ans);
 	}
 	else {
-		cout << "kth from dest\n";
-		for(auto& i:kth_dest) {
-			cout << this->get_node_name(i) << '\n';
-		}
-		cout << "total dest: " << kth_dest.size() << "\n";
+		//cout << "kth from dest\n";
+		//for(auto& i:kth_dest) {
+			//cout << this->get_node_name(i) << '\n';
+		//}
+		//cout << "total dest: " << kth_dest.size() << "\n";
 
 		auto f = [](Kth* kth, int dest, int k, vector<Path*>& container) {
 			 kth->KSP_to_destination(dest, k, container);
@@ -334,6 +328,8 @@ void BC_map::do_kth(const vector<int>& condidate, size_t k, std::function<void(K
 	};
 	priority_queue<Path*, vector<Path*>, decltype(compare_path)> path_heap(compare_path);
 	threshold = 0; // slack should less than threshold
+
+	Logger::add_record("num_kth", condidate.size());
 
 	// enumerate every condidat to do kth-sortest path with cppr
     #pragma omp parallel for

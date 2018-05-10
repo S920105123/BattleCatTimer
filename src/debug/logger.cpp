@@ -4,6 +4,7 @@ Logger* Logger::logger_instance = NULL;
 int Logger::error_num = 0;
 int Logger::warning_num = 0;
 vector<pair<string,int>> Logger::timestamp;
+map<string, int> Logger::record;
 
 Logger* Logger::create() {
 	if(logger_instance == NULL){
@@ -34,6 +35,10 @@ Logger::~Logger() {
 		space = std::max(space, (int)p.first.size());
 	}
 
+	for(const auto& re: record) {
+		std::cerr << re.first << " : " << re.second << '\n';
+	}
+
 	for (const auto &p : timestamp) {
 		if(pre==0) pre = p.second;
 		total += p.second-pre;
@@ -48,6 +53,10 @@ void Logger::add_timestamp(const string& event){
 	timestamp.emplace_back(event, time(NULL));
 
 	 std::cerr << event << '\n' << std::flush;
+}
+
+void Logger::add_record(const string& name, int val) {
+	record[ name ] += val;
 }
 
 Logger& Logger::Log(Log_type type, bool prefix) {

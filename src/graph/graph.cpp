@@ -935,13 +935,13 @@ vector<Path*>* Graph::report_timing(const vector<pair<Transition_Type,string>>&t
 	}
 
 
-	cout << "report timing:\n";
-	for(const auto &x: _through){
-		cout << "through: " << bc_map->get_node_name(x) << '\n';
-	}
-	for(const auto &x: _disable){
-		cout << "disable: " << bc_map->get_node_name(x) << '\n';
-	}
+	//cout << "report timing:\n";
+	//for(const auto &x: _through){
+		//cout << "through: " << bc_map->get_node_name(x) << '\n';
+	//}
+	//for(const auto &x: _disable){
+		//cout << "disable: " << bc_map->get_node_name(x) << '\n';
+	//}
 
 	vector<Path*>* ans = new vector<Path*>;
 	bc_map->k_shortest_path(_through, _disable, nworst, *ans);

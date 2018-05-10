@@ -30,7 +30,7 @@ void Kth::KSP_to_destination(int dest, int k, vector<Path*> &result_container) {
     this -> clear();
     this -> dest = dest;
     this -> from_src = false;
-    cout << graph->nodes[bc_map->get_graph_id(dest)].name << " as destination\n";
+    // cout << graph->nodes[bc_map->get_graph_id(dest)].name << " as destination\n";
     KSP(k, result_container, bc_map -> G, bc_map -> Gr);
     for(auto &x : result_container) {
         /* Without reversing pseudo source, we can see it as pseudo destination. */
@@ -44,7 +44,7 @@ void Kth::KSP_from_source(int src, int k, vector<Path*> &result_container) {
     this -> clear();
     this -> dest = src;
     this -> from_src = true;
-    cout << graph->nodes[bc_map->get_graph_id(src)].name << " as source\n";
+    // cout << graph->nodes[bc_map->get_graph_id(src)].name << " as source\n";
     KSP(k, result_container, bc_map -> Gr, bc_map -> G);
 }
 
@@ -366,9 +366,9 @@ void Path::output(ostream &fout, Graph *graph) const {
     int width = 8, n = path.size();
     float rat = delay[0], slack = this->dist, at = rat - slack, total = delay[n-2];
     const char *tab = "      ", *spline = "----------------------------------------", *type_ch[2] = {"^   ", "v   "};
-    cout << "Let's output path...\n";
-    for (int v : path) cout << v << " ";
-    cout << '\n' << std::flush;
+    //cout << "Let's output path...\n";
+    //for (int v : path) cout << v << " ";
+    //cout << '\n' << std::flush;
 
     // path[0] is SuperDest, path[n-1] is SuperSrc
     if (path.empty()) return;
