@@ -173,6 +173,7 @@ bool Kth::build_SDSP_tree(const vector<vector<Edge*>> &radj) {
             float rat = graph->nodes[dest_gid].rat[dest_mode][dest_type];
             float at = graph->nodes[src_gid].at[src_mode][src_type];
             float cpp = cppr->cppr_credit(src_mode, src_gid, src_type, dest_gid, dest_type);
+            // cout << "RAT = " << rat << " AT = " << at << " CPP = " << cpp << "\n";
             edg.delay = rat - at + cpp;
 
             float relax = dist[ LUT[edg.to] ] + edg.delay;
