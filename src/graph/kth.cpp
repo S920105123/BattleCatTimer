@@ -142,18 +142,44 @@ bool Kth::build_SDSP_tree(const vector<vector<Edge*>> &radj) {
     /* Create pseudo source: kth_id = N, bc_id = -1. */
     this -> pseudo_src = -1;
     int id = set_id(pseudo_src);
-    for (auto &edg : pseudo_edge) {
-        if (this -> from_src) {
-            edg.delay = graph->nodes[bc_map -> get_graph_id(edg.to)].rat[bc_map -> get_graph_id_mode(edg.to)][bc_map -> get_graph_id_type(edg.to)];
-        }
-        else {
-            edg.delay = graph->nodes[bc_map -> get_graph_id(dest)].rat[bc_map -> get_graph_id_mode(dest)][bc_map -> get_graph_id_type(dest)];
-        }
+    if (this -> from_src) {
+        int src_gid = bc_map -> get_graph_id(this->dest);
+        Mode src_mode = bc_map -> get_graph_id_mode(this->dest);
+        Transition_Type src_type = bc_map -> get_graph_id_type(this->dest);
+        for (auto &edg : pseudo_edge) {
+            int dest_gid = bc_map -> get_graph_id(edg.to);
+            Mode dest_mode = bc_map -> get_graph_id_mode(edg.to);
+            Transition_Type dest_type = bc_map -> get_graph_id_type(edg.to);
+            float rat = graph->nodes[dest_gid].rat[dest_mode][dest_type];
+            float at = graph->nodes[src_gid].at[src_mode][src_type];
+            float cpp = cppr->cppr_credit(src_mode, src_gid, src_type, dest_gid, dest_type);
+            edg.delay = rat - at + cpp;
 
-        float relax = dist[ LUT[edg.to] ] + edg.delay; // + CPPR - at[clk]
-        if (relax < dist[id]) {
-            dist[id] = relax;
-            successor[id] = edg.to;
+            float relax = dist[ LUT[edg.to] ] + edg.delay;
+            if (relax < dist[id]) {
+                dist[id] = relax;
+                successor[id] = edg.to;
+            }
+        }
+    }
+    else {
+        int dest_gid = bc_map -> get_graph_id(this->dest);
+        Mode dest_mode = bc_map -> get_graph_id_mode(this->dest);
+        Transition_Type dest_type = bc_map -> get_graph_id_type(this->dest);
+        for (auto &edg : pseudo_edge) {
+            int src_gid = bc_map -> get_graph_id(edg.to);
+            Mode src_mode = bc_map -> get_graph_id_mode(edg.to);
+            Transition_Type src_type = bc_map -> get_graph_id_type(edg.to);
+            float rat = graph->nodes[dest_gid].rat[dest_mode][dest_type];
+            float at = graph->nodes[src_gid].at[src_mode][src_type];
+            float cpp = cppr->cppr_credit(src_mode, src_gid, src_type, dest_gid, dest_type);
+            edg.delay = rat - at + cpp;
+
+            float relax = dist[ LUT[edg.to] ] + edg.delay;
+            if (relax < dist[id]) {
+                dist[id] = relax;
+                successor[id] = edg.to;
+            }
         }
     }
 
@@ -164,7 +190,7 @@ bool Kth::build_SDSP_tree(const vector<vector<Edge*>> &radj) {
 void Kth::queueing(Prefix_node *path) {
     /* A function to push something into priority queue
        This function exist because there will be more optimization done before pushing into queue. */
-    if (path -> delta < bc_map -> threshold) {
+    if (path -> delta + dist[ LUT[pseudo_src] ] < bc_map -> threshold) {
         pq.push(path);
     }
 }
@@ -258,7 +284,7 @@ void Kth::KSP(int k, vector<Path*> &container, const vector<vector<Edge*>> &adj,
 	container.resize(k);
 
 	Prefix_node *root = new Prefix_node();
-	this->pq.push(root);
+	if (dist[ LUT[pseudo_src] ] < bc_map -> threshold) this->pq.push(root);
 	for (int i=0; i<k; i++) {
 		if (pq.empty()) {
 			container.resize(i);
@@ -266,10 +292,15 @@ void Kth::KSP(int k, vector<Path*> &container, const vector<vector<Edge*>> &adj,
 		}
 		Prefix_node *next_path = pq.top();
 		pq.pop();
+		this -> trash_can.emplace_back(next_path);
+
+        if (next_path->delta + dist[ LUT[pseudo_src] ] >= bc_map -> threshold) {
+            container.resize(i);
+            break;
+        }
         container[i] = new Path();
 		get_explicit_path(container[i], next_path);
-		if (i+1 < k) this -> extend(next_path, adj);
-		this -> trash_can.emplace_back(next_path);
+        if (i+1 < k) this -> extend(next_path, adj);
 	}
 
 	/* Clean nodes */
