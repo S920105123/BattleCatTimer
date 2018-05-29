@@ -13,6 +13,10 @@ BC_map::~BC_map() {
 	for(int i=0; i<NUM_THREAD; i++) {
 		delete kths[i];
 	}
+
+	for(auto& p: caches) {
+		delete p;
+	}
 }
 
 int BC_map::get_index(Mode mode, Transition_Type type, int node_id){
@@ -46,12 +50,16 @@ string BC_map::get_node_name(int map_id){
 
 void BC_map::add_edge(int from, int to, float delay){
 	Edge *e = new Edge(from, to, delay);
-	Edge *re = new Edge(to, from, delay);
+	Edge *rev = new Edge(to, from, delay);
 
     G[from].emplace_back(e);
-    Gr[to].emplace_back(re);
-	e->rev_edge = re;
-	re->rev_edge = e;
+    Gr[to].emplace_back(rev);
+	// e->rev_edge = re;
+	// re->rev_edge = e;
+	e->id = edge_counter;
+	rev->id = edge_counter;
+	edge_counter += 1;
+
     in_degree[to]++;
 }
 
@@ -59,6 +67,7 @@ void BC_map::build(){
     // add node
     // every graph node has 2 nodes in map
     num_node = 0;
+	edge_counter = 0;
     for(size_t i=0; i<graph->nodes.size(); i++){
         // to_map_id[EARLY][RISE].emplace_back(num_node++);
         // to_map_id[EARLY][FALL].emplace_back(num_node++);
@@ -72,7 +81,7 @@ void BC_map::build(){
     vis.resize(num_node);
     level.resize(num_node);
 	is_disable.resize(num_node);
-	is_valid.resize(num_node);
+	// is_valid.resize(num_node);
 	is_through.resize(num_node);
 
     // dfs build map
@@ -153,38 +162,50 @@ void BC_map::build_map(int root){
 /******************************************
 *           k shortest path               *
 ******************************************/
-void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, int k, vector<Path*>& ans)
+void BC_map::choose_cache(const vector<int>& through, const vector<int>& disable) {
+	// now just return a new cache
+	Cache* cache = new Cache(through, disable);
+	current_cache = cache;
+}
+
+void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, int k, vector<Path*>& ans, bool cppr_on)
 {
 /* get next_level */
 	mark_point(through, disable);
+	choose_cache(through, disable);
 
 /* mark searching space */
 	search(through);
 
 /* query kth */
-	if(kth_start.size()>0 and  kth_start.size() < kth_dest.size() ) {
-		//cout << "kth from start\n";
-		//for(auto& i:kth_start) {
-			//cout << this->get_node_name(i) << '\n';
-		//}
-		//cout << "total starts: " << kth_start.size() << "\n";
+	if(cppr_on) {
+		if(kth_start.size()>0 and  kth_start.size() < kth_dest.size() ) {
+			//cout << "kth from start\n";
+			//for(auto& i:kth_start) {
+				//cout << this->get_node_name(i) << '\n';
+			//}
+			//cout << "total starts: " << kth_start.size() << "\n";
 
-		auto f = [](Kth* kth, int src, int k, vector<Path*>& container) {
-			kth->KSP_from_source(src, k, container);
-		};
-		do_kth(kth_start, k, f, ans);
+			auto f = [](Kth* kth, int src, int k, vector<Path*>& container) {
+				kth->KSP_from_source(src, k, container);
+			};
+			do_kth(kth_start, k, f, ans);
+		}
+		else {
+			//cout << "kth from dest\n";
+			//for(auto& i:kth_dest) {
+				//cout << this->get_node_name(i) << '\n';
+			//}
+			//cout << "total dest: " << kth_dest.size() << "\n";
+
+			auto f = [](Kth* kth, int dest, int k, vector<Path*>& container) {
+				 kth->KSP_to_destination(dest, k, container);
+			};
+			do_kth(kth_dest, k, f, ans);
+		}
 	}
-	else {
-		//cout << "kth from dest\n";
-		//for(auto& i:kth_dest) {
-			//cout << this->get_node_name(i) << '\n';
-		//}
-		//cout << "total dest: " << kth_dest.size() << "\n";
-
-		auto f = [](Kth* kth, int dest, int k, vector<Path*>& container) {
-			 kth->KSP_to_destination(dest, k, container);
-		};
-		do_kth(kth_dest, k, f, ans);
+	else { // no cppr
+		// do kth
 	}
 }
 
@@ -194,7 +215,7 @@ void BC_map::mark_point(vector<int>& through, const vector<int>& disable) {
 				return this->level[a] < this->level[b];
 		   	});
 
-	std::fill(is_valid.begin(), is_valid.end(), 0);
+	// std::fill(is_valid.begin(), is_valid.end(), 0);
 	std::fill(is_disable.begin(), is_disable.end(), 0);
 	std::fill(is_through.begin(), is_through.end(), 0);
 	next_level.clear();
@@ -217,15 +238,16 @@ void BC_map::search(vector<int>& through) {
 	std::fill(vis.begin(), vis.end(), 0);
 
 	// clean the mark of the edges
-	for(auto &e: valid_edge)  e->valid = false;
-	valid_edge.clear();
+	// for(auto &e: valid_edge)  e->valid = false;
+	// valid_edge.clear();
 
 	if(through.size()) {
 		for(auto &x: through) {
 			// start from the point has the lowest level
 			if(level[x] == next_level[0]) {
 				if(search_fout(x, 1)) {
-					is_valid[x] = 1;
+					// is_valid[x] = 1;
+					current_cache->set_vert(x, true);
 					vis[x] = 0;
 					search_fin(x);
 				}
@@ -241,7 +263,10 @@ void BC_map::search(vector<int>& through) {
 			// i is a FF:clk or Pin
 			if(G[i].size() != 0 && Gr[i].size() == 0) {
 				kth_start.push_back(i);
-				if(search_fout(i, 0)) is_valid[i] = 1;
+				if(search_fout(i, 0)) {
+					// is_valid[i] = 1;
+					current_cache->set_vert(i, true);
+				}
 			}
 		}
 	}
@@ -250,7 +275,8 @@ void BC_map::search(vector<int>& through) {
 void BC_map::search_fin(int x) {
 
 	// any point found by the search_fin is valid
-	is_valid[x] = true;
+	// is_valid[x] = true;
+	current_cache->set_vert(x, true);
 	if(Gr[x].size() == 0) {
 		kth_start.push_back(x) ;
 		return;
@@ -264,10 +290,11 @@ void BC_map::search_fin(int x) {
 		// cout << "search fin " << get_node_name(x) << " " << get_node_name(e.to) << "\n";
 		if(is_disable[e.to] == false) search_fin(e.to);
 
-		valid_edge.push_back( &e );
-		valid_edge.push_back( e.rev_edge );
-		e.valid = true;
-		e.rev_edge->valid = true;
+		// valid_edge.push_back( &e );
+		// valid_edge.push_back( e.rev_edge );
+		// e.valid = true;
+		// e.rev_edge->valid = true;
+		current_cache->set_edge(e.id, true);
 		// cout << get_node_name(e.from) << "(" << e.from << ") " << get_node_name(e.to) << "(" << e.to << ") is valid\n";
 		// cout << "rev: " << get_node_name(e.rev_edge->from) << "(" << e.rev_edge->from << ") " << get_node_name(e.rev_edge->to) << "(" << e.rev_edge->to << ") is valid\n";
 	}
@@ -275,16 +302,22 @@ void BC_map::search_fin(int x) {
 
 bool BC_map::search_fout(int x,int next_level_id) {
 
-	if(vis[x]) return is_valid[x];
+	// if(vis[x]) return is_valid[x];
+	if(vis[x]) {
+		return current_cache->get_edge(x);
+		// return is_valid[x];
+	}
 	vis[x] = true;
 
 	// no fout: FF:D or Pout
 	if(G[x].size()==0) {
 		if(next_level_id == (int)next_level.size()) {
 			kth_dest.push_back( x );
-			return is_valid[x] = true;
+			// return is_valid[x] = true;
+			return current_cache->set_vert(x, true);
 		}
-		else return is_valid[x] = false;
+		// else return is_valid[x] = false;
+		else return false;
 	}
 	else {
 		for(auto& p_e: G[x]) {
@@ -310,14 +343,18 @@ bool BC_map::search_fout(int x,int next_level_id) {
 			if(ok) {
 				// cout << get_node_name(e.from) << "(" << e.from << ") " << get_node_name(e.to) << "(" << e.to << ") is valid\n";
 				// cout << "rev: " << get_node_name(e.rev_edge->from) << "(" << e.rev_edge->from << ") " << get_node_name(e.rev_edge->to) << "(" << e.rev_edge->to << ") is valid\n";
-				is_valid[x] = true;
-				valid_edge.push_back( &e );
-				valid_edge.push_back( e.rev_edge );
-				e.valid = true;
-				e.rev_edge->valid = true;
+				// is_valid[x] = true;
+				current_cache->set_vert(x, true);
+
+// 				valid_edge.push_back( &e );
+//				valid_edge.push_back( e.rev_edge );
+//				e.valid = true;
+//				e.rev_edge->valid = true;
+				current_cache->set_edge(e.id, true);
 			}
 		}
-		return is_valid[x];
+		// return is_valid[x];
+		return current_cache->get_vert(x);
 	}
 }
 

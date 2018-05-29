@@ -4,13 +4,15 @@
 #include "header.h"
 #include "debug.h"
 #include "kth.h"
+#include "cache.h"
 #include "graph.h"
 
 class Graph;
 class Kth;
 
-struct Edge{
+struct Edge {
     int from, to;
+	int id;
     float delay;
 	bool valid;
 	Edge* rev_edge;
@@ -30,10 +32,13 @@ public:
     Mode get_graph_id_mode(int map_id);
     Transition_Type get_graph_id_type(int map_id);
     string get_node_name(int map_id);
+
 	void k_shortest_path(vector<int>& _through,
 						 const vector<int>& _disable,
 						 int k,
-						 vector<Path*>& ans);
+						 vector<Path*>& ans, 
+						 bool cppr_on = true
+						 );
 
 	std::atomic<float> threshold;
 
@@ -48,13 +53,14 @@ private:
 	void search_fin(int x);
 	bool search_fout(int x, int next_level_id);
 	void search(vector<int>& through);
+	void choose_cache(const vector<int>& through, const vector<int>& disable);
 
 	/* kth */
-	vector<bool> is_valid;
+	// vector<bool> is_valid;
 	vector<bool> is_disable, is_through;
 	vector<int> next_level;
 	vector<int> kth_start, kth_dest;
-	vector<Edge*> valid_edge;   // To clean the mark of the edge of each query, we store the valid edge and clean it after we get the k shortest_path.
+	// vector<Edge*> valid_edge;   // To clean the mark of the edge of each query, we store the valid edge and clean it after we get the k shortest_path.
 
 	vector<Path*> path_kth[NUM_THREAD];
 	Kth* kths[NUM_THREAD];
@@ -62,6 +68,7 @@ private:
     Graph* graph;
 	CPPR* cppr;
     int num_node;
+	int edge_counter;
     int superSource;
 
     vector<vector<Edge*>> G;
@@ -70,6 +77,8 @@ private:
     vector<int> to_map_id[2][2];       // graph node id to bc map id
     vector<int> level, in_degree, vis;
 
+	vector<Cache*> caches;
+	Cache* current_cache;
     friend class Kth;
 };
 #endif /* BATTLE_CAT_MAP */

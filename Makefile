@@ -30,6 +30,7 @@ GRAPH_SRC      += src/graph/rc_tree.cpp
 GRAPH_SRC      += src/graph/cppr.cpp
 GRAPH_SRC      += src/graph/bc_map.cpp
 GRAPH_SRC      += src/graph/kth.cpp
+GRAPH_SRC      += src/graph/cache.cpp
 # CPPR_SRC        = src/graph/cppr.cpp
 # BCMAP_SRC       = src/graph/bc_map.cpp
 TIMER_SRC       = src/timer/timer.cpp
@@ -39,7 +40,7 @@ DATA_SRC        = $(SPEF_SRC) $(VERILOG_SRC) $(LIBERTY_SRC)
 HEADER_OBJECT   = logger.o debug.o func.o
 LIBERTY_OBJECT  = cell_lib.o lu_table_template.o pin.o timing_arc.o timing_table.o cell.o
 DATA_OBEJCT     = verilog.o spef.o $(LIBERTY_OBJECT)
-GRAPH_OBJECT    = graph.o rc_tree.o cppr.o bc_map.o kth.o
+GRAPH_OBJECT    = graph.o rc_tree.o cppr.o bc_map.o kth.o cache.o
 
 TEST_LOGGER:
 	$(GCCFLAG) src/debug/logger.cpp -DTEST_LOGGER -o logger
