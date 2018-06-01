@@ -71,6 +71,7 @@ void CPPR::build_sparse(){
 
 float CPPR::cppr_credit(Mode mode, int u, Transition_Type type_u, int v, Transition_Type type_v){
 
+	return 0;
     if(root==-1) return 0;
     // cout << graph->nodes[u].name << " " << graph->nodes[v].name << '\n';
     int tree_u = to_tree_id[u], tree_v = to_tree_id[v];

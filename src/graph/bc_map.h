@@ -14,10 +14,13 @@ struct Edge {
     int from, to;
 	int id;
     float delay;
-	bool valid;
-	Edge* rev_edge;
-    Edge():from(0), to(0), delay(0), valid(0), rev_edge(nullptr){}
-    Edge(int f,int t,float d):from(f),to(t),delay(d), valid(false), rev_edge(nullptr){}
+	//bool valid;
+	//Edge* rev_edge;
+    //Edge():from(0), to(0), delay(0), valid(0), rev_edge(nullptr){}
+    //Edge(int f,int t,float d):from(f),to(t),delay(d), valid(false), rev_edge(nullptr){}
+
+    Edge():from(0), to(0), delay(0){}
+    Edge(int f,int t,float d):from(f),to(t),delay(d){}
 };
 
 class BC_map {
@@ -51,8 +54,13 @@ private:
 	// iterate the all condidates with calling function fun
     void do_kth(const vector<int>& condidate, size_t k, std::function<void(Kth*,int,int,vector<Path*>&)> fun, vector<Path*>& ans);
 	void search_fin(int x);
-	bool search_fout(int x, int next_level_id);
-	void search(vector<int>& through);
+	bool search_fout(int x, int next_level_id);      // search go through all next_level
+
+	bool search_fout_layer(int v, int target_level); // from v search to target_level
+	bool search_fin_layer(int v, int target_level);  // from v search backward to target_level
+
+	bool search_modify(const vector<int>& through,const vector<int>& disable);
+	void search(const vector<int>& through);
 	void choose_cache(const vector<int>& through, const vector<int>& disable);
 
 	/* kth */
@@ -70,9 +78,11 @@ private:
     int num_node;
 	int edge_counter;
     int superSource;
+	int cache_timestamp;
 
     vector<vector<Edge*>> G;
     vector<vector<Edge*>> Gr;
+	vector<Edge*> es;
 
     vector<int> to_map_id[2][2];       // graph node id to bc map id
     vector<int> level, in_degree, vis;

@@ -42,6 +42,9 @@ LIBERTY_OBJECT  = cell_lib.o lu_table_template.o pin.o timing_arc.o timing_table
 DATA_OBEJCT     = verilog.o spef.o $(LIBERTY_OBJECT)
 GRAPH_OBJECT    = graph.o rc_tree.o cppr.o bc_map.o kth.o cache.o
 
+all: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_OBJECT) timer.o
+	$(GCCFLAG) $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_OBJECT) file_reader.o timer.o  main.cpp  -o BattleCatTimer
+
 TEST_LOGGER:
 	$(GCCFLAG) src/debug/logger.cpp -DTEST_LOGGER -o logger
 	logger.exe
@@ -129,8 +132,6 @@ main: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_OBJECT) timer.o
 	$(GCCFLAG) $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_OBJECT) file_reader.o timer.o  main.cpp  -o main
 	main
 
-all: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_OBJECT) timer.o
-	$(GCCFLAG) $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_OBJECT) file_reader.o timer.o  main.cpp  -o BattleCatTimer
 
 compare: compare.cpp file_reader.o $(HEADER_OBJECT)
 	$(GCCFLAG) $(HEADER_OBJECT) compare.cpp file_reader.o -o compare

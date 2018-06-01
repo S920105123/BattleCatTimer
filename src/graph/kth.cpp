@@ -77,7 +77,8 @@ void Kth::get_topological_order(int v, const vector<vector<Edge*>> &radj) {
     for (const auto &p_e : radj[v]) {
 		const auto& edg = *p_e;
 		// cout << bc_map->get_node_name(v) << " " << bc_map->get_node_name(edg.to) << " " << edg.valid << '\n';
-        if (!edg.valid) continue;
+		//if (!edg.valid) continue;
+		if (!this->bc_map->current_cache->get_edge_valid(edg.id) ) continue;
         int id = set_id(edg.to);
         if (successor[id] == NOT_VISITED) {
             get_topological_order(edg.to, radj);
@@ -124,7 +125,8 @@ bool Kth::build_SDSP_tree(const vector<vector<Edge*>> &radj) {
         }
         for (const auto &p_edg : radj[v]) {
 			const auto &edg = *p_edg;
-            if (!edg.valid) continue;
+			//if (!edg.valid) continue;
+			if (!this->bc_map->current_cache->get_edge_valid(edg.id) ) continue;
             int to_id = LUT[edg.to];
             float relax = dist[v_id] + edg.delay;
             if (relax < dist[to_id]) {

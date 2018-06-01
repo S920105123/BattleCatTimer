@@ -3,6 +3,7 @@
 BC_map::BC_map(Graph* graph, CPPR* cppr){
     this->graph = graph;
 	this->cppr = cppr;
+	this->cache_timestamp = 0;
 
 	for(int i=0; i<NUM_THREAD; i++) {
 		kths[i] = new Kth(this, cppr, graph);
@@ -54,12 +55,13 @@ void BC_map::add_edge(int from, int to, float delay){
 
     G[from].emplace_back(e);
     Gr[to].emplace_back(rev);
-	// e->rev_edge = re;
-	// re->rev_edge = e;
+	//e->rev_edge = rev;
+	//rev->rev_edge = e;
 	e->id = edge_counter;
 	rev->id = edge_counter;
 	edge_counter += 1;
 
+	es.push_back(e);
     in_degree[to]++;
 }
 
@@ -163,9 +165,48 @@ void BC_map::build_map(int root){
 *           k shortest path               *
 ******************************************/
 void BC_map::choose_cache(const vector<int>& through, const vector<int>& disable) {
-	// now just return a new cache
-	Cache* cache = new Cache(through, disable);
-	current_cache = cache;
+
+	int min_val = through.size();
+	Cache* best = nullptr;
+	for(auto& cac: caches) {
+		int diff = cac->cal_difference(through, disable);
+		if(diff < min_val) {
+			min_val = diff;
+			best = cac;
+		}
+	}
+
+	// we can't find a similiar cache for this query
+	if(best == nullptr) {
+		if(caches.size() < NUM_CACHE ) {
+			//current_cache = new Cache(through, disable, this);
+			current_cache = new Cache(this);
+			caches.push_back( current_cache );
+		}
+		else {
+			// choose the oldest cache and clear it
+			min_val = 0;
+			best = nullptr;
+			for(size_t i=0; i<caches.size(); i++) {
+				if(caches[i]->get_timestamp() > min_val) {
+					min_val = caches[i]->get_timestamp();
+					best =  caches[i];
+				}
+			}
+			current_cache = best;
+			current_cache->clear();
+		}
+	}
+	else current_cache = best;
+
+	//LOG(CERR) << "current_cache size = " << caches.size() << "\n";
+	//LOG(CERR) << "Current_cache: " << current_cache << "\n";
+	//LOG(CERR) << "cache through: ";
+	//for(auto& x:current_cache->get_through()) 
+		//LOG(CERR) << get_node_name(x) << "(" << level[x] << "), ";
+	 //LOG(CERR) << '\n';
+
+	current_cache->set_timestamp( cache_timestamp++ );
 }
 
 void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, int k, vector<Path*>& ans, bool cppr_on)
@@ -174,30 +215,37 @@ void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, i
 	mark_point(through, disable);
 	choose_cache(through, disable);
 
-/* mark searching space */
-	search(through);
+/* mark searching space*/
+	search_modify(through, disable);
+	current_cache->set_through(through);
+	current_cache->set_disable(disable);
+
+	//for(int i=0; i<num_node; i++) {
+		//if(current_cache->get_vert_valid(i)) {
+			//LOG(CERR) << this->get_node_name(i) << " valid\n";
+		//}
+	//}
+	//LOG(CERR)<< "kth dest = " << kth_dest.size() << "\n";
+	//for(auto& x:kth_dest) LOG(CERR) << get_node_name(x) << ", "; cout << "\n";
+	//LOG(CERR)<< "kth start= " << kth_start.size() << "\n";
+	//for(auto& x:kth_start) LOG(CERR) << get_node_name(x) << ", "; cout << "\n";
+
+	//LOG(CERR)<< "edge valid: ";
+	//LOG(CERR)<< current_cache->edge_valid.size() << "\n";
+	//for(auto& p :current_cache->edge_valid) {
+		//int eid = p.first;
+		//LOG(CERR) << get_node_name(es[eid]->from) << " => " << get_node_name(es[eid]->to) << " " << p.second << "\n";
+	//}
 
 /* query kth */
 	if(cppr_on) {
 		if(kth_start.size()>0 and  kth_start.size() < kth_dest.size() ) {
-			//cout << "kth from start\n";
-			//for(auto& i:kth_start) {
-				//cout << this->get_node_name(i) << '\n';
-			//}
-			//cout << "total starts: " << kth_start.size() << "\n";
-
 			auto f = [](Kth* kth, int src, int k, vector<Path*>& container) {
 				kth->KSP_from_source(src, k, container);
 			};
 			do_kth(kth_start, k, f, ans);
 		}
 		else {
-			//cout << "kth from dest\n";
-			//for(auto& i:kth_dest) {
-				//cout << this->get_node_name(i) << '\n';
-			//}
-			//cout << "total dest: " << kth_dest.size() << "\n";
-
 			auto f = [](Kth* kth, int dest, int k, vector<Path*>& container) {
 				 kth->KSP_to_destination(dest, k, container);
 			};
@@ -207,13 +255,20 @@ void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, i
 	else { // no cppr
 		// do kth
 	}
+
+	//cout << " ok!\n";
 }
 
 void BC_map::mark_point(vector<int>& through, const vector<int>& disable) {
 
 	std::sort(through.begin(), through.end(), [this](int a,int b) {
-				return this->level[a] < this->level[b];
-		   	});
+			if(this->level[a] != this->level[b]) return this->level[a] < this->level[b];
+			else { // if the two nodes has the level, then we compare their unique graph id
+				int graph_a = this->get_graph_id(a);
+				int graph_b = this->get_graph_id(b);
+				return graph_a < graph_b;
+			}
+	});
 
 	// std::fill(is_valid.begin(), is_valid.end(), 0);
 	std::fill(is_disable.begin(), is_disable.end(), 0);
@@ -231,15 +286,11 @@ void BC_map::mark_point(vector<int>& through, const vector<int>& disable) {
 	for(auto &x: through) is_through[x] = true;
 }
 
-void BC_map::search(vector<int>& through) {
-
+void BC_map::search(const vector<int>& through) {
 	kth_start.clear(); // FF:clk or Pin
 	kth_dest.clear();  // FF:D or Pout
 	std::fill(vis.begin(), vis.end(), 0);
-
-	// clean the mark of the edges
-	// for(auto &e: valid_edge)  e->valid = false;
-	// valid_edge.clear();
+	current_cache->clear();
 
 	if(through.size()) {
 		for(auto &x: through) {
@@ -247,7 +298,7 @@ void BC_map::search(vector<int>& through) {
 			if(level[x] == next_level[0]) {
 				if(search_fout(x, 1)) {
 					// is_valid[x] = 1;
-					current_cache->set_vert(x, true);
+					current_cache->set_vert_valid(x, true);
 					vis[x] = 0;
 					search_fin(x);
 				}
@@ -259,24 +310,203 @@ void BC_map::search(vector<int>& through) {
 		ASSERT(next_level.size() == 0);
 		// take all of FF:clk and Pin as a start point
 		for(int i=0; i<(int)G.size(); i++){
-			const auto& node = graph->nodes[ get_graph_id(i) ];
+			//const auto& node = graph->nodes[ get_graph_id(i) ];
 			// i is a FF:clk or Pin
 			if(G[i].size() != 0 && Gr[i].size() == 0) {
 				kth_start.push_back(i);
 				if(search_fout(i, 0)) {
 					// is_valid[i] = 1;
-					current_cache->set_vert(i, true);
+					current_cache->set_vert_valid(i, true);
 				}
 			}
 		}
 	}
+
 }
+// return true if we can find a valid path 
+bool BC_map::search_modify(const vector<int>& through, const vector<int>& disable) {
+
+	kth_start.clear(); // FF:clk or Pin
+	kth_dest.clear();  // FF:D or Pout
+	std::fill(vis.begin(), vis.end(), 0);
+
+	const auto& pre_through = current_cache->get_through();
+
+	int j_th = pre_through.size()-1;
+	//int j_di = pre_disable.size()-1;
+	int i_th = through.size()-1;
+	int i_di = disable.size()-1;
+	vector<int> now_node;
+
+	auto same_pin = [&](int x,int y)->bool {
+		return (level[x] == level[y] and get_graph_id(x) == get_graph_id(y));
+	};
+
+	auto disable_fout = [&](int x) {
+		//LOG(CERR) << " Disable " << get_node_name(x) << '\n';
+		for(auto& epr: G[x]) {
+			this->current_cache->set_edge_valid(epr->id, false);
+		}
+		for(auto& epr: Gr[x]) {
+			this->current_cache->set_edge_valid(epr->id, false);
+		}
+		current_cache->set_vert_valid(x, false);
+	};
+
+	auto get_now_node = [&](int now_level)->bool {
+
+		now_node.clear();
+		// get the now_node 
+		while(i_th >=0 and level[through[i_th]] == now_level) now_node.push_back(through[i_th--]);
+
+		// check whether all the now_node are the same pins
+		if(now_node.size() > 4) return false;
+		for(auto& x:now_node){
+			for(auto& y:now_node) {
+				// we can't find a valid path going through the nodes having same the level but different pin.
+				if(!same_pin(x, y)) {
+					return false;
+				}
+			}
+		}
+		return true;
+	};
+
+	bool now_need_search_fout = false;
+	bool next_need_search_fout = false;
+
+	//LOG(CERR) << "through: ";
+	//for(auto& x:through) { LOG(CERR) << get_node_name(x) << ", "; }cout << "\n";
+
+	next_level.push_back(-1);
+	for(int II=next_level.size()-2; II>=0; II--){
+		int now_level = next_level[II];
+
+		if(!get_now_node(now_level)) return false;
+		
+		//LOG(CERR) << "i = " << II << " now level = " << now_level << "\n";
+		//LOG(CERR) << " => now node\n";
+		//for(auto& x: now_node) { LOG(CERR) << get_node_name(x) << ", "; } LOG(CERR) << "\n";
+
+		now_need_search_fout = next_need_search_fout;
+		next_need_search_fout = false;
+
+		while(j_th >=0 and level[ pre_through[j_th] ] > now_level) {
+			disable_fout(pre_through[j_th]);
+			now_need_search_fout = true;
+			j_th--;
+		}
+
+		while(i_di >=0 and level[disable[i_di]] >= now_level) {
+			disable_fout(disable[i_di]);
+			i_di--;
+		}
+
+		if(j_th >=0 and level[pre_through[j_th]] == now_level) {
+			vector<int> pre_node;
+			while(j_th >=0 and level[pre_through[j_th]] == now_level) pre_node.push_back(pre_through[j_th--]);
+
+			ASSERT(now_node.size()!=0);
+			ASSERT(pre_node.size()!=0);
+			if(same_pin(now_node[0], pre_node[0])) {
+				for(auto& x:pre_node) {
+					bool find = false;
+					for(auto& y:now_node) {
+						if(y == x) find = true;
+					}
+
+					if(!find) disable_fout(x);
+				}
+
+				for(auto& y:now_node) {
+					for(auto& x:pre_node) {
+						if(y!=x) next_need_search_fout = true;
+					}
+					if(next_need_search_fout) break;
+				}
+			}
+			else {
+				for(auto& x:pre_node) disable_fout(x);
+				now_need_search_fout = true;
+				next_need_search_fout = true;
+			}
+
+		} 
+		else{
+			now_need_search_fout = true;
+			next_need_search_fout = true;
+		}
+
+		if(now_need_search_fout) {
+			for(auto& x:now_node){
+				//LOG(CERR) << " -----> search fout " << get_node_name(x) << " to " << next_level[II+1] << "\n";
+				search_fout_layer(x, next_level[II+1]);
+			}
+		}
+		now_need_search_fout = false;
+	}
+	//LOG(CERR)<< "====\n";
+
+	if(now_need_search_fout or next_need_search_fout) {
+		for(auto& x:now_node){
+			//LOG(CERR) << " -----> search fin " << get_node_name(x) << "\n";
+			search_fin(x);
+		}
+	}
+	return true;
+}
+
+bool BC_map::search_fout_layer(int x,int target_level) {
+
+	if(target_level==-1 and G[x].size()==0)  // ff:d or POUT
+	{
+		kth_dest.push_back(x);
+		return current_cache->set_vert_valid(x, true);
+	}
+
+	if(level[x] == target_level){ 
+		if(is_through[x])  return current_cache->set_vert_valid(x, true);
+		else return false;
+	}
+
+	if(vis[x]) return current_cache->get_vert_valid(x);
+	vis[x] = true;
+
+	bool ok = false; // if x is valid
+	for(auto& epr: G[x]) {
+		int to = epr->to;
+		if(is_disable[to]) continue;
+		if(level[to] > target_level) continue;
+
+		if(search_fout_layer(to, target_level)) {
+			ok = true;
+			current_cache->set_edge_valid(epr->id, true);
+		}
+	}
+
+	if(ok) {
+		//cout << "set vert_valid" << get_node_name(x) << "\n";
+		return current_cache->set_vert_valid(x, true);
+	}
+	else return false;
+}
+
+//bool BC_map::search_fin_layer(int x,int target_level) {
+	//if(target_level == -1 and Gr[x].size() == 0) return current_cache->set_vert_valid(x, true); 
+
+	//if(level[x] == target_level) {
+		//if(is_through[x]) return current_cache->set_vert_valid(x, true);
+		//else return false;
+	//}
+
+	//if(vis[x]) return current_cache->get_vert_valid(x);
+//}
 
 void BC_map::search_fin(int x) {
 
 	// any point found by the search_fin is valid
 	// is_valid[x] = true;
-	current_cache->set_vert(x, true);
+	current_cache->set_vert_valid(x, true);
 	if(Gr[x].size() == 0) {
 		kth_start.push_back(x) ;
 		return;
@@ -288,14 +518,12 @@ void BC_map::search_fin(int x) {
 	for(auto& p_e: Gr[x]) {
 		auto& e = *p_e;
 		// cout << "search fin " << get_node_name(x) << " " << get_node_name(e.to) << "\n";
-		if(is_disable[e.to] == false) search_fin(e.to);
+		
+		if(is_disable[e.to]) continue; 
+		search_fin(e.to);
 
-		// valid_edge.push_back( &e );
-		// valid_edge.push_back( e.rev_edge );
-		// e.valid = true;
-		// e.rev_edge->valid = true;
-		current_cache->set_edge(e.id, true);
-		// cout << get_node_name(e.from) << "(" << e.from << ") " << get_node_name(e.to) << "(" << e.to << ") is valid\n";
+		current_cache->set_edge_valid(e.id, true);
+		 //cout << get_node_name(e.from) << "(" << e.from << ") " << get_node_name(e.to) << "(" << e.to << ") is valid\n";
 		// cout << "rev: " << get_node_name(e.rev_edge->from) << "(" << e.rev_edge->from << ") " << get_node_name(e.rev_edge->to) << "(" << e.rev_edge->to << ") is valid\n";
 	}
 }
@@ -304,7 +532,7 @@ bool BC_map::search_fout(int x,int next_level_id) {
 
 	// if(vis[x]) return is_valid[x];
 	if(vis[x]) {
-		return current_cache->get_edge(x);
+		return current_cache->get_vert_valid(x);
 		// return is_valid[x];
 	}
 	vis[x] = true;
@@ -314,7 +542,7 @@ bool BC_map::search_fout(int x,int next_level_id) {
 		if(next_level_id == (int)next_level.size()) {
 			kth_dest.push_back( x );
 			// return is_valid[x] = true;
-			return current_cache->set_vert(x, true);
+			return current_cache->set_vert_valid(x, true);
 		}
 		// else return is_valid[x] = false;
 		else return false;
@@ -341,20 +569,14 @@ bool BC_map::search_fout(int x,int next_level_id) {
 			}
 
 			if(ok) {
-				// cout << get_node_name(e.from) << "(" << e.from << ") " << get_node_name(e.to) << "(" << e.to << ") is valid\n";
+				 //cout << get_node_name(e.from) << "(" << e.from << ") " << get_node_name(e.to) << "(" << e.to << ") is valid\n";
 				// cout << "rev: " << get_node_name(e.rev_edge->from) << "(" << e.rev_edge->from << ") " << get_node_name(e.rev_edge->to) << "(" << e.rev_edge->to << ") is valid\n";
-				// is_valid[x] = true;
-				current_cache->set_vert(x, true);
-
-// 				valid_edge.push_back( &e );
-//				valid_edge.push_back( e.rev_edge );
-//				e.valid = true;
-//				e.rev_edge->valid = true;
-				current_cache->set_edge(e.id, true);
+				current_cache->set_vert_valid(x, true);
+				current_cache->set_edge_valid(e.id, true);
 			}
 		}
 		// return is_valid[x];
-		return current_cache->get_vert(x);
+		return current_cache->get_vert_valid(x);
 	}
 }
 
@@ -364,7 +586,7 @@ void BC_map::do_kth(const vector<int>& condidate, size_t k, std::function<void(K
 		return a->dist < b->dist;
 	};
 	priority_queue<Path*, vector<Path*>, decltype(compare_path)> path_heap(compare_path);
-	threshold = 0; // slack should less than threshold
+	threshold = std::numeric_limits<float>::max(); // slack should less than threshold
 
 	Logger::add_record("num_kth", condidate.size());
 
