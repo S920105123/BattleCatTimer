@@ -53,15 +53,15 @@ private:
 
 	// iterate the all condidates with calling function fun
     void do_kth(const vector<int>& condidate, size_t k, std::function<void(Kth*,int,int,vector<Path*>&)> fun, vector<Path*>& ans);
+	void search(const vector<int>& through); // => decrepit
 	void search_fin(int x);
-	bool search_fout(int x, int next_level_id);      // search go through all next_level
+	bool search_fout(int x, int next_level_id);      // search go through all next_level => decrepit
 
 	bool search_fout_layer(int v, int target_level); // from v search to target_level
-	bool search_fin_layer(int v, int target_level);  // from v search backward to target_level
-
 	bool search_modify(const vector<int>& through,const vector<int>& disable);
-	void search(const vector<int>& through);
+
 	void choose_cache(const vector<int>& through, const vector<int>& disable);
+	int cal_cache_difference(Cache* cache, const vector<int>& through, const vector<int>& disable);
 
 	/* kth */
 	// vector<bool> is_valid;
@@ -91,4 +91,5 @@ private:
 	Cache* current_cache;
     friend class Kth;
 };
+
 #endif /* BATTLE_CAT_MAP */

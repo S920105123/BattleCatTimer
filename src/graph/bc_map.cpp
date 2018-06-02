@@ -164,12 +164,115 @@ void BC_map::build_map(int root){
 /******************************************
 *           k shortest path               *
 ******************************************/
+
+int BC_map::cal_cache_difference(Cache* cache, const vector<int>& through, const vector<int>& disable) {
+
+	int num_search = 0;
+	for(auto& x:cache->through) {
+		if(is_through[x] == 0) num_search++;
+	}
+	return num_search;
+	//const auto& pre_through = cache->get_through();
+
+	//int j_th = pre_through.size()-1;
+	//int i_th = through.size()-1;
+	//vector<int> now_node;
+
+	//auto same_pin = [&](int x,int y)->bool {
+		//return (level[x] == level[y] and get_graph_id(x) == get_graph_id(y));
+	//};
+
+	//auto get_now_node = [&](int now_level)->bool {
+
+		//now_node.clear();
+		//// get the now_node 
+		//while(i_th >=0 and level[through[i_th]] == now_level) now_node.push_back(through[i_th--]);
+
+		//// check whether all the now_node are the same pins
+		//if(now_node.size() > 4) return false;
+		//for(auto& x:now_node){
+			//for(auto& y:now_node) {
+				//// we can't find a valid path going through the nodes having same the level but different pin.
+				//if(!same_pin(x, y)) {
+					//return false;
+				//}
+			//}
+		//}
+		//return true;
+	//};
+
+	//bool now_need_search_fout = false;
+	//bool next_need_search_fout = false;
+	//int num_search_fout = 0;
+
+	//next_level.push_back(-1);
+	//for(int II=next_level.size()-2; II>=0; II--){
+		//int now_level = next_level[II];
+
+		//if(!get_now_node(now_level)) {
+			//return std::numeric_limits<int>::max();
+		//}
+		
+		//now_need_search_fout = next_need_search_fout;
+		//next_need_search_fout = false;
+
+		//while(j_th >=0 and level[ pre_through[j_th] ] > now_level) {
+			//now_need_search_fout = true;
+			//j_th--;
+		//}
+
+		//if(j_th >=0 and level[pre_through[j_th]] == now_level) {
+			//vector<int> pre_node;
+			//while(j_th >=0 and level[pre_through[j_th]] == now_level) pre_node.push_back(pre_through[j_th--]);
+
+			//ASSERT(now_node.size()!=0);
+			//ASSERT(pre_node.size()!=0);
+			//if(same_pin(now_node[0], pre_node[0])) {
+				//for(auto& y:now_node) {
+					//for(auto& x:pre_node) {
+						//if(y!=x) next_need_search_fout = true;
+					//}
+					//if(next_need_search_fout) break;
+				//}
+			//}
+			//else {
+				//now_need_search_fout = true;
+				//next_need_search_fout = true;
+			//}
+
+		//} 
+		//else{
+			//now_need_search_fout = true;
+			//next_need_search_fout = true;
+		//}
+
+		//if(now_need_search_fout) {
+			//for(auto& x:now_node){
+				//search_fout_layer(x, next_level[II+1]);
+				//num_search_fout++;
+			//}
+		//}
+		//now_need_search_fout = false;
+	//}
+
+	//if(now_need_search_fout or next_need_search_fout) {
+		//for(auto& x:now_node){
+			//num_search_fout++;
+			//search_fin(x);
+		//}
+	//}
+
+	//return num_search_fout;
+}
+
 void BC_map::choose_cache(const vector<int>& through, const vector<int>& disable) {
 
 	int min_val = through.size();
 	Cache* best = nullptr;
 	for(auto& cac: caches) {
-		int diff = cac->cal_difference(through, disable);
+		int diff = cal_cache_difference(cac, through, disable);
+		Logger::add_record(std::to_string(diff), 1);
+		// int diff = cac->cal_difference(through, disable);
 		if(diff < min_val) {
 			min_val = diff;
 			best = cac;
@@ -195,16 +298,17 @@ void BC_map::choose_cache(const vector<int>& through, const vector<int>& disable
 			}
 			current_cache = best;
 			current_cache->clear();
+			Logger::add_record("total_clear", 1);
 		}
 	}
 	else current_cache = best;
 
-	//LOG(CERR) << "current_cache size = " << caches.size() << "\n";
-	//LOG(CERR) << "Current_cache: " << current_cache << "\n";
-	//LOG(CERR) << "cache through: ";
-	//for(auto& x:current_cache->get_through()) 
-		//LOG(CERR) << get_node_name(x) << "(" << level[x] << "), ";
-	 //LOG(CERR) << '\n';
+	LOG(CERR) << "current_cache size = " << caches.size() << "\n";
+	LOG(CERR) << "Current_cache: " << current_cache << "\n";
+	LOG(CERR) << "cache through: ";
+	for(auto& x:current_cache->get_through()) 
+		LOG(CERR) << get_node_name(x) << "(" << level[x] << "), ";
+	 LOG(CERR) << '\n';
 
 	current_cache->set_timestamp( cache_timestamp++ );
 }
@@ -220,22 +324,22 @@ void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, i
 	current_cache->set_through(through);
 	current_cache->set_disable(disable);
 
-	//for(int i=0; i<num_node; i++) {
-		//if(current_cache->get_vert_valid(i)) {
-			//LOG(CERR) << this->get_node_name(i) << " valid\n";
-		//}
-	//}
-	//LOG(CERR)<< "kth dest = " << kth_dest.size() << "\n";
-	//for(auto& x:kth_dest) LOG(CERR) << get_node_name(x) << ", "; cout << "\n";
-	//LOG(CERR)<< "kth start= " << kth_start.size() << "\n";
-	//for(auto& x:kth_start) LOG(CERR) << get_node_name(x) << ", "; cout << "\n";
+	for(int i=0; i<num_node; i++) {
+		if(current_cache->get_vert_valid(i)) {
+			LOG(CERR) << this->get_node_name(i) << " valid\n";
+		}
+	}
+	LOG(CERR)<< "kth dest = " << kth_dest.size() << "\n";
+	for(auto& x:kth_dest) LOG(CERR) << get_node_name(x) << ", "; LOG(CERR)<< "\n";
+	LOG(CERR)<< "kth start= " << kth_start.size() << "\n";
+	for(auto& x:kth_start) LOG(CERR) << get_node_name(x) << ", "; LOG(CERR)<< "\n";
 
-	//LOG(CERR)<< "edge valid: ";
-	//LOG(CERR)<< current_cache->edge_valid.size() << "\n";
-	//for(auto& p :current_cache->edge_valid) {
-		//int eid = p.first;
-		//LOG(CERR) << get_node_name(es[eid]->from) << " => " << get_node_name(es[eid]->to) << " " << p.second << "\n";
-	//}
+	LOG(CERR)<< "edge valid: ";
+	LOG(CERR)<< current_cache->edge_valid.size() << "\n";
+	for(auto& p :current_cache->edge_valid) {
+		int eid = p.first;
+		LOG(CERR) << get_node_name(es[eid]->from) << " => " << get_node_name(es[eid]->to) << " " << p.second << "\n";
+	}
 
 /* query kth */
 	if(cppr_on) {
@@ -256,6 +360,10 @@ void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, i
 		// do kth
 	}
 
+	//cout << "vert size:";
+	//cout << current_cache->vert_valid.size() << '\n';
+	//cout << "edge size:";
+	//cout << current_cache->edge_valid.size() << '\n';
 	//cout << " ok!\n";
 }
 
@@ -286,43 +394,6 @@ void BC_map::mark_point(vector<int>& through, const vector<int>& disable) {
 	for(auto &x: through) is_through[x] = true;
 }
 
-void BC_map::search(const vector<int>& through) {
-	kth_start.clear(); // FF:clk or Pin
-	kth_dest.clear();  // FF:D or Pout
-	std::fill(vis.begin(), vis.end(), 0);
-	current_cache->clear();
-
-	if(through.size()) {
-		for(auto &x: through) {
-			// start from the point has the lowest level
-			if(level[x] == next_level[0]) {
-				if(search_fout(x, 1)) {
-					// is_valid[x] = 1;
-					current_cache->set_vert_valid(x, true);
-					vis[x] = 0;
-					search_fin(x);
-				}
-			}
-			else break;
-		}
-	}
-	else {
-		ASSERT(next_level.size() == 0);
-		// take all of FF:clk and Pin as a start point
-		for(int i=0; i<(int)G.size(); i++){
-			//const auto& node = graph->nodes[ get_graph_id(i) ];
-			// i is a FF:clk or Pin
-			if(G[i].size() != 0 && Gr[i].size() == 0) {
-				kth_start.push_back(i);
-				if(search_fout(i, 0)) {
-					// is_valid[i] = 1;
-					current_cache->set_vert_valid(i, true);
-				}
-			}
-		}
-	}
-
-}
 // return true if we can find a valid path 
 bool BC_map::search_modify(const vector<int>& through, const vector<int>& disable) {
 
@@ -343,7 +414,7 @@ bool BC_map::search_modify(const vector<int>& through, const vector<int>& disabl
 	};
 
 	auto disable_fout = [&](int x) {
-		//LOG(CERR) << " Disable " << get_node_name(x) << '\n';
+		LOG(CERR) << " Disable " << get_node_name(x) << '\n';
 		for(auto& epr: G[x]) {
 			this->current_cache->set_edge_valid(epr->id, false);
 		}
@@ -375,8 +446,8 @@ bool BC_map::search_modify(const vector<int>& through, const vector<int>& disabl
 	bool now_need_search_fout = false;
 	bool next_need_search_fout = false;
 
-	//LOG(CERR) << "through: ";
-	//for(auto& x:through) { LOG(CERR) << get_node_name(x) << ", "; }cout << "\n";
+	LOG(CERR) << "through: ";
+	for(auto& x:through) LOG(CERR) << get_node_name(x) << ", ";  LOG(CERR)<< "\n";
 
 	next_level.push_back(-1);
 	for(int II=next_level.size()-2; II>=0; II--){
@@ -384,9 +455,9 @@ bool BC_map::search_modify(const vector<int>& through, const vector<int>& disabl
 
 		if(!get_now_node(now_level)) return false;
 		
-		//LOG(CERR) << "i = " << II << " now level = " << now_level << "\n";
-		//LOG(CERR) << " => now node\n";
-		//for(auto& x: now_node) { LOG(CERR) << get_node_name(x) << ", "; } LOG(CERR) << "\n";
+		LOG(CERR) << "i = " << II << " now level = " << now_level << "\n";
+		LOG(CERR) << " => now node\n";
+		for(auto& x: now_node) LOG(CERR) << get_node_name(x) << ", "; LOG(CERR) << "\n";
 
 		now_need_search_fout = next_need_search_fout;
 		next_need_search_fout = false;
@@ -414,15 +485,13 @@ bool BC_map::search_modify(const vector<int>& through, const vector<int>& disabl
 					for(auto& y:now_node) {
 						if(y == x) find = true;
 					}
-
 					if(!find) disable_fout(x);
 				}
 
 				for(auto& y:now_node) {
 					for(auto& x:pre_node) {
-						if(y!=x) next_need_search_fout = true;
+						if(y!=x) next_need_search_fout = now_need_search_fout = true;
 					}
-					if(next_need_search_fout) break;
 				}
 			}
 			else {
@@ -439,20 +508,31 @@ bool BC_map::search_modify(const vector<int>& through, const vector<int>& disabl
 
 		if(now_need_search_fout) {
 			for(auto& x:now_node){
-				//LOG(CERR) << " -----> search fout " << get_node_name(x) << " to " << next_level[II+1] << "\n";
+				LOG(CERR) << " -----> search fout " << get_node_name(x) << " to " << next_level[II+1] << "\n";
 				search_fout_layer(x, next_level[II+1]);
+			}
+		}
+		else if(II==this->next_level.size()-2) {
+			for(auto& x: now_node) {
+				if(G[x].size()==0) kth_dest.push_back(x);
 			}
 		}
 		now_need_search_fout = false;
 	}
-	//LOG(CERR)<< "====\n";
+	LOG(CERR)<< "====\n";
 
 	if(now_need_search_fout or next_need_search_fout) {
 		for(auto& x:now_node){
-			//LOG(CERR) << " -----> search fin " << get_node_name(x) << "\n";
+			LOG(CERR) << " -----> search fin " << get_node_name(x) << "\n";
 			search_fin(x);
 		}
 	}
+	else {
+		for(auto& x:now_node) {
+			if(Gr[x].size()==0) kth_start.push_back(x);
+		}
+	}
+
 	return true;
 }
 
@@ -491,16 +571,43 @@ bool BC_map::search_fout_layer(int x,int target_level) {
 	else return false;
 }
 
-//bool BC_map::search_fin_layer(int x,int target_level) {
-	//if(target_level == -1 and Gr[x].size() == 0) return current_cache->set_vert_valid(x, true); 
+void BC_map::search(const vector<int>& through) {
+	ASSERT(true==false);
+	kth_start.clear(); // FF:clk or Pin
+	kth_dest.clear();  // FF:D or Pout
+	std::fill(vis.begin(), vis.end(), 0);
+	current_cache->clear();
 
-	//if(level[x] == target_level) {
-		//if(is_through[x]) return current_cache->set_vert_valid(x, true);
-		//else return false;
-	//}
-
-	//if(vis[x]) return current_cache->get_vert_valid(x);
-//}
+	if(through.size()) {
+		for(auto &x: through) {
+			// start from the point has the lowest level
+			if(level[x] == next_level[0]) {
+				if(search_fout(x, 1)) {
+					// is_valid[x] = 1;
+					current_cache->set_vert_valid(x, true);
+					vis[x] = 0;
+					search_fin(x);
+				}
+			}
+			else break;
+		}
+	}
+	else {
+		ASSERT(next_level.size() == 0);
+		// take all of FF:clk and Pin as a start point
+		for(int i=0; i<(int)G.size(); i++){
+			//const auto& node = graph->nodes[ get_graph_id(i) ];
+			// i is a FF:clk or Pin
+			if(G[i].size() != 0 && Gr[i].size() == 0) {
+				kth_start.push_back(i);
+				if(search_fout(i, 0)) {
+					// is_valid[i] = 1;
+					current_cache->set_vert_valid(i, true);
+				}
+			}
+		}
+	}
+}
 
 void BC_map::search_fin(int x) {
 
@@ -517,19 +624,17 @@ void BC_map::search_fin(int x) {
 
 	for(auto& p_e: Gr[x]) {
 		auto& e = *p_e;
-		// cout << "search fin " << get_node_name(x) << " " << get_node_name(e.to) << "\n";
 		
 		if(is_disable[e.to]) continue; 
 		search_fin(e.to);
 
 		current_cache->set_edge_valid(e.id, true);
-		 //cout << get_node_name(e.from) << "(" << e.from << ") " << get_node_name(e.to) << "(" << e.to << ") is valid\n";
-		// cout << "rev: " << get_node_name(e.rev_edge->from) << "(" << e.rev_edge->from << ") " << get_node_name(e.rev_edge->to) << "(" << e.rev_edge->to << ") is valid\n";
 	}
 }
 
 bool BC_map::search_fout(int x,int next_level_id) {
 
+	ASSERT(true==false);
 	// if(vis[x]) return is_valid[x];
 	if(vis[x]) {
 		return current_cache->get_vert_valid(x);
