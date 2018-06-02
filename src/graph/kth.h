@@ -52,27 +52,28 @@ public:
     Kth(BC_map *_map, CPPR *_cppr, Graph *_graph);
     void KSP_to_destination(int dest, int k, vector<Path*> &result_container);
     void KSP_from_source(int src, int k, vector<Path*> &result_container);
+    void KSP_without_cppr(vector<int> &destinations, int k, vector<Path*> &result_container);
 
 private:
     BC_map *bc_map;
     CPPR *cppr;
     Graph *graph;
 
-    /* A bool to indicate the direction */
-    bool from_src;
+    /* Algorithm mode information */
+    bool from_src, cppr_on;
 
     /* Lookup table that maps bc map id to [0, N]. */
     unordered_map<int, int> LUT;
 
     /* For SDSP tree */
-    int dest;
+    vector<int> dest;
     vector<float> dist;
     vector<int> successor;
     vector<int> topo_order;
 
     /* pseudo source and edges connect to them. */
-    int pseudo_src;
-    vector<Edge> pseudo_edge;
+    const int pseudo_src = -1, pseudo_dest = -2;
+    vector<Edge> pseudo_src_edge, pseudo_dest_edge;
 
     /* For KSP algorithm */
     std::priority_queue<Prefix_node*, vector<Prefix_node*>, Prefix_node::Compare> pq;

@@ -12,10 +12,12 @@ Kth::Kth(BC_map *_map, CPPR *_cppr, Graph *_graph){
 
 void Kth::clear() {
     dist.clear();
-    successor.clear();
+    dest.clear();
     LUT.clear();
+    successor.clear();
     topo_order.clear();
-    pseudo_edge.clear();
+    pseudo_src_edge.clear();
+    pseudo_dest_edge.clear();
     while (!pq.empty()) {
         Prefix_node *tmp = pq.top();
         pq.pop();
@@ -25,11 +27,12 @@ void Kth::clear() {
     trash_can.clear();
 }
 
-void Kth::KSP_to_destination(int dest, int k, vector<Path*> &result_container) {
+void Kth::KSP_to_destination(int destination, int k, vector<Path*> &result_container) {
     result_container.clear();
     this -> clear();
-    this -> dest = dest;
     this -> from_src = false;
+    this -> cppr_on = true;
+    this -> dest.push_back(destination);
     // cout << graph->nodes[bc_map->get_graph_id(dest)].name << " as destination\n";
     KSP(k, result_container, bc_map -> G, bc_map -> Gr);
     for(auto &x : result_container) {
@@ -39,13 +42,26 @@ void Kth::KSP_to_destination(int dest, int k, vector<Path*> &result_container) {
 	}
 }
 
-void Kth::KSP_from_source(int src, int k, vector<Path*> &result_container) {
+void Kth::KSP_from_source(int source, int k, vector<Path*> &result_container) {
     result_container.clear();
     this -> clear();
-    this -> dest = src;
+    this -> dest.push_back(source);
     this -> from_src = true;
+    this -> cppr_on = true;
     // cout << graph->nodes[bc_map->get_graph_id(src)].name << " as source\n";
     KSP(k, result_container, bc_map -> Gr, bc_map -> G);
+}
+
+void Kth::KSP_without_cppr(vector<int> &destinations, int k, vector<Path*> &result_container) {
+    result_container.clear();
+    this -> clear();
+    this -> cppr_on = false;
+    this -> dest = destinations;
+    for(auto &x : result_container) {
+        /* Without reversing pseudo source, we can see it as pseudo destination. */
+		std::reverse( x->delay.begin(), x->delay.end() );
+		std::reverse( x->path.begin(), prev(x->path.end()) );
+	}
 }
 
 // *********************************************
@@ -102,30 +118,58 @@ bool Kth::build_SDSP_tree(const vector<vector<Edge*>> &radj) {
 	/* Create an entry for dest, and do initialization.
        Here, we use "successor" array to store visited information.
        We also collect the possible source vertices in this part.   */
-	// cout << "start build sdsp tree " << this->bc_map->get_node_name( dest ) << '\n';
-	int dest_id = set_id(dest);
-    get_topological_order(dest, radj);
-	// for(auto &x:topo_order) cout << bc_map->get_node_name(x) << " -> ";
-	// cout << "\ntopo_order ok\n";
+    for (int d : this->dest) {
+        int dest_id = set_id(d);
+        if (successor[dest_id] == NOT_VISITED) {
+            get_topological_order(d, radj);
+        }
+    }
 
-    /* Return false if given destination is not reachable. */
+    /* Create pseudo destination, and then update distance of the real destinations. */
+    if (this -> from_src) {
+        for (int d : this->dest) {
+            int src_gid = bc_map -> get_graph_id(d);
+            Mode src_mode = bc_map -> get_graph_id_mode(d);
+            Transition_Type src_type = bc_map -> get_graph_id_type(d);
+            float at = graph->nodes[src_gid].at[src_mode][src_type];
+            pseudo_dest_edge.emplace_back(d, pseudo_dest, -at);
+
+            int id = LUT[d];
+            successor[id] = pseudo_dest;
+            dist[id] = -at;
+        }
+    }
+    else {
+        for (int d : this->dest) {
+            int dest_gid = bc_map -> get_graph_id(d);
+            Mode dest_mode = bc_map -> get_graph_id_mode(d);
+            Transition_Type dest_type = bc_map -> get_graph_id_type(d);
+            float rat = graph->nodes[dest_gid].rat[dest_mode][dest_type];
+            pseudo_dest_edge.emplace_back(d, pseudo_dest, rat);
+
+            int id = LUT[d];
+            successor[id] = pseudo_dest;
+            dist[id] = rat;
+        }
+    }
+
 
     /* A DP-based algorithm to calculate "dist" and "succssor" array. */
     /******************************************************************
      *    Possible improvement: Maybe store edges in sorted order?    *
      ******************************************************************/
-    dist[dest_id] = 0;
-    successor[dest_id] = dest_id;
+    int id = set_id(pseudo_dest);
+    dist[id] = 0;
+    successor[id] = pseudo_dest;
     for (int i=topo_order.size()-1; i>=0; i--) {
         int v = topo_order[i], v_id = LUT[v];
         if (radj[v].size() == 0) {
             /* The calculation of delay will be later. */
-            this->pseudo_edge.emplace_back(pseudo_src, v, 0.0);
+            this->pseudo_src_edge.emplace_back(pseudo_src, v, 0.0);
             continue;
         }
         for (const auto &p_edg : radj[v]) {
 			const auto &edg = *p_edg;
-			//if (!edg.valid) continue;
 			if (!this->bc_map->current_cache->get_edge_valid(edg.id) ) continue;
             int to_id = LUT[edg.to];
             float relax = dist[v_id] + edg.delay;
@@ -135,27 +179,29 @@ bool Kth::build_SDSP_tree(const vector<vector<Edge*>> &radj) {
             }
         }
     }
-	// cout << "dp dist ok\n" << std::flush;
 
-    if (this -> pseudo_edge.empty()) {
+    /* Return false if given destination is not reachable. */
+    if (this -> pseudo_src_edge.empty()) {
+        LOG(CERR) << "[Error] In KSP, none of the given destination is not reachable.\n";
         return false;
     }
 
     /* Create pseudo source: kth_id = N, bc_id = -1. */
-    this -> pseudo_src = -1;
-    int id = set_id(pseudo_src);
+    id = set_id(pseudo_src);
     if (this -> from_src) {
-        int src_gid = bc_map -> get_graph_id(this->dest);
-        Mode src_mode = bc_map -> get_graph_id_mode(this->dest);
-        Transition_Type src_type = bc_map -> get_graph_id_type(this->dest);
-        for (auto &edg : pseudo_edge) {
+        for (auto &edg : pseudo_src_edge) {
             int dest_gid = bc_map -> get_graph_id(edg.to);
             Mode dest_mode = bc_map -> get_graph_id_mode(edg.to);
             Transition_Type dest_type = bc_map -> get_graph_id_type(edg.to);
             float rat = graph->nodes[dest_gid].rat[dest_mode][dest_type];
-            float at = graph->nodes[src_gid].at[src_mode][src_type];
-            float cpp = cppr->cppr_credit(src_mode, src_gid, src_type, dest_gid, dest_type);
-            edg.delay = rat - at + cpp;
+            float cpp = 0.0;
+            if (cppr_on) {
+                int src_gid = bc_map -> get_graph_id(dest[0]);
+                Mode src_mode = bc_map -> get_graph_id_mode(dest[0]);
+                Transition_Type src_type = bc_map -> get_graph_id_type(dest[0]);
+                cpp = cppr->cppr_credit(src_mode, src_gid, src_type, dest_gid, dest_type);
+            }
+            edg.delay = rat + cpp;
 
             float relax = dist[ LUT[edg.to] ] + edg.delay;
             if (relax < dist[id]) {
@@ -165,18 +211,18 @@ bool Kth::build_SDSP_tree(const vector<vector<Edge*>> &radj) {
         }
     }
     else {
-        int dest_gid = bc_map -> get_graph_id(this->dest);
-        Mode dest_mode = bc_map -> get_graph_id_mode(this->dest);
-        Transition_Type dest_type = bc_map -> get_graph_id_type(this->dest);
-        for (auto &edg : pseudo_edge) {
+        for (auto &edg : pseudo_src_edge) {
             int src_gid = bc_map -> get_graph_id(edg.to);
             Mode src_mode = bc_map -> get_graph_id_mode(edg.to);
             Transition_Type src_type = bc_map -> get_graph_id_type(edg.to);
-            float rat = graph->nodes[dest_gid].rat[dest_mode][dest_type];
             float at = graph->nodes[src_gid].at[src_mode][src_type];
-            float cpp = cppr->cppr_credit(src_mode, src_gid, src_type, dest_gid, dest_type);
-            // cout << "RAT = " << rat << " AT = " << at << " CPP = " << cpp << "\n";
-            edg.delay = rat - at + cpp;
+            float cpp = 0.0;
+            if (cppr_on) {
+                int dest_gid = bc_map -> get_graph_id(dest[0]);
+                Transition_Type dest_type = bc_map -> get_graph_id_type(dest[0]);
+                cpp = cppr->cppr_credit(src_mode, src_gid, src_type, dest_gid, dest_type);
+            }
+            edg.delay = -at + cpp;
 
             float relax = dist[ LUT[edg.to] ] + edg.delay;
             if (relax < dist[id]) {
@@ -186,7 +232,6 @@ bool Kth::build_SDSP_tree(const vector<vector<Edge*>> &radj) {
         }
     }
 
-	// cout << "create pseudo ok\n" << std::flush;
 	return true;
 }
 
@@ -208,10 +253,10 @@ void Kth::extend(Prefix_node *path, const vector<vector<Edge*>> &adj) {
 
     /* Generate all children paths, note that when we do forward searching,
         not all valid edges are in our search space. Do LUT lookup to check.  */
-	while (v != dest) {
+	while (v != pseudo_dest) {
         int v_id = LUT[v];
         if (v == pseudo_src) {
-            for (const Edge &edg : pseudo_edge) {
+            for (const Edge &edg : pseudo_src_edge) {
                 if (edg.to == successor[v_id]) continue;
                 Prefix_node *next_path = new Prefix_node(this, path, edg.from, edg.to, edg.delay);
                 queueing(next_path);
@@ -252,7 +297,7 @@ void Kth::get_explicit_path_helper(Path *exp_path, const Prefix_node *imp_path, 
 		v = this -> successor[ v_id ];
 	}
 
-	exp_path->path.emplace_back(v);
+	if (v != pseudo_dest) exp_path->path.emplace_back(v);
 	std::reverse(exp_path->path.begin() + sz, exp_path->path.end());
 	std::reverse(exp_path->delay.begin() + dsz, exp_path->delay.end());
 
@@ -270,7 +315,7 @@ void Kth::get_explicit_path(Path *exp_path, const Prefix_node *imp_path) {
 	exp_path -> path.clear();
     exp_path -> delay.clear();
 
-	get_explicit_path_helper(exp_path, imp_path, dest);
+	get_explicit_path_helper(exp_path, imp_path, pseudo_dest);
     // cout << "Find a path:"; for (int v : exp_path -> path) cout << v << " "; cout << "\n";
 }
 
