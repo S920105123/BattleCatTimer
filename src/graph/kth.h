@@ -52,7 +52,7 @@ public:
     Kth(BC_map *_map, CPPR *_cppr, Graph *_graph);
     void KSP_to_destination(int dest, int k, vector<Path*> &result_container);
     void KSP_from_source(int src, int k, vector<Path*> &result_container);
-    void KSP_without_cppr(vector<int> &destinations, int k, vector<Path*> &result_container);
+    void KSP_without_CPPR(vector<int> &destinations, int k, vector<Path*> &result_container);
 
 private:
     BC_map *bc_map;

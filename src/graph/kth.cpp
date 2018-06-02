@@ -52,7 +52,7 @@ void Kth::KSP_from_source(int source, int k, vector<Path*> &result_container) {
     KSP(k, result_container, bc_map -> Gr, bc_map -> G);
 }
 
-void Kth::KSP_without_cppr(vector<int> &destinations, int k, vector<Path*> &result_container) {
+void Kth::KSP_without_CPPR(vector<int> &destinations, int k, vector<Path*> &result_container) {
     result_container.clear();
     this -> clear();
     this -> cppr_on = false;
