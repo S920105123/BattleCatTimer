@@ -53,10 +53,13 @@ void Kth::KSP_from_source(int source, int k, vector<Path*> &result_container) {
 }
 
 void Kth::KSP_without_CPPR(vector<int> &destinations, int k, vector<Path*> &result_container) {
+
     result_container.clear();
     this -> clear();
     this -> cppr_on = false;
+    this -> from_src = false;
     this -> dest = destinations;
+    KSP(k, result_container, bc_map -> G, bc_map -> Gr);
     for(auto &x : result_container) {
         /* Without reversing pseudo source, we can see it as pseudo destination. */
 		std::reverse( x->delay.begin(), x->delay.end() );
@@ -95,6 +98,7 @@ void Kth::get_topological_order(int v, const vector<vector<Edge*>> &radj) {
 		// cout << bc_map->get_node_name(v) << " " << bc_map->get_node_name(edg.to) << " " << edg.valid << '\n';
 		//if (!edg.valid) continue;
 		if (!this->bc_map->current_cache->get_edge_valid(edg.id) ) continue;
+        // std::cerr << graph->get_name(bc_map->get_graph_id(edg.from)) << " " << graph->get_name(bc_map->get_graph_id(edg.to)) << edg.delay << "\n";
         int id = set_id(edg.to);
         if (successor[id] == NOT_VISITED) {
             get_topological_order(edg.to, radj);
@@ -145,6 +149,7 @@ bool Kth::build_SDSP_tree(const vector<vector<Edge*>> &radj) {
             Mode dest_mode = bc_map -> get_graph_id_mode(d);
             Transition_Type dest_type = bc_map -> get_graph_id_type(d);
             float rat = graph->nodes[dest_gid].rat[dest_mode][dest_type];
+            // std::cerr << "[KSP] Create an edge for D " << graph->nodes[dest_gid].name << ", where RAT = " << rat << "\n";
             pseudo_dest_edge.emplace_back(d, pseudo_dest, rat);
 
             int id = LUT[d];
@@ -182,7 +187,7 @@ bool Kth::build_SDSP_tree(const vector<vector<Edge*>> &radj) {
 
     /* Return false if given destination is not reachable. */
     if (this -> pseudo_src_edge.empty()) {
-        LOG(CERR) << "[Error] In KSP, none of the given destination is not reachable.\n";
+        std::cerr << "[Error] In KSP, none of the given destination is reachable.\n";
         return false;
     }
 
@@ -223,6 +228,7 @@ bool Kth::build_SDSP_tree(const vector<vector<Edge*>> &radj) {
                 cpp = cppr->cppr_credit(src_mode, src_gid, src_type, dest_gid, dest_type);
             }
             edg.delay = -at + cpp;
+            // std::cerr << "[KSP] Create an edge for CK " << graph->nodes[src_gid].name << ", where AT = " << at << " " << cpp << "\n";
 
             float relax = dist[ LUT[edg.to] ] + edg.delay;
             if (relax < dist[id]) {
@@ -296,8 +302,8 @@ void Kth::get_explicit_path_helper(Path *exp_path, const Prefix_node *imp_path, 
 		exp_path -> delay.emplace_back(dist[ v_id ] - this->dist[ LUT[this->successor[v_id]] ]);
 		v = this -> successor[ v_id ];
 	}
+    if (v != pseudo_dest) exp_path->path.emplace_back(v);
 
-	if (v != pseudo_dest) exp_path->path.emplace_back(v);
 	std::reverse(exp_path->path.begin() + sz, exp_path->path.end());
 	std::reverse(exp_path->delay.begin() + dsz, exp_path->delay.end());
 
@@ -443,15 +449,11 @@ void Path::output(ostream &fout, Graph *graph) const {
     BC_map *bc = graph->get_bc_map();
 
     int width = 8, n = path.size();
-    float rat = delay[0], slack = this->dist, at = rat - slack, total = delay[n-2];
+    float rat = delay[n - 1], slack = this->dist, at = rat - slack, total = 0;
     const char *tab = "      ", *spline = "----------------------------------------", *type_ch[2] = {"^   ", "v   "};
-    //cout << "Let's output path...\n";
-    //for (int v : path) cout << v << " ";
-    //cout << '\n' << std::flush;
 
-    // path[0] is SuperDest, path[n-1] is SuperSrc
+    // path[0] is SuperSrc
     if (path.empty()) return;
-    // fout << '\n';
 	fout << "Endpoint:   ";
     print_name(fout, graph->nodes[bc->get_graph_id(path[n-2])].name);
     fout << '\n';

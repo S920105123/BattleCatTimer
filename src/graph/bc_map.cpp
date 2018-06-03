@@ -185,7 +185,7 @@ int BC_map::cal_cache_difference(Cache* cache, const vector<int>& through, const
 	//auto get_now_node = [&](int now_level)->bool {
 
 		//now_node.clear();
-		//// get the now_node 
+		//// get the now_node
 		//while(i_th >=0 and level[through[i_th]] == now_level) now_node.push_back(through[i_th--]);
 
 		//// check whether all the now_node are the same pins
@@ -212,7 +212,7 @@ int BC_map::cal_cache_difference(Cache* cache, const vector<int>& through, const
 		//if(!get_now_node(now_level)) {
 			//return std::numeric_limits<int>::max();
 		//}
-		
+
 		//now_need_search_fout = next_need_search_fout;
 		//next_need_search_fout = false;
 
@@ -240,7 +240,7 @@ int BC_map::cal_cache_difference(Cache* cache, const vector<int>& through, const
 				//next_need_search_fout = true;
 			//}
 
-		//} 
+		//}
 		//else{
 			//now_need_search_fout = true;
 			//next_need_search_fout = true;
@@ -306,7 +306,7 @@ void BC_map::choose_cache(const vector<int>& through, const vector<int>& disable
 	LOG(CERR) << "current_cache size = " << caches.size() << "\n";
 	LOG(CERR) << "Current_cache: " << current_cache << "\n";
 	LOG(CERR) << "cache through: ";
-	for(auto& x:current_cache->get_through()) 
+	for(auto& x:current_cache->get_through())
 		LOG(CERR) << get_node_name(x) << "(" << level[x] << "), ";
 	 LOG(CERR) << '\n';
 
@@ -397,7 +397,7 @@ void BC_map::mark_point(vector<int>& through, const vector<int>& disable) {
 	for(auto &x: through) is_through[x] = true;
 }
 
-// return true if we can find a valid path 
+// return true if we can find a valid path
 bool BC_map::search_modify(const vector<int>& through, const vector<int>& disable) {
 
 	kth_start.clear(); // FF:clk or Pin
@@ -430,7 +430,7 @@ bool BC_map::search_modify(const vector<int>& through, const vector<int>& disabl
 	auto get_now_node = [&](int now_level)->bool {
 
 		now_node.clear();
-		// get the now_node 
+		// get the now_node
 		while(i_th >=0 and level[through[i_th]] == now_level) now_node.push_back(through[i_th--]);
 
 		// check whether all the now_node are the same pins
@@ -457,7 +457,7 @@ bool BC_map::search_modify(const vector<int>& through, const vector<int>& disabl
 		int now_level = next_level[II];
 
 		if(!get_now_node(now_level)) return false;
-		
+
 		LOG(CERR) << "i = " << II << " now level = " << now_level << "\n";
 		LOG(CERR) << " => now node\n";
 		for(auto& x: now_node) LOG(CERR) << get_node_name(x) << ", "; LOG(CERR) << "\n";
@@ -503,7 +503,7 @@ bool BC_map::search_modify(const vector<int>& through, const vector<int>& disabl
 				next_need_search_fout = true;
 			}
 
-		} 
+		}
 		else{
 			now_need_search_fout = true;
 			next_need_search_fout = true;
@@ -547,7 +547,7 @@ bool BC_map::search_fout_layer(int x,int target_level) {
 		return current_cache->set_vert_valid(x, true);
 	}
 
-	if(level[x] == target_level){ 
+	if(level[x] == target_level){
 		if(is_through[x])  return current_cache->set_vert_valid(x, true);
 		else return false;
 	}
@@ -644,8 +644,8 @@ void BC_map::search_fin(int x) {
 
 	for(auto& p_e: Gr[x]) {
 		auto& e = *p_e;
-		
-		if(is_disable[e.to]) continue; 
+
+		if(is_disable[e.to]) continue;
 		search_fin(e.to);
 
 		current_cache->set_edge_valid(e.id, true);
