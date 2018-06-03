@@ -2,11 +2,16 @@
 
 
 //Cache::Cache(const vector<int>& through,const vector<int>& disable, BC_map *bc):
-Cache::Cache(BC_map *bc)
+Cache::Cache(BC_map *bc, Kth *k)
 	//through(through), disable(disable){
 {
 	bc_map = bc;
 	timestamp = 0;
+	kth = k;
+}
+
+Cache::~Cache() {
+	//delete kth;
 }
 
 bool Cache::set_vert_valid(int id, bool val) {

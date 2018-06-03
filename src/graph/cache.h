@@ -3,15 +3,16 @@
 
 #include "header.h"
 #include "debug.h"
-// #include "bc_map.h"
 
 //This class is the cache of the report timing
 class BC_map;
+class Kth;
 class Cache {
 
 public:
 	//Cache(const vector<int>& through,const vector<int>& disable, BC_map *bc);
-	Cache(BC_map *bc);
+	Cache(BC_map *bc, Kth *k);
+	~Cache();
 
 	void set_through(const vector<int>& thr);
 	void set_disable(const vector<int>& dis);
@@ -32,6 +33,7 @@ public:
 private:
 	int timestamp;
 	BC_map *bc_map;
+	Kth* kth;
 	unordered_map<int, bool> edge_valid;
 	unordered_map<int, bool> vert_valid;
 

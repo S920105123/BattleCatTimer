@@ -283,7 +283,7 @@ void BC_map::choose_cache(const vector<int>& through, const vector<int>& disable
 	if(best == nullptr) {
 		if(caches.size() < NUM_CACHE ) {
 			//current_cache = new Cache(through, disable, this);
-			current_cache = new Cache(this);
+			current_cache = new Cache(this, new Kth(this, cppr, graph));
 			caches.push_back( current_cache );
 		}
 		else {
@@ -320,7 +320,9 @@ void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, i
 	choose_cache(through, disable);
 
 /* mark searching space*/
-	search_modify(through, disable);
+	if(through.size()) search_modify(through, disable);
+	else search_all();
+
 	current_cache->set_through(through);
 	current_cache->set_disable(disable);
 
@@ -357,7 +359,8 @@ void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, i
 		}
 	}
 	else { // no cppr
-		// do kth
+		current_cache->kth->clear(); // may do some modification instead of clearing it
+		current_cache->kth->KSP_without_CPPR(kth_dest, k, ans);
 	}
 
 	//cout << "vert size:";
@@ -512,7 +515,7 @@ bool BC_map::search_modify(const vector<int>& through, const vector<int>& disabl
 				search_fout_layer(x, next_level[II+1]);
 			}
 		}
-		else if(II==this->next_level.size()-2) {
+		else if(II==(int)next_level.size()-2) {
 			for(auto& x: now_node) {
 				if(G[x].size()==0) kth_dest.push_back(x);
 			}
@@ -569,6 +572,23 @@ bool BC_map::search_fout_layer(int x,int target_level) {
 		return current_cache->set_vert_valid(x, true);
 	}
 	else return false;
+}
+
+void BC_map::search_all() {
+
+	ASSERT(next_level.size() == 0);
+	// take all of FF:clk and Pin as a start point
+	for(int i=0; i<(int)G.size(); i++){
+		//const auto& node = graph->nodes[ get_graph_id(i) ];
+		// i is a FF:clk or Pin
+		if(G[i].size() != 0 && Gr[i].size() == 0) {
+			kth_start.push_back(i);
+			if(search_fout(i, 0)) {
+				// is_valid[i] = 1;
+				current_cache->set_vert_valid(i, true);
+			}
+		}
+	}
 }
 
 void BC_map::search(const vector<int>& through) {
