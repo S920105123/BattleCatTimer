@@ -5,6 +5,8 @@ int Logger::error_num = 0;
 int Logger::warning_num = 0;
 vector<pair<string,int>> Logger::timestamp;
 map<string, int> Logger::record;
+map<string, long long> Logger::time_record;
+long long Logger::start_time;
 
 Logger* Logger::create() {
 	if(logger_instance == NULL){
@@ -46,6 +48,10 @@ Logger::~Logger() {
 		pre = p.second;
 	}
 	std::cerr << "Log error : " << error_num << ", warning : " << warning_num << '\n';
+
+	for(const auto &p: time_record) {
+		std::cerr << p.first << " : " << p.second << " ms\n";
+	}
 	flog.close();
 }
 
@@ -57,6 +63,19 @@ void Logger::add_timestamp(const string& event){
 
 void Logger::add_record(const string& name, int val) {
 	record[ name ] += val;
+}
+
+void Logger::start() {
+    start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+		std::chrono::system_clock::now().time_since_epoch()
+	).count();
+}
+
+void Logger::stop(const string& ); // add time elapsed to record
+	long long now = std::chrono::duration_cast<std::chrono::milliseconds>(
+		std::chrono::system_clock::now().time_since_epoch()
+	).count();
+	time_record[x] += now - start_time;
 }
 
 Logger& Logger::Log(Log_type type, bool prefix) {
