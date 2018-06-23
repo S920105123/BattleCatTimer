@@ -17,6 +17,8 @@ public:
 	static void turn_on();     // Turn on logger (Logger is on by default)
 	static void add_timestamp(const string& event);
 	static void add_record(const string& name, int val);
+	static void start();
+	static void stop(const string& ); // add time elapsed to record
 
 	// Type may be NORMAL, WARNING, ERROR or CERR, print date if "prefix" is true.
 	static Logger& Log(Log_type type = NORMAL, bool prefix = true);
@@ -36,6 +38,8 @@ private:
 	static int error_num, warning_num;
 	static vector<pair<string,int>> timestamp;
 	static map<string, int> record;
+	static map<string, long long> time_record;
+	static long long start_time;
 	bool on;
 	std::ofstream flog;
 	std::ostream *cur_stream;
