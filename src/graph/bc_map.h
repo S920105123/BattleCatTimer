@@ -39,7 +39,7 @@ public:
 	void k_shortest_path(vector<int>& _through,
 						 const vector<int>& _disable,
 						 int k,
-						 vector<Path*>& ans, 
+						 vector<Path*>& ans,
 						 bool cppr_on = false
 						 );
 

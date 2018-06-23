@@ -271,7 +271,6 @@ void BC_map::choose_cache(const vector<int>& through, const vector<int>& disable
 	Cache* best = nullptr;
 	for(auto& cac: caches) {
 		int diff = cal_cache_difference(cac, through, disable);
-		Logger::add_record(std::to_string(diff), 1);
 		// int diff = cac->cal_difference(through, disable);
 		if(diff < min_val) {
 			min_val = diff;
@@ -298,7 +297,6 @@ void BC_map::choose_cache(const vector<int>& through, const vector<int>& disable
 			}
 			current_cache = best;
 			current_cache->clear();
-			Logger::add_record("total_clear", 1);
 		}
 	}
 	else current_cache = best;
@@ -315,11 +313,14 @@ void BC_map::choose_cache(const vector<int>& through, const vector<int>& disable
 
 void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, int k, vector<Path*>& ans, bool cppr_on)
 {
+    cppr_on = true;
 /* get next_level */
 	mark_point(through, disable);
     Logger::start();
 	choose_cache(through, disable);
+    Logger::stop( "choose cache ");
 
+    Logger::start();
 /* mark searching space*/
 	if(through.size()) search_modify(through, disable);
 	else search_all();
