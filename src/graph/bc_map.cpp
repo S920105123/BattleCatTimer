@@ -303,12 +303,12 @@ void BC_map::choose_cache(const vector<int>& through, const vector<int>& disable
 	}
 	else current_cache = best;
 
-	LOG(CERR) << "current_cache size = " << caches.size() << "\n";
-	LOG(CERR) << "Current_cache: " << current_cache << "\n";
-	LOG(CERR) << "cache through: ";
-	for(auto& x:current_cache->get_through())
-		LOG(CERR) << get_node_name(x) << "(" << level[x] << "), ";
-	 LOG(CERR) << '\n';
+	// LOG(CERR) << "current_cache size = " << caches.size() << "\n";
+	// LOG(CERR) << "Current_cache: " << current_cache << "\n";
+	// LOG(CERR) << "cache through: ";
+	// for(auto& x:current_cache->get_through())
+	// 	LOG(CERR) << get_node_name(x) << "(" << level[x] << "), ";
+	//  LOG(CERR) << '\n';
 
 	current_cache->set_timestamp( cache_timestamp++ );
 }
@@ -317,6 +317,7 @@ void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, i
 {
 /* get next_level */
 	mark_point(through, disable);
+    Logger::start();
 	choose_cache(through, disable);
 
 /* mark searching space*/
@@ -325,25 +326,27 @@ void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, i
 
 	current_cache->set_through(through);
 	current_cache->set_disable(disable);
+    Logger::stop( "search space ");
 
-	for(int i=0; i<num_node; i++) {
-		if(current_cache->get_vert_valid(i)) {
-			LOG(CERR) << this->get_node_name(i) << " valid\n";
-		}
-	}
-	LOG(CERR)<< "kth dest = " << kth_dest.size() << "\n";
-	for(auto& x:kth_dest) LOG(CERR) << get_node_name(x) << ", "; LOG(CERR)<< "\n";
-	LOG(CERR)<< "kth start= " << kth_start.size() << "\n";
-	for(auto& x:kth_start) LOG(CERR) << get_node_name(x) << ", "; LOG(CERR)<< "\n";
-
-	LOG(CERR)<< "edge valid: ";
-	LOG(CERR)<< current_cache->edge_valid.size() << "\n";
-	for(auto& p :current_cache->edge_valid) {
-		int eid = p.first;
-		LOG(CERR) << get_node_name(es[eid]->from) << " => " << get_node_name(es[eid]->to) << " " << p.second << "\n";
-	}
+	// for(int i=0; i<num_node; i++) {
+	// 	if(current_cache->get_vert_valid(i)) {
+	// 		LOG(CERR) << this->get_node_name(i) << " valid\n";
+	// 	}
+	// }
+	// LOG(CERR)<< "kth dest = " << kth_dest.size() << "\n";
+	// for(auto& x:kth_dest) LOG(CERR) << get_node_name(x) << ", "; LOG(CERR)<< "\n";
+	// LOG(CERR)<< "kth start= " << kth_start.size() << "\n";
+	// for(auto& x:kth_start) LOG(CERR) << get_node_name(x) << ", "; LOG(CERR)<< "\n";
+    //
+	// LOG(CERR)<< "edge valid: ";
+	// LOG(CERR)<< current_cache->edge_valid.size() << "\n";
+	// for(auto& p :current_cache->edge_valid) {
+	// 	int eid = p.first;
+	// 	LOG(CERR) << get_node_name(es[eid]->from) << " => " << get_node_name(es[eid]->to) << " " << p.second << "\n";
+	// }
 
 /* query kth */
+    Logger::start();
 	if(cppr_on) {
 		if(kth_start.size()>0 and  kth_start.size() < kth_dest.size() ) {
 			auto f = [](Kth* kth, int src, int k, vector<Path*>& container) {
@@ -362,6 +365,7 @@ void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, i
 		current_cache->kth->clear(); // may do some modification instead of clearing it
 		current_cache->kth->KSP_without_CPPR(kth_dest, k, ans);
 	}
+    Logger::stop("do kth ");
 
 	//cout << "vert size:";
 	//cout << current_cache->vert_valid.size() << '\n';
@@ -417,7 +421,7 @@ bool BC_map::search_modify(const vector<int>& through, const vector<int>& disabl
 	};
 
 	auto disable_fout = [&](int x) {
-		LOG(CERR) << " Disable " << get_node_name(x) << '\n';
+		// LOG(CERR) << " Disable " << get_node_name(x) << '\n';
 		for(auto& epr: G[x]) {
 			this->current_cache->set_edge_valid(epr->id, false);
 		}
@@ -449,8 +453,8 @@ bool BC_map::search_modify(const vector<int>& through, const vector<int>& disabl
 	bool now_need_search_fout = false;
 	bool next_need_search_fout = false;
 
-	LOG(CERR) << "through: ";
-	for(auto& x:through) LOG(CERR) << get_node_name(x) << ", ";  LOG(CERR)<< "\n";
+	// LOG(CERR) << "through: ";
+	// for(auto& x:through) LOG(CERR) << get_node_name(x) << ", ";  LOG(CERR)<< "\n";
 
 	next_level.push_back(-1);
 	for(int II=next_level.size()-2; II>=0; II--){
@@ -458,9 +462,9 @@ bool BC_map::search_modify(const vector<int>& through, const vector<int>& disabl
 
 		if(!get_now_node(now_level)) return false;
 
-		LOG(CERR) << "i = " << II << " now level = " << now_level << "\n";
-		LOG(CERR) << " => now node\n";
-		for(auto& x: now_node) LOG(CERR) << get_node_name(x) << ", "; LOG(CERR) << "\n";
+		// LOG(CERR) << "i = " << II << " now level = " << now_level << "\n";
+		// LOG(CERR) << " => now node\n";
+		// for(auto& x: now_node) LOG(CERR) << get_node_name(x) << ", "; LOG(CERR) << "\n";
 
 		now_need_search_fout = next_need_search_fout;
 		next_need_search_fout = false;
@@ -511,7 +515,7 @@ bool BC_map::search_modify(const vector<int>& through, const vector<int>& disabl
 
 		if(now_need_search_fout) {
 			for(auto& x:now_node){
-				LOG(CERR) << " -----> search fout " << get_node_name(x) << " to " << next_level[II+1] << "\n";
+				// LOG(CERR) << " -----> search fout " << get_node_name(x) << " to " << next_level[II+1] << "\n";
 				search_fout_layer(x, next_level[II+1]);
 			}
 		}
@@ -522,11 +526,11 @@ bool BC_map::search_modify(const vector<int>& through, const vector<int>& disabl
 		}
 		now_need_search_fout = false;
 	}
-	LOG(CERR)<< "====\n";
+	// LOG(CERR)<< "====\n";
 
 	if(now_need_search_fout or next_need_search_fout) {
 		for(auto& x:now_node){
-			LOG(CERR) << " -----> search fin " << get_node_name(x) << "\n";
+			// LOG(CERR) << " -----> search fin " << get_node_name(x) << "\n";
 			search_fin(x);
 		}
 	}

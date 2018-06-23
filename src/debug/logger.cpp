@@ -71,7 +71,7 @@ void Logger::start() {
 	).count();
 }
 
-void Logger::stop(const string& ); // add time elapsed to record
+void Logger::stop(const string& x){ // add time elapsed to record
 	long long now = std::chrono::duration_cast<std::chrono::milliseconds>(
 		std::chrono::system_clock::now().time_since_epoch()
 	).count();
