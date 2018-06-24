@@ -457,6 +457,7 @@ bool BC_map::search_modify(const vector<int>& through, const vector<int>& disabl
 	// LOG(CERR) << "through: ";
 	// for(auto& x:through) LOG(CERR) << get_node_name(x) << ", ";  LOG(CERR)<< "\n";
 
+    int cnt_search_out = 0, cnt_search_in = 0;
 	next_level.push_back(-1);
 	for(int II=next_level.size()-2; II>=0; II--){
 		int now_level = next_level[II];
@@ -518,6 +519,7 @@ bool BC_map::search_modify(const vector<int>& through, const vector<int>& disabl
 			for(auto& x:now_node){
 				// LOG(CERR) << " -----> search fout " << get_node_name(x) << " to " << next_level[II+1] << "\n";
 				search_fout_layer(x, next_level[II+1]);
+                cnt_search_out++;
 			}
 		}
 		else if(II==(int)next_level.size()-2) {
@@ -533,6 +535,7 @@ bool BC_map::search_modify(const vector<int>& through, const vector<int>& disabl
 		for(auto& x:now_node){
 			// LOG(CERR) << " -----> search fin " << get_node_name(x) << "\n";
 			search_fin(x);
+            cnt_search_in++;
 		}
 	}
 	else {
@@ -541,10 +544,16 @@ bool BC_map::search_modify(const vector<int>& through, const vector<int>& disabl
 		}
 	}
 
+    Logger::add_record("search_out", cnt_search_out);
+    Logger::add_record("search_in", cnt_search_in);
 	return true;
 }
 
 bool BC_map::search_fout_layer(int x,int target_level) {
+
+    // Logger::add_record("touch points ", 1);
+	if(vis[x]) return current_cache->get_vert_valid(x);
+	vis[x] = true;
 
 	if(target_level==-1 and G[x].size()==0)  // ff:d or POUT
 	{
@@ -557,14 +566,12 @@ bool BC_map::search_fout_layer(int x,int target_level) {
 		else return false;
 	}
 
-	if(vis[x]) return current_cache->get_vert_valid(x);
-	vis[x] = true;
-
 	bool ok = false; // if x is valid
 	for(auto& epr: G[x]) {
 		int to = epr->to;
 		if(is_disable[to]) continue;
 		if(level[to] > target_level) continue;
+        if(level[to] == target_level and is_through[to]==0) continue;
 
 		if(search_fout_layer(to, target_level)) {
 			ok = true;

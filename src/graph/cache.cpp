@@ -15,21 +15,31 @@ Cache::~Cache() {
 }
 
 bool Cache::set_vert_valid(int id, bool val) {
+	auto it = vert_valid.find(id);
 	if(val==false) {
-		auto it = vert_valid.find(id);
 		if(it!=vert_valid.end()) vert_valid.erase(it);
 		return false;
 	}
-	else return vert_valid[id] = val;
+	else {
+		if(it!=vert_valid.end()) it->second = true;
+		else vert_valid.emplace(id, true);
+		return true;
+		// return vert_valid[id] = val;
+	}
 }
 
 bool Cache::set_edge_valid(int id, bool val) {
+	auto it = edge_valid.find(id);
 	if(val==false) {
-		auto it = edge_valid.find(id);
 		if(it!=edge_valid.end()) edge_valid.erase(it);
 		return false;
 	}
-	return edge_valid[id] = val;
+	else{
+		if(it!=edge_valid.end()) it->second = true;
+		else edge_valid.emplace(id, true);
+		return true;
+	// return edge_valid[id] = val;
+	}
 }
 
 void Cache::set_timestamp(int val) {
