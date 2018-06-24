@@ -159,9 +159,12 @@ void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, i
 	mark_point(through, disable);
 
 /* mark searching space */
+    Logger::start();
 	search(through);
+    Logger::stop("search space");
 
 /* query kth */
+    Logger::start();
 	if(kth_start.size()>0 and  kth_start.size() < kth_dest.size() ) {
 		//cout << "kth from start\n";
 		//for(auto& i:kth_start) {
@@ -186,6 +189,7 @@ void BC_map::k_shortest_path(vector<int>& through, const vector<int>& disable, i
 		};
 		do_kth(kth_dest, k, f, ans);
 	}
+    Logger::stop("do kth(with cppr)");
 }
 
 void BC_map::mark_point(vector<int>& through, const vector<int>& disable) {
@@ -237,7 +241,7 @@ void BC_map::search(vector<int>& through) {
 		ASSERT(next_level.size() == 0);
 		// take all of FF:clk and Pin as a start point
 		for(int i=0; i<(int)G.size(); i++){
-			const auto& node = graph->nodes[ get_graph_id(i) ];
+			// const auto& node = graph->nodes[ get_graph_id(i) ];
 			// i is a FF:clk or Pin
 			if(G[i].size() != 0 && Gr[i].size() == 0) {
 				kth_start.push_back(i);

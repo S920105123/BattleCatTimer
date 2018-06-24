@@ -59,6 +59,7 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
     Logger::add_timestamp("report_timing ok");
 
 	for(int i=0; i<(int)ans.size(); i++){
+        if(ans[i]->size()==0) output << "i= " << i << "no path\n";
 		for(auto p:*ans[i]){
 			p->output(output, graph);
 //			delete p;
