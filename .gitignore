@@ -13,3 +13,5 @@ golden/
 create_ops.py
 .vscode/*
 .directory
+
+!test_cache/*
