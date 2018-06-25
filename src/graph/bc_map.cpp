@@ -534,6 +534,7 @@ bool BC_map::search_modify(const vector<int>& through, const vector<int>& disabl
 	if(now_need_search_fout or next_need_search_fout) {
 		for(auto& x:now_node){
 			// LOG(CERR) << " -----> search fin " << get_node_name(x) << "\n";
+            vis[x] = 0;
 			search_fin(x);
             cnt_search_in++;
 		}
