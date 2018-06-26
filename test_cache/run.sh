@@ -1,6 +1,8 @@
 
 for ops in vga_lcd/*.ops; do
-    echo '-------'$ops'-------'
+    echo '------------------------------------------------------'
+    echo '         '$ops
+    echo '------------------------------------------------------'
 
     for exe in *.exe; do
         echo '[+] '$exe
@@ -8,7 +10,8 @@ for ops in vga_lcd/*.ops; do
 
         cat result | grep -E '(search).*([0-9]+) ms'
         cat result | grep -E '(kth).*([0-9]+) ms'
-        cat result | grep -E 'total.*'
+        cat result | grep -E 'total.*' -o | tail -n 1
+        echo ''
 
         rm -f result
         rm -f message.log
