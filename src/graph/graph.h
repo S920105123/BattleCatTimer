@@ -20,8 +20,9 @@ const string OUTPUT_PREFIX = "";
 
 class CPPR;
 class BC_map;
-class Kth;
+//class Kth;
 class Path;
+//class Cache;
 
 class Graph {
 
@@ -165,6 +166,7 @@ private:
 	friend class BC_map;
 	friend class Kth;
 	friend class Path;
+	friend class CacheNode;
 };
 
 #endif

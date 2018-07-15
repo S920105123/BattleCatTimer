@@ -9,6 +9,7 @@ GCCINCLUDE += -Isrc/verilog/
 GCCINCLUDE += -Isrc/liberty/
 GCCINCLUDE += -Isrc/graph/
 GCCINCLUDE += -Isrc/timer/
+GCCINCLUDE += -Isrc/container/
 
 GCCFLAG = g++ $(INCLUDEPATH) $(GCCINCLUDE) -std=c++11 -O3 -Wall -fopenmp
 
@@ -29,17 +30,23 @@ GRAPH_SRC       = src/graph/graph.cpp
 GRAPH_SRC      += src/graph/rc_tree.cpp
 GRAPH_SRC      += src/graph/cppr.cpp
 GRAPH_SRC      += src/graph/bc_map.cpp
-GRAPH_SRC      += src/graph/kth.cpp
+#GRAPH_SRC      += src/graph/kth.cpp
+GRAPH_SRC      += src/graph/cache_node.cpp
+GRAPH_SRC      += src/graph/cache.cpp
 # CPPR_SRC        = src/graph/cppr.cpp
 # BCMAP_SRC       = src/graph/bc_map.cpp
 TIMER_SRC       = src/timer/timer.cpp
 
+CONTAINER_SRC   = src/container/bct_bitset.cpp
+
 DATA_SRC        = $(SPEF_SRC) $(VERILOG_SRC) $(LIBERTY_SRC)
+
 
 HEADER_OBJECT   = logger.o debug.o func.o
 LIBERTY_OBJECT  = cell_lib.o lu_table_template.o pin.o timing_arc.o timing_table.o cell.o
 DATA_OBEJCT     = verilog.o spef.o $(LIBERTY_OBJECT)
-GRAPH_OBJECT    = graph.o rc_tree.o cppr.o bc_map.o kth.o
+GRAPH_OBJECT    = graph.o rc_tree.o cppr.o bc_map.o cache_node.o cache.o
+CONTAINER_OBJECT= bct_bitset.o
 
 TEST_LOGGER:
 	$(GCCFLAG) src/debug/logger.cpp -DTEST_LOGGER -o logger
@@ -102,6 +109,9 @@ $(DATA_OBEJCT): $(DATA_SRC)
 $(GRAPH_OBJECT): $(GRAPH_SRC)
 	$(GCCFLAG) -c $(GRAPH_SRC)
 
+$(CONTAINER_OBJECT): $(CONTAINER_SRC)
+	$(GCCFLAG) -c $(CONTAINER_SRC)
+
 file_reader.o: $(FILE_READER_SRC)
 	$(GCCFLAG) -c $(FILE_READER_SRC) -o file_reader.o
 
@@ -124,12 +134,12 @@ test_main: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) rc_tree.o
 	$(GCCFLAG) $(HEADER_OBJECT) $(DATA_OBEJCT) rc_tree.o file_reader.o test_main.cpp  -o main
 	main.exe
 
-main: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_OBJECT) timer.o
-	$(GCCFLAG) $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_OBJECT) file_reader.o timer.o  main.cpp  -o main
+main: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_OBJECT) timer.o $(CONTAINER_OBJECT)
+	$(GCCFLAG) $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_OBJECT) $(CONTAINER_OBJECT) file_reader.o timer.o  main.cpp  -o main
 	main
 
-all: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_OBJECT) timer.o
-	$(GCCFLAG) $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_OBJECT) file_reader.o timer.o  main.cpp  -o BattleCatTimer
+all: file_reader.o $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_OBJECT) timer.o $(CONTAINER_OBJECT)
+	$(GCCFLAG) $(HEADER_OBJECT) $(DATA_OBEJCT) $(GRAPH_OBJECT) $(CONTAINER_OBJECT) file_reader.o timer.o  main.cpp  -o BattleCatTimer
 
 compare: compare.cpp file_reader.o $(HEADER_OBJECT)
 	$(GCCFLAG) $(HEADER_OBJECT) compare.cpp file_reader.o -o compare
