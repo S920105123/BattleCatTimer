@@ -28,7 +28,7 @@ private:
     void read_timing_assertion_option(File_Reader& in, string &name, Mode &mode, Transition_Type &transition, float &val);
     void read_pin_name(File_Reader& in, string &name);
 
-    vector< vector<pair<Transition_Type,string>>* > _through, _disable;
+    vector< vector<pair<Transition_Type,string>> > _through, _disable;
     vector<int> _nworst;
     ofstream output;
     Verilog *verilog;

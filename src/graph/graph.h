@@ -90,6 +90,12 @@ public:
 					   		    const vector<pair<Transition_Type,string>>&disable, 
 								int nworst);
 
+	void report_timing_MT(const vector<vector<pair<Transition_Type,string>>> &through,
+					   		    const vector<vector<pair<Transition_Type,string>>>&disable, 
+								const vector<int>& nworst,
+								vector<vector<Path*>> &ans
+								);
+
 	/* unimplemented */
 	void set_load(const string& pin_name, float cap);
 	void set_clock(const string& pin_name,float period, float low);

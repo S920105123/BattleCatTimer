@@ -21,10 +21,12 @@ class CacheNode {
 public:
 
 	CacheNode(BC_map* map, int src, int dest);
+	CacheNode(BC_map* map, int id);
 	~CacheNode();
 
 	void update();
 	void set_src_dest(int, int);
+	void wait_for_update();         // block thread until this cache has built
 
 	const vector<int>& get_topological_order() { return topological_order; }
 	const vector<Cache_Edge*>& get_valid_edge(int x) { return valid_edges[x]; }
@@ -35,7 +37,9 @@ public:
 	int start_level, end_level;
 	int last_used; // keep the last used query id
 	int used_cnt;
+	std::atomic<int> cnt_for_using;
 	int source, dest;
+	int id;
 
 private:
 	// use bc's reverse graph to search all ff:clk or PIO
@@ -62,6 +66,9 @@ private:
 
 	BC_map* bc_map;
 
+	std::condition_variable cv_update;
+	std::mutex mut_update;
 	bool has_built; 
+
 };
 #endif

@@ -949,6 +949,32 @@ vector<Path*>* Graph::report_timing(const vector<pair<Transition_Type,string>>&t
 	return ans;
 }
 
+void Graph::report_timing_MT(const vector<vector<pair<Transition_Type,string>>>& through,
+							 const vector<vector<pair<Transition_Type,string>>>& disable, 
+							 const vector<int>& nworst,
+							 vector<vector<Path*>> &ans)
+{
+	vector<vector<int>> _through, _disable;
+
+	for(size_t i=0; i<through.size(); i++) {
+		_through.emplace_back(vector<int>());
+
+		for(const auto &x: through[i]){
+			_through.back().emplace_back( bc_map->get_index(LATE, x.first, get_index(x.second)) );
+		}
+	}
+
+	for(size_t i=0; i<disable.size(); i++) {
+		_disable.emplace_back(vector<int>());
+
+		for(const auto &x: disable[i]){
+			_disable.back().emplace_back( bc_map->get_index(LATE, x.first, get_index(x.second)) );
+		}
+	}
+
+	bc_map->k_shortest_path_MT(_through, _disable, nworst, ans);
+}
+
 BC_map* Graph::get_bc_map(){
 	return bc_map;
 }

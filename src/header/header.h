@@ -32,6 +32,7 @@
 #include <functional>
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 
 #include "func.h"
 #include "enum.h"
@@ -73,7 +74,7 @@ const Transition_Type TYPES[2] = { RISE, FALL };
 const Mode MODES[2] = { EARLY, LATE };
 
 const int NUM_THREAD = 8;
-const int MAX_CACHE = 20;
+const int MAX_CACHE = 100;
 
 const float INF = std::numeric_limits<float>::infinity();
 

@@ -8,6 +8,7 @@
 #include "cppr.h"
 #include "cache_node.h"
 #include "cache.h"
+#include "bct_safe_queue.h"
 
 class Graph;
 class Kth;
@@ -22,8 +23,10 @@ class BC_map {
 		int from, to;
 		float delay;
 		int id;
-		Edge():from(0), to(0), delay(0){}
-		Edge(int f,int t,float d):from(f),to(t),delay(d) {}
+		Edge* jump;
+
+		Edge():from(0), to(0), delay(0), jump(nullptr){}
+		Edge(int f,int t,float d):from(f),to(t),delay(d), jump(nullptr) {}
 	};
 
 public:
@@ -42,11 +45,22 @@ public:
 						 int k,
 						 vector<Path*>& ans);
 
+	void k_shortest_path_MT(vector<vector<int>>& _through,
+						 vector<vector<int>>& _disable,
+						 const vector<int>& k,
+						 vector<vector<Path*>>& ans);
+
 	//std::atomic<float> threshold;
 
 private:
     void add_edge(int from, int to, float delay);
     void build_map(int root);
+
+	void prepare_through_disable(vector<int>& through, vector<int>& disable, vector<int>& result_through, vector<int>& result_disable);
+
+	//void condense(int);
+	//void condense_reverse(int);
+	//void check_condense();        // for debuging
 
 	// iterate the all condidates with calling function fun
     //void do_kth(const vector<int>& condidate, size_t k, std::function<void(Kth*,int,int,vector<Path*>&)> fun, vector<Path*>& ans);
@@ -76,9 +90,12 @@ private:
 
     vector<vector<Edge*>> G;
     vector<vector<Edge*>> Gr;
+	vector<int> condensed_by;
 
     vector<int> to_map_id[2][2];       // graph node id to bc map id
-    vector<int> level, in_degree, vis;
+    vector<int> level, in_degree; 
+	vector<bool> vis;
+	vector<int> topological_order;
 	int max_level;
 
 	vector<unordered_map<int,CacheNode*>> cache_nodes;
@@ -89,5 +106,6 @@ private:
     friend class Kth; 
 	friend class CacheNode;
 	friend class Cache;
+	friend class Path;
 };
 #endif /* BATTLE_CAT_MAP */

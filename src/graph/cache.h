@@ -18,7 +18,8 @@ public:
     vector<float> delay;
 
     Path() {};
-    void output(ostream &fout, Graph *graph) const;
+	//void recover_jump_path(Graph* graph, int from, int to);
+    void output(ostream &fout, Graph *graph);
 };
 
 // merge CacheNode and do kth

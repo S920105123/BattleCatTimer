@@ -11,6 +11,16 @@ CacheNode::CacheNode(BC_map* map, int src,int det) {
 	clear();
 }
 
+CacheNode::CacheNode(BC_map* map, int id) {
+	bc_map = map;
+
+	vis.create(map->num_node + 4);
+	is_valid.create(map->num_node + 4);
+
+	this->id = id;
+	clear();
+}
+
 CacheNode::~CacheNode() {
 	for(auto &e : edge_collector) delete e;
 }
@@ -42,22 +52,41 @@ void CacheNode::clear() {
 	is_valid.clear();
 	has_built = false;
 	used_cnt = 0;
+	cnt_for_using = 0;
+}
+
+void CacheNode::wait_for_update() {
+	if(has_built == false) {
+		std::unique_lock<std::mutex> lock(mut_update);
+		while(has_built == false) cv_update.wait(lock);
+	}
+	return;
 }
 
 void CacheNode::update() {
 
 	if(has_built == false) {
 		// search space
-		if(source== 0) {
-			// from dest backward search all ff:clk or PIN
-			int g_id = bc_map->get_graph_id( dest);
-			search_source(bc_map->get_index(LATE, RISE, g_id));
-			search_source(bc_map->get_index(LATE, FALL, g_id));
-		}
-		else {
-			int g_id = bc_map->get_graph_id( source );
+		//if(source== 0) {
+			//// from dest backward search all ff:clk or PIN
+			//int g_id = bc_map->get_graph_id( dest );
+			//search_source(bc_map->get_index(LATE, RISE, g_id));
+			//search_source(bc_map->get_index(LATE, FALL, g_id));
+		//}
+		//else {
+			//int g_id = bc_map->get_graph_id( source );
+			//search_dest(bc_map->get_index(LATE, RISE, g_id));
+			//search_dest(bc_map->get_index(LATE, FALL, g_id));
+		//}
+
+		if(dest == bc_map->num_node) {
+			int g_id = bc_map->get_graph_id(source);
 			search_dest(bc_map->get_index(LATE, RISE, g_id));
 			search_dest(bc_map->get_index(LATE, FALL, g_id));
+		}else {
+			int g_id = bc_map->get_graph_id(dest);
+			search_source(bc_map->get_index(LATE, RISE, g_id));
+			search_source(bc_map->get_index(LATE, FALL, g_id));
 		}
 
 		if(source==0) {
@@ -73,6 +102,7 @@ void CacheNode::update() {
 				return bc_map->level[v1] < bc_map->level[v2];
 		});
 		has_built = true;
+		cv_update.notify_one();
 	}
 }
 
@@ -108,17 +138,21 @@ bool CacheNode::search_source(int now) {
 	if(vis.get_val(now)) return is_valid.get_val(now);
 	vis.set_val(now, true);
 
-	if(this->bc_map->Gr[now].size() == 0) {
+	if(bc_map->Gr[now].size() == 0) {
 		kth_src.push_back(now);
 		topological_order.push_back(now);
 
+		return is_valid.set_val(now, true);
+	}
+	else if( bc_map->level[now] == start_level and bc_map->get_graph_id(now) == bc_map->get_graph_id(source)) {
+		topological_order.push_back(now);
 		return is_valid.set_val(now, true);
 	}
 
 	bool ok = false;
 	for(size_t i=0; i<bc_map->Gr[now].size(); i++) {
 		const auto& e = bc_map->Gr[now][i];
-		if(search_source(e->to)) {
+		if(bc_map->level[e->to] >= start_level and search_source(e->to)) {
 			ok = true;
 			add_edge(e->to, e->from, e->delay);
 		}
@@ -150,10 +184,20 @@ bool CacheNode::search_dest(int now) {
 	}
 
 	bool ok = false;
-	for(const auto& e: bc_map->G[now]) if(bc_map->level[e->to] <= end_level){
-		if(search_dest(e->to)) {
-			add_edge(e->from, e->to, e->delay);
-			ok = true;
+	for(const auto& e: bc_map->G[now]) {
+		//if(e->jump != nullptr) {
+			//if(bc_map->level[e->jump->to] <= end_level) {
+				//if(search_dest(e->jump->to)) {
+					//add_edge(e->jump->from, e->jump->to, e->jump->delay);
+					//ok = true;
+				//}
+			//}
+		//}
+		if(bc_map->level[e->to] <= end_level){
+			if(search_dest(e->to)) {
+				add_edge(e->from, e->to, e->delay);
+				ok = true;
+			}
 		}
 	}
 

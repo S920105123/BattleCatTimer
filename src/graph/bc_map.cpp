@@ -85,6 +85,9 @@ void BC_map::build(){
     in_degree.resize(num_node + 2);
     vis.resize(num_node + 2);
     level.resize(num_node + 2);
+	//jump.resize( num_edge + 2 ); std::fill(jump.begin(), jump.end(), nullptr);
+	//jump_reverse.resize( num_edge + 2 ); std::fill(jump_reverse.begin(), jump_reverse.end(), nullptr);
+	//condensed_by.resize( num_node+2  ); std::fill(condensed_by.begin(), condensed_by.end(), -1);
 	//is_disable.resize(num_node);
 	//is_valid.resize(num_node);
 	//is_through.resize(num_node);
@@ -122,6 +125,22 @@ void BC_map::build(){
 
 	delete q;
     LOG(NORMAL) << "BCmap nodes = " << num_node << "\n";
+
+////Logger::start();
+
+	//for(int i=0; i<num_node; i++) topological_order.push_back(i);
+	//sort(topological_order.begin(), topological_order.end(), [&](int v1, int v2){
+			//return level[v1] < level[v2];
+	//});
+
+	//std::fill(vis.begin(), vis.end(), 0);
+	//for(int i=0; i<num_node; i++) if(vis[ topological_order[i] ]==0)
+		//condense( topological_order[i] );
+
+	//std::fill(vis.begin(), vis.end(), 0);
+	//for(int i=num_node-1; i>=0; i--) if(vis[ topological_order[i] ]==0)
+		//condense_reverse( topological_order[i] );
+//Logger::stop("condense");
 }
 
 void BC_map::build_map(int root){
@@ -172,6 +191,110 @@ void BC_map::build_map(int root){
         build_map(to);
     }
 }
+
+//void BC_map::condense(int x) {
+	//if(vis[x]) return;
+	//vis[x] = 1;
+
+	//for(auto &e: G[x]) {
+		//int to = e->to;
+		//if(G[to].size() == 1 and Gr[to].size() == 1) {
+			//float new_delay = 0;
+			//Edge* cur_e = e;
+			//while( G[ cur_e->to ].size() ==1 and Gr[ cur_e->to].size() ==1 ) {
+				//condensed_by[cur_e->to] = e->from;
+				//vis[cur_e->to] = 1;
+
+				//new_delay += cur_e->delay;
+				//cur_e = G[ cur_e->to ].front();
+			//}
+			//new_delay += cur_e->delay;
+			//e->jump = new Edge(e->from, cur_e->to, new_delay);
+			//condense(cur_e->to);
+		//}
+		//else condense(e->to);
+	//}
+//}
+
+//void BC_map::condense_reverse(int x) {
+	//if(vis[x]) return;
+	//vis[x] = 1;
+
+	//for(auto &e: Gr[x]) {
+		//int to = e->to;
+		//if(G[to].size() == 1 and Gr[to].size() == 1) {
+			//float new_delay = 0;
+			//Edge* cur_e = e;
+			//while( G[ cur_e->to ].size() ==1 and Gr[ cur_e->to].size() ==1 ) {
+				////condensed_by[cur_e->to] = e->from;
+				//vis[cur_e->to] = 1;
+
+				//new_delay += cur_e->delay;
+				//cur_e = Gr[ cur_e->to ].front();
+			//}
+			//new_delay += cur_e->delay;
+			//e->jump = new Edge(e->from, cur_e->to, new_delay);
+			//condense_reverse(cur_e->to);
+		//}
+		//else condense_reverse(e->to);
+	//}
+//}
+
+//void BC_map::check_condense() {
+
+	//int cnt = 0;
+	//for(int i=1; i<num_node; i++) {
+		//for(auto &e: G[i]) {
+			//ASSERT(i == e->from);
+			//if(e->jump != nullptr) {
+
+				////cout << i << " Jump from " << get_node_name(e->jump->from) << " -> " << get_node_name(e->jump->to) << " " << e->jump->delay << '\n';
+				////cout << get_node_name(i) << "(" << e->delay << ")";
+				//int cur = e->to;
+				//while(true) {
+					////cout << " -> " << get_node_name(cur);
+					////cout << "(" << condensed_by[cur] << ")";
+					////cout << "(" << G[cur].size() << ", " << Gr[cur].size() << ")";
+					//if(cur == e->jump->to) break;
+					//ASSERT( G[cur].size() == 1 and Gr[cur].size() == 1);
+					//ASSERT( G[cur].front()->jump == nullptr );
+					//ASSERT( condensed_by[cur] == i );
+					////cout << "(" << G[cur].front()->delay << ")";
+					//cur = G[cur].front()->to;
+				//}
+				////cout << "\n\n";
+				//cnt++;
+			//}
+		//}
+	//}
+	//int cnt_rev = 0;
+	//for(int i=1; i<num_node; i++) {
+		//for(auto &e: Gr[i]) {
+			//ASSERT(i == e->from);
+			//if(e->jump != nullptr) {
+
+				////cout << i << " Jump from " << get_node_name(e->jump->from) << " -> " << get_node_name(e->jump->to) << " " << e->jump->delay << '\n';
+				////cout << get_node_name(i) << "(" << e->delay << ")";
+				//int cur = e->to;
+				//while(true) {
+					////cout << " -> " << get_node_name(cur);
+					////cout << "(" << level[cur] << ")";
+					////cout << "(" << G[cur].size() << ", " << Gr[cur].size() << ")";
+					//if(cur == e->jump->to) break;
+					//ASSERT( G[cur].size() == 1 and Gr[cur].size() == 1);
+					//ASSERT( G[cur].front()->jump == nullptr );
+					////cout << "(" << Gr[cur].front()->delay << ")";
+					//cur = Gr[cur].front()->to;
+				//}
+				////cout << "\n\n";
+				//cnt_rev++;
+			//}
+		//}
+	//}
+	//ASSERT(cnt == cnt_rev);
+	//cout << "total " << cnt << " jump\n";
+	//cout << "total " << cnt_rev << " reverse jump\n";
+//}
 
 /******************************************
 *           k shortest path               *
@@ -245,22 +368,180 @@ CacheNode* BC_map::get_cache_node(int from, int to) {
 	else return it->second;
 }
 
-void BC_map::k_shortest_path(vector<int>& through, vector<int>& disable, int k, vector<Path*>& ans)
+void BC_map::k_shortest_path(vector<int>& _through, vector<int>& _disable, int k, vector<Path*>& ans)
 {
-	if(through.size() == 0) {
+	if(_through.size() == 0) {
 		return;
 	}
-Logger::start();
-	cache->clear();
 
+	Logger::start();
+	cache->clear();
+	vector<int> result_through, result_disable;
+	prepare_through_disable(_through, _disable, result_through, result_disable);
+
+	//for(auto& x: result_through) cout << "Through " << get_node_name(x) << "\n";
+	//cout << "-------\n";
+
+	Logger::stop("init through");
+
+	Logger::start();
+	query_cnt++;
+	for(size_t i=0; i<result_through.size() - 1; i++) {
+		CacheNode* node = get_cache_node(result_through[i], result_through[i+1]);
+		node->last_used = query_cnt;
+		node->used_cnt++;
+		cache->add_cache_node(node);
+	}
+	Logger::stop("choose cache");
+
+	cache->set_disable(result_disable);
+
+
+	Logger::start();
+	cache->update_cacheNode();
+	Logger::stop("search space");
+
+
+	Logger::start();
+	cache->kth(ans, k);
+	Logger::stop("do kth");
+
+	//cache->output_shortest_path();
+	//cache->print();
+	//cout << "======================== fin =======================\n";
+}
+
+void BC_map::k_shortest_path_MT(vector<vector<int>>& _through,
+					 vector<vector<int>>& _disable,
+					 const vector<int>& k,
+					 vector<vector<Path*>>& ans) 
+{
+	//SafeQueue<CacheNode*> free_cache_nodes;
+	queue<CacheNode*> free_cache_nodes;
+	SafeQueue<CacheNode*> to_update;
+	vector< vector<CacheNode*> > query_cache;          // query_cnt[i] := caches_nodes query i need
+
+	for(int i=0; i<MAX_CACHE; i++) free_cache_nodes.push( new CacheNode(this, i) );
+	int total_query = _through.size();
+	std::atomic<bool> finish;
+	finish = false;
+	ans.resize( total_query );
+
+	auto combine_query = [&](int id) {
+		cache->clear();
+		cache->set_disable( _disable[ id] );
+		for(auto& node : query_cache[ id ]) {
+			node->wait_for_update();
+			cache->add_cache_node(node);
+		}
+		Logger::start();
+		cache->kth(ans[id], k[id]);
+		Logger::stop("kth");
+
+		for(auto & node: query_cache[id]) {
+			node->cnt_for_using--;
+			if(node->cnt_for_using==0) { // release cache node
+				erase_cache_node(node);
+				free_cache_nodes.push(node);
+			}
+		}
+		//cout << "Finish query " << id << '\n' << std::flush;
+	};
+
+	int save = 0;
+	#pragma omp parallel sections
+	{
+		/*Task 1*/
+		#pragma omp section
+		{
+			int combine_query_id = 0;
+			int query_id = 0;
+			vector<int> through, disable;
+
+			for(int i=0; i<total_query; i++) {
+				prepare_through_disable( _through[i], _disable[i], through, disable );
+				_disable[i] = disable;
+
+				query_cache.emplace_back( vector<CacheNode*>() );
+
+				CacheNode* node;
+				for(size_t j=0; j<through.size()-1; j++) {
+					int from = through[j], to = through[j+1];
+
+					auto it = cache_nodes[from].find(to);
+					if(it == cache_nodes[from].end()) {
+						while(free_cache_nodes.size() == 0) { // no free cache node to use
+							if( combine_query_id < query_id) {
+								combine_query(combine_query_id); // combine_query to release cache node
+								combine_query_id++;
+							}
+						}
+						node = free_cache_nodes.front(); free_cache_nodes.pop();
+						node->clear();
+						node->set_src_dest(from, to);
+						to_update.push(node);
+						cache_nodes[from].emplace(to, node);
+					}else {
+						node = it->second;
+						ASSERT( node->source == from and node->dest == to );
+						ASSERT( node->cnt_for_using > 0 );
+						save++;
+					}
+
+					node->cnt_for_using++;
+					query_cache.back().push_back(node);
+				}
+				query_id++;
+			}
+			Logger::add_record("Save ", save);
+			finish = true;
+			while(combine_query_id < query_id) {
+				combine_query(combine_query_id);
+				combine_query_id++;
+			}
+			ASSERT( free_cache_nodes.size() == MAX_CACHE );
+
+			while(!free_cache_nodes.empty()) {
+				delete free_cache_nodes.front();
+				free_cache_nodes.pop();
+			}
+		}
+
+		/*Task 2: multithraed to update cache node*/
+		#pragma omp section
+		{
+			#pragma omp parallel num_threads(4)
+			{
+				CacheNode* node;
+				while(true) {
+					if(finish and to_update.empty()) break;
+
+					if(to_update.try_get_and_pop(node)) {
+						node->update();
+					}
+				}
+			}
+		}
+	}
+
+}	
+
+void BC_map::prepare_through_disable(vector<int>& through, vector<int>& disable, vector<int>& result_through, vector<int>& result_disable) {
+	result_through.clear();
+	result_disable.clear();
+
+//0. check condense 
+	//for(auto &x: through) if(condensed_by[x] != -1) x = condensed_by[x];
+	//through.resize( std::unique(through.begin(), through.end()) - through.begin() );
+
+/*1. sort them by level */
 	std::sort(through.begin(), through.end(), [&](int v1, int v2) {
 			return level[v1] < level[v2];
 	});
 
-	vector<vector<int>> through_level;
-	vector<vector<int>> disable_level;
+/*2. put them to their corresponding level box */
 
-	// put them to their corresponding level box
+	vector<vector<int>> through_level;
 
 	// pseudo source
 	through_level.push_back(vector<int>());
@@ -285,46 +566,27 @@ Logger::start();
 	through_level.push_back(vector<int>());
 	through_level.back().push_back(num_node);
 
-	//cout << "start put disable\n";
-	disable_level.resize(max_level+4);
-	for(auto& x: disable) disable_level[ level[x] ].push_back(x);
-Logger::stop("init through");
-
-	//cout << "start add cache node\n";
-Logger::start();
-	query_cnt++;
-	for(size_t i=0; i<through_level.size() - 1; i++) {
-		CacheNode* node = get_cache_node(through_level[i].front(), through_level[i+1].front() );
-		node->last_used = query_cnt;
-		node->used_cnt++;
-		cache->add_cache_node(node);
+/* put through */
+	for(size_t i=0; i<through_level.size(); i++) {
+		if(through_level[i].front() == 0) result_through.push_back(0);
+		else if(through_level[i].front() == num_node) result_through.push_back(num_node);
+		else {
+			int g_id = get_graph_id( through_level[i].front() );
+			result_through.push_back( get_index(LATE, RISE, g_id) );
+		}
 	}
-Logger::stop("choose cache");
 
-	//cout << "start cal disable through\n";
+/*3. put disable*/
+	for(auto& x: disable) result_disable.push_back(x);
+
 	// Except pseudo source and destination
 	for(size_t i=1; i<through_level.size()-1; i++) {
 		bool used_transition[2] = {0, 0};
 		for(auto &x: through_level[i]) used_transition[ get_graph_id_type(x) ] = 1;
 		for(int j=0; j<2; j++) if(used_transition[j]==0) {
-			disable.emplace_back(get_index(LATE, j, get_graph_id(through_level[i].front())));
+			result_disable.emplace_back(get_index(LATE, j, get_graph_id(through_level[i].front())));
 		}
 	}
-
-	cache->set_disable(disable);
-
-Logger::start();
-	cache->update_cacheNode();
-Logger::stop("search space");
-
-Logger::start();
-	cache->kth(ans, k);
-Logger::stop("do kth");
-
-	//cache->output_shortest_path();
-
-	//cache->print();
-	//cout << "======================== fin =======================\n";
 }
 
 //void BC_map::search(vector<int>& through) {
