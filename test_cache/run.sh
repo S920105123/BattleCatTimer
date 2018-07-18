@@ -14,6 +14,8 @@ for ops in vga_lcd/testcases/*.ops; do
 		cat result | grep -E '(cache).*([0-9]+) ms'
 		cat result | grep -E '(search).*([0-9]+) ms'
 		cat result | grep -E '(kth).*([0-9]+) ms'
+		cat result | grep -E 'report_timing ok|.*' -o 
+		cat result | grep -E 'Save.*' -o 
 		cat result | grep -E 'total.*' -o | tail -n 1
 		cat result | grep -E '[0-9]:.*elapsed' -o
 		echo ''

@@ -120,20 +120,20 @@ void RCTree::cal_beta(int x,int pa){
 }
 
 float RCTree::get_slew(Mode mode, const string& name,float input_slew){
-    // return 0;
+	 return 0;
     int id = spefnet->get_pin_id(name);
     float tmp = std::sqrt(2*nodes[id].beta[mode] - nodes[id].delay[mode]*nodes[id].delay[mode]);
     return std::sqrt( tmp*tmp + input_slew*input_slew);
 }
 
 float RCTree::get_delay(Mode mode, const string& name){
-    // return 0;
+	 return 0;
     int id = spefnet->get_pin_id(name);
     return nodes[id].delay[mode];
 }
 
 float RCTree::get_downstream(Mode mode, const string& name){
-    // return 0;
+	 return 0;
     int id = spefnet->get_pin_id(name);
     return nodes[id].downstream[mode];
 }
