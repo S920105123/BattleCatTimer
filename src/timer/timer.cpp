@@ -49,7 +49,8 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
 	Logger::add_timestamp("start report timing");
     vector<vector<Path*>> ans;
     ans.resize((int)_through.size());
-    output.open(output_file);
+	//FILE* fout = fopen(output_file.c_str(), "w");
+    //output.open(output_file);
 
 	//#pragma omp parallel for schedule(dynamic) private(i)
 	//for(i=0; i<(int)_through.size(); i++){
@@ -58,15 +59,24 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
 	graph->report_timing_MT(_through, _disable, _nworst, ans);
     Logger::add_timestamp("report_timing ok");
 
+	Writer writer(output_file);
+
 	for(int i=0; i<(int)ans.size(); i++){
-        if(ans[i].size()==0) output << "i= " << i << " no path\n";
+        //if(ans[i].size()==0) output << "i= " << i << " no path\n";
+        if(ans[i].size()==0) {
+			char s[1000];
+			sprintf(s, "i = %d no path\n", i);
+			writer.addstring(s);
+		}
 		for(auto p:ans[i]){
-			p->output(output, graph);
+			//p->output(output, graph);
+			p->fast_output(writer, graph);
 //			delete p;
 		}
 	}
-
-    output.close();
+	writer.close();
+	//fclose(fout);
+    //output.close();
     Logger::add_timestamp("writing ok");
 
     //#pragma omp parallel for schedule(dynamic) private(i)

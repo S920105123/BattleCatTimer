@@ -68,7 +68,7 @@ private:
 
 	std::condition_variable cv_update;
 	std::mutex mut_update;
-	bool has_built; 
+	std::atomic<bool> has_built; 
 
 };
 #endif

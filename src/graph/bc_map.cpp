@@ -510,7 +510,7 @@ void BC_map::k_shortest_path_MT(vector<vector<int>>& _through,
 		/*Task 2: multithraed to update cache node*/
 		#pragma omp section
 		{
-			#pragma omp parallel num_threads(4)
+			#pragma omp parallel num_threads(1)
 			{
 				CacheNode* node;
 				while(true) {

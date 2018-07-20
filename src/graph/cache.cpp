@@ -249,3 +249,51 @@ void Path::output(ostream &fout, Graph *graph) {
 	fout << '\n';
 }
 
+void print_name( const string& name, Writer& buf) {
+
+	for(size_t i=0; i<name.size(); i++) {
+		if(name[i] == ':') buf.addchar('/');
+		else buf.addchar(name[i]);
+	}
+}
+
+void print_float(float x, Writer& buf) {
+	char s[100];
+	sprintf(s, "%.2f", x);
+	buf.addstring(s);
+}
+
+void Path::fast_output(Writer& buf, Graph* graph) {
+
+
+	int len = path.size();
+	buf.addstring("Endpoint: "); print_name(graph->nodes[ graph->bc_map->get_graph_id(path[len-2]) ].name, buf );  buf.addchar('\n');
+	buf.addstring("Beginpoint: "); print_name(graph->nodes[ graph->bc_map->get_graph_id(path[1]) ].name, buf); buf.addchar('\n');
+	buf.addstring("= Required Time "); print_float(delay.back(), buf); buf.addchar('\n');
+	buf.addstring("- Arrival Time "); print_float(delay.back() - dist, buf); buf.addchar('\n');
+	buf.addstring("= Slack Time ");  print_float(dist, buf); buf.addchar('\n');
+
+	const char type_sym[] = { '^', 'v' };
+	float at = 0;
+
+	float pre_delay = 0;
+	for(size_t i=1; i<path.size()-1; i++) {
+		pre_delay = 0;
+
+		int x = path[i];
+		int g_id = graph->bc_map->get_graph_id( x );
+		Transition_Type type = graph->bc_map->get_graph_id_type( x );
+		at += -delay[i-1];
+
+		if( delay[i-1] ==  INF) buf.addchar('-');
+		else print_float(-delay[i-1], buf);
+		buf.addchar(' ');
+
+		print_float(at, buf); buf.addchar(' ');
+
+		buf.addchar(type_sym[type]); buf.addchar(' ');
+
+		print_name(graph->nodes[g_id].name, buf);  buf.addchar('\n');
+	}
+	buf.addchar('\n');
+}

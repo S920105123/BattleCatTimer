@@ -5,6 +5,7 @@
 #include "bc_map.h"
 #include "cache_node.h"
 #include "bct_bitset.h"
+#include "bct_writer.h"
 
 class CacheNode;
 class Cache_Edge;
@@ -18,8 +19,8 @@ public:
     vector<float> delay;
 
     Path() {};
-	//void recover_jump_path(Graph* graph, int from, int to);
     void output(ostream &fout, Graph *graph);
+	void fast_output(Writer&, Graph* graph);
 };
 
 // merge CacheNode and do kth

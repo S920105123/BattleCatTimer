@@ -57,8 +57,9 @@ void CacheNode::clear() {
 
 void CacheNode::wait_for_update() {
 	if(has_built == false) {
-		std::unique_lock<std::mutex> lock(mut_update);
-		while(has_built == false) cv_update.wait(lock);
+		//std::unique_lock<std::mutex> lock(mut_update);
+		//while(has_built == false) cv_update.wait(lock);
+		while(has_built == false) ;
 	}
 	return;
 }

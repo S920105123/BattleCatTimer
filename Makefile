@@ -38,6 +38,7 @@ GRAPH_SRC      += src/graph/cache.cpp
 TIMER_SRC       = src/timer/timer.cpp
 
 CONTAINER_SRC   = src/container/bct_bitset.cpp
+CONTAINER_SRC   = src/container/bct_writer.cpp
 
 DATA_SRC        = $(SPEF_SRC) $(VERILOG_SRC) $(LIBERTY_SRC)
 
@@ -46,7 +47,7 @@ HEADER_OBJECT   = logger.o debug.o func.o
 LIBERTY_OBJECT  = cell_lib.o lu_table_template.o pin.o timing_arc.o timing_table.o cell.o
 DATA_OBEJCT     = verilog.o spef.o $(LIBERTY_OBJECT)
 GRAPH_OBJECT    = graph.o rc_tree.o cppr.o bc_map.o cache_node.o cache.o
-CONTAINER_OBJECT= bct_bitset.o
+CONTAINER_OBJECT= bct_bitset.o bct_writer.o
 
 TEST_LOGGER:
 	$(GCCFLAG) src/debug/logger.cpp -DTEST_LOGGER -o logger
