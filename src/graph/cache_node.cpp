@@ -6,6 +6,8 @@ CacheNode::CacheNode(BC_map* map, int src,int det) {
 
 	vis.resize(map->num_node + 4);
 	is_valid.resize(map->num_node + 4);
+	valid_edges.resize(map->num_node + 4);
+	valid_edges_reverse.resize(map->num_node + 4);
 
 	set_src_dest(src, det);
 	clear();
@@ -28,16 +30,25 @@ void CacheNode::set_src_dest(int src, int det) {
 }
 
 void CacheNode::clear() {
-	for(auto &e : edge_collector) delete e;
-	for(auto &x: topological_order) is_valid[x] = false;
-	for(auto& x: visited_points) vis[x] = false;
+	// for(auto &e : edge_collector) delete e;
 
-	valid_edges.clear();
-	valid_edges_reverse.clear();
+	// #pragma omp parallel for
+	for(size_t i=0; i<topological_order.size(); i++) {
+		is_valid[topological_order[i]] = false;
+		valid_edges[topological_order[i]].clear();
+		valid_edges_reverse[topological_order[i]].clear();
+	}
+
+	// #pragma omp parallel for
+	for(size_t i=0; i<visited_points.size(); i++)
+		vis[visited_points[i]] = false;
+
+	// valid_edges.clear();
+	// valid_edges_reverse.clear();
 	kth_src.clear();
 	kth_dest.clear();
-	topological_order.clear();
 	edge_collector.clear();
+	topological_order.clear();
 	visited_points.clear();
 
 	has_built = false;
@@ -192,8 +203,8 @@ void CacheNode::print() {
 	cout << "	valid edges: \n";
 	int cnt = 0;
 	for(auto& p: valid_edges) {
-		for(auto &e: p.second) {
-		//for(auto &e: p) {
+		// for(auto &e: p.second) {
+		for(auto &e: p) {
 			int to = e->to;
 			int from = e->from;
 			cout << "		" << bc_map->get_node_name(from) << " -> " << bc_map->get_node_name(to) << '\n';
@@ -205,8 +216,8 @@ void CacheNode::print() {
 	cout << "	valid reverse edges: \n";
 	cnt = 0;
 	for(auto& p: valid_edges_reverse) {
-		for(auto &e: p.second) {
-		//for(auto &e: p) {
+		// for(auto &e: p.second) {
+		for(auto &e: p) {
 			int from = e->from;
 			int to = e->to;
 			cout << "		" << bc_map->get_node_name(from) << " -> " << bc_map->get_node_name(to) << '\n';

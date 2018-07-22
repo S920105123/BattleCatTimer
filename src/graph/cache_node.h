@@ -47,10 +47,10 @@ private:
 	void connect_pseudo_edge_source();
 	void connect_pseudo_edge_dest();
 
-	unordered_map<int, vector<Cache_Edge*>> valid_edges;
-	unordered_map<int, vector<Cache_Edge*>> valid_edges_reverse;
-	//vector<vector<Cache_Edge*>> valid_edges;
-	//vector<vector<Cache_Edge*>> valid_edges_reverse;
+	// unordered_map<int, vector<Cache_Edge*>> valid_edges;
+	// unordered_map<int, vector<Cache_Edge*>> valid_edges_reverse;
+	vector<vector<Cache_Edge*>> valid_edges;
+	vector<vector<Cache_Edge*>> valid_edges_reverse;
 	vector<Cache_Edge*> edge_collector;
 	//unordered_map<int, bool> vis;
 	vector<bool> vis, is_valid;

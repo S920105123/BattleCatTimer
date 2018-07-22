@@ -187,7 +187,7 @@ void print_name(ostream &fout, const string &name) {
 	}
 }
 
-void Path::output(ostream &fout, Graph *graph) const {
+void Path::output(ostream &fout, Graph *graph) {
 	int len = path.size();
 
 	fout << "Endpoint:   "; print_name(fout, graph->nodes[ graph->bc_map->get_graph_id(path[len-2]) ].name ); fout << '\n';
@@ -196,7 +196,7 @@ void Path::output(ostream &fout, Graph *graph) const {
 	fout << "- Arrival Time                " << delay.back() - dist<< '\n';
 	fout << "= Slack Time                  " << dist << "\n";
 
-	const string tab = "      ";
+	const char* tab = "      ";
 	const char type_sym[] = { '^', 'v' };
 	fout << tab << "----------------------------------------\n";
 	fout << tab << "Delay     Arrival    Edge  Pin\n";
@@ -206,21 +206,94 @@ void Path::output(ostream &fout, Graph *graph) const {
 	// output control
 	fout << std::left << std::fixed << std::setprecision(OUTPUT_PRECISION);
 	float at = 0;
-	for(size_t i=1; i<path.size()-1; i++) {
-		int g_id = graph->bc_map->get_graph_id( path[i] );
-		Transition_Type type = graph->bc_map->get_graph_id_type( path[i] );
-		at += -delay[i-1];
+
+	auto print_node_detail = [&](int x, float delay) {
+		int g_id = graph->bc_map->get_graph_id( x );
+		Transition_Type type = graph->bc_map->get_graph_id_type( x );
+		at += -delay;
 
 		fout << tab; fout << std::setw(10);
-		if( i == 1 ) fout << "-";
-		else fout << -delay[i-1];
+		if( delay ==  INF) fout << "-";
+		else fout << -delay;
 
 		fout << std::setw(11); fout <<  at;
 		fout << std::setw(6); fout << type_sym[type];
 		print_name(fout, graph->nodes[g_id].name ); fout << '\n';
+
+	};
+
+	float pre_delay = 0;
+	for(size_t i=1; i<path.size()-1; i++) {
+		print_node_detail(path[i], delay[i-1] - pre_delay);
+		pre_delay = 0;
+
+		//if(i+1 < path.size() - 1) {
+			//for(auto &e: graph->bc_map->G[ path[i] ]) {
+				//if(e->jump and e->jump->to == path[i+1] ) {
+					//if( fabs(e->jump->delay - delay[i]) > 1e-3 ) {
+						//continue;
+					//}
+					//auto cur_e = e;
+					//while(cur_e->to != e->jump->to) {
+						//print_node_detail(cur_e->to, cur_e->delay);
+						//pre_delay += cur_e->delay;
+						//cur_e = graph->bc_map->G[ cur_e->to ].front();
+					//}
+					//break;
+				//}
+			//}
+		//}
 	}
 	fout << tab << "----------------------------------------\n";
 
 	fout << '\n';
 }
 
+void print_name( const string& name, Writer& buf) {
+
+	for(size_t i=0; i<name.size(); i++) {
+		if(name[i] == ':') buf.addchar('/');
+		else buf.addchar(name[i]);
+	}
+}
+
+void print_float(float x, Writer& buf) {
+	char s[100];
+	sprintf(s, "%.2f", x);
+	buf.addstring(s);
+}
+
+void Path::fast_output(Writer& buf, Graph* graph) {
+
+
+	int len = path.size();
+	buf.addstring("Endpoint: "); print_name(graph->nodes[ graph->bc_map->get_graph_id(path[len-2]) ].name, buf );  buf.addchar('\n');
+	buf.addstring("Beginpoint: "); print_name(graph->nodes[ graph->bc_map->get_graph_id(path[1]) ].name, buf); buf.addchar('\n');
+	buf.addstring("= Required Time "); print_float(delay.back(), buf); buf.addchar('\n');
+	buf.addstring("- Arrival Time "); print_float(delay.back() - dist, buf); buf.addchar('\n');
+	buf.addstring("= Slack Time ");  print_float(dist, buf); buf.addchar('\n');
+
+	const char type_sym[] = { '^', 'v' };
+	float at = 0;
+
+	float pre_delay = 0;
+	for(size_t i=1; i<path.size()-1; i++) {
+		pre_delay = 0;
+
+		int x = path[i];
+		int g_id = graph->bc_map->get_graph_id( x );
+		Transition_Type type = graph->bc_map->get_graph_id_type( x );
+		at += -delay[i-1];
+
+		if( delay[i-1] ==  INF) buf.addchar('-');
+		else print_float(-delay[i-1], buf);
+		buf.addchar(' ');
+
+		print_float(at, buf); buf.addchar(' ');
+
+		buf.addchar(type_sym[type]); buf.addchar(' ');
+
+		print_name(graph->nodes[g_id].name, buf);  buf.addchar('\n');
+	}
+	buf.addchar('\n');
+}

@@ -47,32 +47,41 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
         }
     }
 	Logger::add_timestamp("start report timing");
-    vector< vector<Path*>* > ans;
+    vector<vector<Path*>*> ans;
     ans.resize((int)_through.size());
-    int i;
-    output.open(output_file);
+	//FILE* fout = fopen(output_file.c_str(), "w");
+    //output.open(output_file);
 
-//    #pragma omp parallel for schedule(dynamic) private(i)
-    for(i=0; i<(int)_through.size(); i++){
-        ans[i] = graph->report_timing(*_through[i], *_disable[i], _nworst[i]);
-    }
+	//#pragma omp parallel for schedule(dynamic) private(i)
+	for(int i=0; i<(int)_through.size(); i++){
+		ans[i] = graph->report_timing(_through[i], _disable[i], _nworst[i]);
+	}
     Logger::add_timestamp("report_timing ok");
 
+	Writer writer(output_file);
+
 	for(int i=0; i<(int)ans.size(); i++){
-        if(ans[i]->size()==0) output << "i= " << i << "no path\n";
+        //if(ans[i].size()==0) output << "i= " << i << " no path\n";
+        if(ans[i]->size()==0) {
+			char s[100];
+			sprintf(s, "i = %d no path\n", i);
+			writer.addstring(s);
+		}
 		for(auto p:*ans[i]){
-			p->output(output, graph);
+			//p->output(output, graph);
+			p->fast_output(writer, graph);
 //			delete p;
 		}
 	}
-
-    output.close();
+	writer.close();
+	//fclose(fout);
+    //output.close();
     Logger::add_timestamp("writing ok");
 
-    #pragma omp parallel for schedule(dynamic) private(i)
-    for(int i=0; i<(int)ans.size(); i++){
- //       delete ans[i];
-    }
+    //#pragma omp parallel for schedule(dynamic) private(i)
+    //for(int i=0; i<(int)ans.size(); i++){
+ ////       delete ans[i];
+    //}
     Logger::add_timestamp("free ok");
 }
 
@@ -82,8 +91,8 @@ void Timer::clear_Timer(){
     if (lib[0]) delete lib[0];
     if (lib[1]) delete lib[1];
     if (graph) delete graph;
-    for (auto &ptr : _through) delete ptr;
-    for (auto &ptr : _disable) delete ptr;
+    //for (auto &ptr : _through) delete ptr;
+    //for (auto &ptr : _disable) delete ptr;
 }
 
 void Timer::init_timer(){
@@ -243,64 +252,64 @@ void Timer::open_ops(const string& ops){
         /* tau 2018 */
         if(cmd=="report_timing"){
             string op, pin;
-            vector<pair<Transition_Type, string>> *through, *disable;
-            through = new vector<pair<Transition_Type,string>>();
-			disable = new vector<pair<Transition_Type,string>>();
+            vector<pair<Transition_Type, string>> through, disable;
+            //through = new vector<pair<Transition_Type,string>>();
+			//disable = new vector<pair<Transition_Type,string>>();
             int nworst = 1;
             do{
                 op = in.next_token();
                 if(op=="") break;
                 if(op=="-from"){
                     read_pin_name(in, pin);
-                    through->emplace_back(RISE, pin);
-                    through->emplace_back(FALL, pin);
+                    through.emplace_back(RISE, pin);
+                    through.emplace_back(FALL, pin);
                 }
                 else if(op=="-rise_from"){
                     read_pin_name(in, pin);
-                    through->emplace_back(RISE, pin);
+                    through.emplace_back(RISE, pin);
                 }
                 else if(op=="-fall_from"){
                     read_pin_name(in, pin);
-                    through->emplace_back(FALL, pin);
+                    through.emplace_back(FALL, pin);
                 }
                 else if(op=="-to"){
                     read_pin_name(in, pin);
-                    through->emplace_back(RISE, pin);
-                    through->emplace_back(FALL, pin);
+                    through.emplace_back(RISE, pin);
+                    through.emplace_back(FALL, pin);
                 }
                 else if(op=="-rise_to"){
                     read_pin_name(in, pin);
-                    through->emplace_back(RISE, pin);
+                    through.emplace_back(RISE, pin);
                 }
                 else if(op=="-fall_to"){
                     read_pin_name(in, pin);
-                    through->emplace_back(FALL, pin);
+                    through.emplace_back(FALL, pin);
                 }
                 else if(op=="-through"){
                     read_pin_name(in, pin);
-                    through->emplace_back(RISE, pin);
-                    through->emplace_back(FALL, pin);
+                    through.emplace_back(RISE, pin);
+                    through.emplace_back(FALL, pin);
                 }
                 else if(op=="-rise_through"){
                     read_pin_name(in, pin);
-                    through->emplace_back(RISE, pin);
+                    through.emplace_back(RISE, pin);
                 }
                 else if(op=="-fall_through"){
                     read_pin_name(in, pin);
-                    through->emplace_back(FALL, pin);
+                    through.emplace_back(FALL, pin);
                 }
                 else if(op=="-disable"){
                     read_pin_name(in, pin);
-                    disable->emplace_back(RISE, pin);
-                    disable->emplace_back(FALL, pin);
+                    disable.emplace_back(RISE, pin);
+                    disable.emplace_back(FALL, pin);
                 }
                 else if(op=="-rise_disable"){
                     read_pin_name(in, pin);
-                    disable->emplace_back(RISE, pin);
+                    disable.emplace_back(RISE, pin);
                 }
                 else if(op=="-fall_disable"){
                     read_pin_name(in, pin);
-                    disable->emplace_back(FALL, pin);
+                    disable.emplace_back(FALL, pin);
                 }
                 else if(op=="-nworst")  nworst = (int)stof(in.next_token());
                 else if(op[0]=='-'){

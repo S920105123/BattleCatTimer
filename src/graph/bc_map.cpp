@@ -115,7 +115,7 @@ void BC_map::build(){
 	// level starts from 1
 	max_level = 0;
 	for(int i=1; i<num_node; i++) {
-		level[i]++; 
+		level[i]++;
 		max_level = max(max_level, level[i]);
 	}
 	level[0] = 0, level[num_node] = max_level + 1;
@@ -196,7 +196,7 @@ CacheNode* BC_map::add_cache_node(int from, int to) {
 	int find = false;
 	for(size_t i=0; i<cache_node_collector.size(); i++) if(cache_node_collector[i] == nullptr) {
 		node = new CacheNode(this, from, to);
-		cache_node_collector[i] = node; 
+		cache_node_collector[i] = node;
 		find = true;
 		break;
 	}
@@ -227,7 +227,9 @@ CacheNode* BC_map::add_cache_node(int from, int to) {
 			erase_cache_node(cache_node_collector[who]);
 			node = cache_node_collector[who];
 		}
+        // Logger::start();
 		node->clear();
+        // Logger::stop("clear");
 		node->set_src_dest(from, to);
 	}
 
@@ -237,12 +239,15 @@ CacheNode* BC_map::add_cache_node(int from, int to) {
 
 CacheNode* BC_map::get_cache_node(int from, int to) {
 
-	if(from !=0 and from !=num_node) from = get_index(LATE, RISE,  get_graph_id(from)); 
-	if(to !=0 and to !=num_node) to = get_index(LATE, RISE,  get_graph_id(to)); 
+	if(from !=0 and from !=num_node) from = get_index(LATE, RISE,  get_graph_id(from));
+	if(to !=0 and to !=num_node) to = get_index(LATE, RISE,  get_graph_id(to));
 
 	auto it = cache_nodes[from].find( to );
 	if(it == cache_nodes[from].end()) return add_cache_node(from, to);
-	else return it->second;
+	else {
+        Logger::add_record("Save", 1);
+        return it->second;
+    }
 }
 
 void BC_map::k_shortest_path(vector<int>& through, vector<int>& disable, int k, vector<Path*>& ans)
@@ -276,7 +281,7 @@ Logger::start();
 
 		// make sure that the same level points should have the same graph id
 		for(size_t j=0; j<through_level.back().size() - 1; j++) {
-			if( get_graph_id(through_level.back()[j]) != get_graph_id(through_level.back()[j+1]) )  
+			if( get_graph_id(through_level.back()[j]) != get_graph_id(through_level.back()[j+1]) )
 				return;
 		}
 	}
