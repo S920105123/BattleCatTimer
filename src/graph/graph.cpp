@@ -440,41 +440,42 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 	}
 
 	/* Construct external timing arc through wire mapping */
+	RCTree *rc_tree =new RCTree(nullptr, &vlog, lib_arr);
 	for (const auto &wire_pair : this->wire_mapping) {
-		const string &wire_name = wire_pair.first;
+		// const string &wire_name = wire_pair.first;
 		Wire_mapping *mapping = wire_pair.second;
 		int from = mapping->src;
 		if (from == -1) continue; // Isolated node.
 
-		RCTree *rc_tree = NULL;
-		SpefNet *net = spef.get_spefnet_ptr(wire_name, 0);
-		if (net!=NULL) rc_tree = new RCTree(net, &vlog, lib_arr);
-		else{
-			// add new spef
-			net = new SpefNet();
-			net->set_total_cap(0);
-			string root = get_name ( wire_mapping[wire_name]->src ), type="I", dir="O";
-			Node_type node_type = nodes[get_index(root)].type;
-			if(node_type==PRIMARY_IN)  type="P", dir="I";
-			if(node_type==PRIMARY_OUT) type="P", dir="O";
-		
-			net->set_name(wire_name);
-			net->add_conn(root, type, dir);
-			for(auto &it: (*wire_mapping[wire_name]).sinks) {
-				string name = get_name(it), type="I", dir="I";
-				Node_type node_type = nodes[it].type;
-				if(node_type==PRIMARY_IN)  type="P", dir="I";
-				if(node_type==PRIMARY_OUT) type="P", dir="O";
-		
-				net->add_conn(name, type , dir);
-				net->add_cap(name, 0);
-				net->add_res(root, get_name(it), 0);
-			}
-			spef.add_net( wire_name, net);
-			rc_tree = new RCTree(net, &vlog, lib_arr);
-		}
-		rc_tree->build_tree();
-		rc_tree->cal();
+		// RCTree *rc_tree = NULL;
+		// SpefNet *net = spef.get_spefnet_ptr(wire_name, 0);
+		// if (net!=NULL) rc_tree = new RCTree(net, &vlog, lib_arr);
+		// else{
+		// 	// add new spef
+		// 	net = new SpefNet();
+		// 	net->set_total_cap(0);
+		// 	string root = get_name ( wire_mapping[wire_name]->src ), type="I", dir="O";
+		// 	Node_type node_type = nodes[get_index(root)].type;
+		// 	if(node_type==PRIMARY_IN)  type="P", dir="I";
+		// 	if(node_type==PRIMARY_OUT) type="P", dir="O";
+		//
+		// 	net->set_name(wire_name);
+		// 	net->add_conn(root, type, dir);
+		// 	for(auto &it: (*wire_mapping[wire_name]).sinks) {
+		// 		string name = get_name(it), type="I", dir="I";
+		// 		Node_type node_type = nodes[it].type;
+		// 		if(node_type==PRIMARY_IN)  type="P", dir="I";
+		// 		if(node_type==PRIMARY_OUT) type="P", dir="O";
+		//
+		// 		net->add_conn(name, type , dir);
+		// 		net->add_cap(name, 0);
+		// 		net->add_res(root, get_name(it), 0);
+		// 	}
+		// 	spef.add_net( wire_name, net);
+		// 	rc_tree = new RCTree(net, &vlog, lib_arr);
+		// }
+		// rc_tree->build_tree();
+		// rc_tree->cal();
 		nodes[from].tree = rc_tree;
 		for (int to : mapping->sinks) {
 			nodes[to].tree = rc_tree;
@@ -853,14 +854,14 @@ void Graph::init_graph(){
     calculate_at();
 	Logger::add_timestamp("at ok");
 
-	// cppr = NULL;
-	 cppr = new CPPR(this, clock_id);
-	 cppr->build_tree();
+	cppr = NULL;
+	 // cppr = new CPPR(this, clock_id);
+	 // cppr->build_tree();
 	// Logger::add_timestamp("cppr ok");
 
-   // #pragma omp parallel sections
+   #pragma omp parallel sections
     {
-		// #pragma omp section
+		#pragma omp section
 		{
 		    calculate_rat();
 			Logger::add_timestamp("rat ok");
@@ -872,7 +873,7 @@ void Graph::init_graph(){
 				ASSERT(node.type != UNKNOWN);
 			}
 		}
-		// #pragma omp section
+		#pragma omp section
         {
          	//cout << "tid : " << omp_get_thread_num() << " bc_map\n" << std::flush;
  			bc_map = new BC_map(this, cppr);

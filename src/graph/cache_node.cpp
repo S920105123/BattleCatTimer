@@ -4,8 +4,8 @@ CacheNode::CacheNode(BC_map* map, int src,int det) {
 	bc_map = map;
 	//vis.resize( bc_map->num_node + 4 );
 
-	vis.create(map->num_node + 4);
-	is_valid.create(map->num_node + 4);
+	vis.resize(map->num_node + 4);
+	is_valid.resize(map->num_node + 4);
 
 	set_src_dest(src, det);
 	clear();
@@ -20,7 +20,7 @@ void CacheNode::set_src_dest(int src, int det) {
 	dest = det;
 
 	/* if src is ff:clk or PIN, then src = 0, and level[src] = 0 */
-	start_level = this->bc_map->level[ src ]; 
+	start_level = this->bc_map->level[ src ];
 
 	/* if dest is ff:d or POUT, then dest = bc->num_node, and level[dest] = bc->max_level + 1 */
 	end_level = this->bc_map->level[ dest ];
@@ -29,17 +29,17 @@ void CacheNode::set_src_dest(int src, int det) {
 
 void CacheNode::clear() {
 	for(auto &e : edge_collector) delete e;
-	
+	for(auto &x: topological_order) is_valid[x] = false;
+	for(auto& x: visited_points) vis[x] = false;
+
 	valid_edges.clear();
 	valid_edges_reverse.clear();
 	kth_src.clear();
 	kth_dest.clear();
 	topological_order.clear();
 	edge_collector.clear();
+	visited_points.clear();
 
-	//std::fill(vis.begin(), vis.end(), -1);
-	vis.clear();
-	is_valid.clear();
 	has_built = false;
 	used_cnt = 0;
 }
@@ -48,16 +48,15 @@ void CacheNode::update() {
 
 	if(has_built == false) {
 		// search space
-		if(source== 0) {
-			// from dest backward search all ff:clk or PIN
-			int g_id = bc_map->get_graph_id( dest);
-			search_source(bc_map->get_index(LATE, RISE, g_id));
-			search_source(bc_map->get_index(LATE, FALL, g_id));
-		}
-		else {
+		if(dest == bc_map->num_node) {
 			int g_id = bc_map->get_graph_id( source );
 			search_dest(bc_map->get_index(LATE, RISE, g_id));
 			search_dest(bc_map->get_index(LATE, FALL, g_id));
+		}
+		else {
+			int g_id = bc_map->get_graph_id( dest);
+			search_source(bc_map->get_index(LATE, RISE, g_id));
+			search_source(bc_map->get_index(LATE, FALL, g_id));
 		}
 
 		if(source==0) {
@@ -105,20 +104,26 @@ void CacheNode::connect_pseudo_edge_dest() {
 }
 
 bool CacheNode::search_source(int now) {
-	if(vis.get_val(now)) return is_valid.get_val(now);
-	vis.set_val(now, true);
+	if(vis[now]) return is_valid[now];
+	vis[now] = true;
+	visited_points.push_back(now);
 
 	if(this->bc_map->Gr[now].size() == 0) {
 		kth_src.push_back(now);
 		topological_order.push_back(now);
 
-		return is_valid.set_val(now, true);
+		return is_valid[now] = true;
+	}
+	else if(bc_map->level[now] == start_level and bc_map->get_graph_id(now)==bc_map->get_graph_id(source)) {
+		topological_order.push_back(now);
+
+		return is_valid[now] = true;
 	}
 
 	bool ok = false;
 	for(size_t i=0; i<bc_map->Gr[now].size(); i++) {
 		const auto& e = bc_map->Gr[now][i];
-		if(search_source(e->to)) {
+		if(bc_map->level[e->to]>= start_level and search_source(e->to)) {
 			ok = true;
 			add_edge(e->to, e->from, e->delay);
 		}
@@ -126,27 +131,28 @@ bool CacheNode::search_source(int now) {
 
 	if(ok) {
 		topological_order.push_back(now);
-		is_valid.set_val(now, true);
+		is_valid[now] = true;
 	}
 	return ok;
 }
 
 bool CacheNode::search_dest(int now) {
-	if(vis.get_val(now)) return is_valid.get_val(now);
-	vis.set_val(now, true);
-	
+	if(vis[now]) return is_valid[now];
+	vis[now] = true;
+	visited_points.push_back(now);
+
 	if(dest==bc_map->num_node) {
 		if( bc_map->G[now].size() == 0 ) {
 			kth_dest.push_back(now);
 			topological_order.push_back(now);
 
-			return is_valid.set_val(now, true);
+			return is_valid[now] = true;
 		}
 	}
 	else if( bc_map->level[now] == end_level and bc_map->get_graph_id(now) == bc_map->get_graph_id(dest)) {
 		topological_order.push_back(now);
 
-		return is_valid.set_val(now, true);
+		return is_valid[now] = true;
 	}
 
 	bool ok = false;
@@ -159,7 +165,7 @@ bool CacheNode::search_dest(int now) {
 
 	if(ok) {
 		topological_order.push_back(now);
-		is_valid.set_val(now, ok);
+		is_valid[now] = true;
 	}
 	return ok;
 }

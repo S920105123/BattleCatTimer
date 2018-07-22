@@ -46,22 +46,23 @@ private:
 	void add_edge(int from,int to, float delay);
 	void connect_pseudo_edge_source();
 	void connect_pseudo_edge_dest();
-	
+
 	unordered_map<int, vector<Cache_Edge*>> valid_edges;
 	unordered_map<int, vector<Cache_Edge*>> valid_edges_reverse;
 	//vector<vector<Cache_Edge*>> valid_edges;
 	//vector<vector<Cache_Edge*>> valid_edges_reverse;
 	vector<Cache_Edge*> edge_collector;
 	//unordered_map<int, bool> vis;
-	//vector<int> vis;
-	BitSet vis;
-	BitSet is_valid;
+	vector<bool> vis, is_valid;
+	vector<int> visited_points;
+	// BitSet vis;
+	// BitSet is_valid;
 
 	vector<int> kth_src, kth_dest;
 	vector<int> topological_order;
 
 	BC_map* bc_map;
 
-	bool has_built; 
+	bool has_built;
 };
 #endif
