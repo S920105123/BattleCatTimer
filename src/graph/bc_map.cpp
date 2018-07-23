@@ -118,7 +118,7 @@ void BC_map::build(){
 	// level starts from 1
 	max_level = 0;
 	for(int i=1; i<num_node; i++) {
-		level[i]++; 
+		level[i]++;
 		max_level = max(max_level, level[i]);
 	}
 	level[0] = 0, level[num_node] = max_level + 1;
@@ -319,7 +319,7 @@ CacheNode* BC_map::add_cache_node(int from, int to) {
 	int find = false;
 	for(size_t i=0; i<cache_node_collector.size(); i++) if(cache_node_collector[i] == nullptr) {
 		node = new CacheNode(this, from, to);
-		cache_node_collector[i] = node; 
+		cache_node_collector[i] = node;
 		find = true;
 		break;
 	}
@@ -360,8 +360,8 @@ CacheNode* BC_map::add_cache_node(int from, int to) {
 
 CacheNode* BC_map::get_cache_node(int from, int to) {
 
-	if(from !=0 and from !=num_node) from = get_index(LATE, RISE,  get_graph_id(from)); 
-	if(to !=0 and to !=num_node) to = get_index(LATE, RISE,  get_graph_id(to)); 
+	if(from !=0 and from !=num_node) from = get_index(LATE, RISE,  get_graph_id(from));
+	if(to !=0 and to !=num_node) to = get_index(LATE, RISE,  get_graph_id(to));
 
 	auto it = cache_nodes[from].find( to );
 	if(it == cache_nodes[from].end()) return add_cache_node(from, to);
@@ -414,19 +414,22 @@ void BC_map::k_shortest_path(vector<int>& _through, vector<int>& _disable, int k
 void BC_map::k_shortest_path_MT(vector<vector<int>>& _through,
 					 vector<vector<int>>& _disable,
 					 const vector<int>& k,
-					 vector<vector<Path*>>& ans) 
+					 vector<vector<Path*>>& ans)
 {
 	//SafeQueue<CacheNode*> free_cache_nodes;
 	queue<CacheNode*> free_cache_nodes;
 	SafeQueue<CacheNode*> to_update;
 	vector< vector<CacheNode*> > query_cache;          // query_cnt[i] := caches_nodes query i need
 
+	cout << "Create cacheNode\n";
 	for(int i=0; i<MAX_CACHE; i++) free_cache_nodes.push( new CacheNode(this, i) );
+	cout << "Create OK\n" << std::flush;
 	int total_query = _through.size();
 	std::atomic<bool> finish;
 	finish = false;
 	ans.resize( total_query );
 
+	cout << "Start \n";
 	auto combine_query = [&](int id) {
 		cache->clear();
 		cache->set_disable( _disable[ id] );
@@ -434,9 +437,9 @@ void BC_map::k_shortest_path_MT(vector<vector<int>>& _through,
 			node->wait_for_update();
 			cache->add_cache_node(node);
 		}
-		Logger::start();
+		// Logger::start();
 		cache->kth(ans[id], k[id]);
-		Logger::stop("kth");
+		// Logger::stop("kth");
 
 		for(auto & node: query_cache[id]) {
 			node->cnt_for_using--;
@@ -524,13 +527,13 @@ void BC_map::k_shortest_path_MT(vector<vector<int>>& _through,
 		}
 	}
 
-}	
+}
 
 void BC_map::prepare_through_disable(vector<int>& through, vector<int>& disable, vector<int>& result_through, vector<int>& result_disable) {
 	result_through.clear();
 	result_disable.clear();
 
-//0. check condense 
+//0. check condense
 	//for(auto &x: through) if(condensed_by[x] != -1) x = condensed_by[x];
 	//through.resize( std::unique(through.begin(), through.end()) - through.begin() );
 
@@ -557,7 +560,7 @@ void BC_map::prepare_through_disable(vector<int>& through, vector<int>& disable,
 
 		// make sure that the same level points should have the same graph id
 		for(size_t j=0; j<through_level.back().size() - 1; j++) {
-			if( get_graph_id(through_level.back()[j]) != get_graph_id(through_level.back()[j+1]) )  
+			if( get_graph_id(through_level.back()[j]) != get_graph_id(through_level.back()[j+1]) )
 				return;
 		}
 	}

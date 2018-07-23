@@ -4,8 +4,10 @@ CacheNode::CacheNode(BC_map* map, int src,int det) {
 	bc_map = map;
 	//vis.resize( bc_map->num_node + 4 );
 
-	vis.create(map->num_node + 4);
-	is_valid.create(map->num_node + 4);
+	vis.resize(map->num_node + 4);
+	is_valid.resize(map->num_node + 4);
+	valid_edges.resize(map->num_node + 4);
+	valid_edges_reverse.resize(map->num_node + 4);
 
 	set_src_dest(src, det);
 	clear();
@@ -14,8 +16,10 @@ CacheNode::CacheNode(BC_map* map, int src,int det) {
 CacheNode::CacheNode(BC_map* map, int id) {
 	bc_map = map;
 
-	vis.create(map->num_node + 4);
-	is_valid.create(map->num_node + 4);
+	vis.resize(map->num_node + 4);
+	is_valid.resize(map->num_node + 4);
+	valid_edges.resize(map->num_node + 4);
+	valid_edges_reverse.resize(map->num_node + 4);
 
 	this->id = id;
 	clear();
@@ -30,7 +34,7 @@ void CacheNode::set_src_dest(int src, int det) {
 	dest = det;
 
 	/* if src is ff:clk or PIN, then src = 0, and level[src] = 0 */
-	start_level = this->bc_map->level[ src ]; 
+	start_level = this->bc_map->level[ src ];
 
 	/* if dest is ff:d or POUT, then dest = bc->num_node, and level[dest] = bc->max_level + 1 */
 	end_level = this->bc_map->level[ dest ];
@@ -39,17 +43,27 @@ void CacheNode::set_src_dest(int src, int det) {
 
 void CacheNode::clear() {
 	for(auto &e : edge_collector) delete e;
-	
-	valid_edges.clear();
-	valid_edges_reverse.clear();
+
+	for(size_t i=0; i<topological_order.size(); i++) {
+		valid_edges[ topological_order[i] ].clear();
+		valid_edges_reverse[ topological_order[i] ].clear();
+		is_valid[ topological_order[i] ] = false;
+	}
+	for(size_t i=0; i<visited_points.size(); i++) {
+		vis[ visited_points[i] ] = false;
+	}
+
+	//valid_edges.clear();
+	//valid_edges_reverse.clear();
 	kth_src.clear();
 	kth_dest.clear();
 	topological_order.clear();
 	edge_collector.clear();
+	visited_points.clear();
 
 	//std::fill(vis.begin(), vis.end(), -1);
-	vis.clear();
-	is_valid.clear();
+	//vis.clear();
+	//is_valid.clear();
 	has_built = false;
 	used_cnt = 0;
 	cnt_for_using = 0;
@@ -57,8 +71,8 @@ void CacheNode::clear() {
 
 void CacheNode::wait_for_update() {
 	if(has_built == false) {
-		//std::unique_lock<std::mutex> lock(mut_update);
-		//while(has_built == false) cv_update.wait(lock);
+		// std::unique_lock<std::mutex> lock(mut_update);
+		// while(has_built == false) cv_update.wait(lock);
 		while(has_built == false) ;
 	}
 	return;
@@ -136,18 +150,20 @@ void CacheNode::connect_pseudo_edge_dest() {
 }
 
 bool CacheNode::search_source(int now) {
-	if(vis.get_val(now)) return is_valid.get_val(now);
-	vis.set_val(now, true);
+	if(vis[now]) return is_valid[now];
+	vis[now] = true;
+	visited_points.push_back(now);
 
 	if(bc_map->Gr[now].size() == 0) {
 		kth_src.push_back(now);
 		topological_order.push_back(now);
 
-		return is_valid.set_val(now, true);
+		return is_valid[now] = true;
 	}
 	else if( bc_map->level[now] == start_level and bc_map->get_graph_id(now) == bc_map->get_graph_id(source)) {
 		topological_order.push_back(now);
-		return is_valid.set_val(now, true);
+
+		return is_valid[now] = true;
 	}
 
 	bool ok = false;
@@ -161,27 +177,29 @@ bool CacheNode::search_source(int now) {
 
 	if(ok) {
 		topological_order.push_back(now);
-		is_valid.set_val(now, true);
+
+		return is_valid[now] = true;
 	}
 	return ok;
 }
 
 bool CacheNode::search_dest(int now) {
-	if(vis.get_val(now)) return is_valid.get_val(now);
-	vis.set_val(now, true);
-	
+	if(vis[now]) return is_valid[now];
+	vis[now] = true;
+	visited_points.push_back(now);
+
 	if(dest==bc_map->num_node) {
 		if( bc_map->G[now].size() == 0 ) {
 			kth_dest.push_back(now);
 			topological_order.push_back(now);
 
-			return is_valid.set_val(now, true);
+			return is_valid[now] = true;
 		}
 	}
 	else if( bc_map->level[now] == end_level and bc_map->get_graph_id(now) == bc_map->get_graph_id(dest)) {
 		topological_order.push_back(now);
 
-		return is_valid.set_val(now, true);
+		return is_valid[now] = true;
 	}
 
 	bool ok = false;
@@ -204,7 +222,7 @@ bool CacheNode::search_dest(int now) {
 
 	if(ok) {
 		topological_order.push_back(now);
-		is_valid.set_val(now, ok);
+		is_valid[now] = true;
 	}
 	return ok;
 }
@@ -231,8 +249,8 @@ void CacheNode::print() {
 	cout << "	valid edges: \n";
 	int cnt = 0;
 	for(auto& p: valid_edges) {
-		for(auto &e: p.second) {
-		//for(auto &e: p) {
+		// for(auto &e: p.second) {
+		for(auto &e: p) {
 			int to = e->to;
 			int from = e->from;
 			cout << "		" << bc_map->get_node_name(from) << " -> " << bc_map->get_node_name(to) << '\n';
@@ -244,8 +262,8 @@ void CacheNode::print() {
 	cout << "	valid reverse edges: \n";
 	cnt = 0;
 	for(auto& p: valid_edges_reverse) {
-		for(auto &e: p.second) {
-		//for(auto &e: p) {
+		// for(auto &e: p.second) {
+		for(auto &e: p) {
 			int from = e->from;
 			int to = e->to;
 			cout << "		" << bc_map->get_node_name(from) << " -> " << bc_map->get_node_name(to) << '\n';

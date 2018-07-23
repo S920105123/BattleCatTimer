@@ -25,17 +25,17 @@ for ops in vga_lcd/testcases/*.ops; do
 		rm -f tmp
 	done
 
-	gloden=vga_lcd/vga_lcd.out_iTimerP_final_2018_3_8
-	for exe in bin/*; do
-		output=vga_lcd/vga_lcd.out_${exe#bin/}
+	#gloden=vga_lcd/vga_lcd.out_iTimerP_final_2018_3_8
+	#for exe in bin/*; do
+		#output=vga_lcd/vga_lcd.out_${exe#bin/}
 
-		if [ "$output" == "$gloden" ]; then
-			continue;
-		fi
+		#if [ "$output" == "$gloden" ]; then
+			#continue;
+		#fi
 
-		echo ">>> "$output $gloden
-		python compare_paths_my.py --reference $gloden --test $output
-	done
+		#echo ">>> "$output $gloden
+		#python compare_paths_my.py --reference $gloden --test $output
+	#done
 
 	echo ''
 done

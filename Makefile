@@ -38,7 +38,7 @@ GRAPH_SRC      += src/graph/cache.cpp
 TIMER_SRC       = src/timer/timer.cpp
 
 CONTAINER_SRC   = src/container/bct_bitset.cpp
-CONTAINER_SRC   = src/container/bct_writer.cpp
+CONTAINER_SRC   += src/container/bct_writer.cpp
 
 DATA_SRC        = $(SPEF_SRC) $(VERILOG_SRC) $(LIBERTY_SRC)
 

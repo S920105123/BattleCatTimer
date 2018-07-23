@@ -53,9 +53,9 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
     //output.open(output_file);
 
 	//#pragma omp parallel for schedule(dynamic) private(i)
-	//for(i=0; i<(int)_through.size(); i++){
-		//ans[i] = graph->report_timing(*_through[i], *_disable[i], _nworst[i]);
-	//}
+	// for(int i=0; i<(int)_through.size(); i++){
+	// 	ans[i] = graph->report_timing(_through[i], _disable[i], _nworst[i]);
+	// }
 	graph->report_timing_MT(_through, _disable, _nworst, ans);
     Logger::add_timestamp("report_timing ok");
 
