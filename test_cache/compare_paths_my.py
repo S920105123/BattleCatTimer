@@ -25,9 +25,11 @@ class paths:
         self.allPaths_ = { }
         self.path_list = []
         self.index_ = 0
+        self.num = 0
 
     def __len__(self):
-        return len(self.allPaths_)
+        return self.num
+        # return len(self.allPaths_)
 
     def appendPath(self, lines):
 
@@ -43,6 +45,7 @@ class paths:
         self.allPaths_[pathKey] = self.index_
         self.index_ = self.index_ + 1
         self.path_list.append( pathKey )
+        self.num = self.num + 1
 
     def getPathCount(self):
         return self.index_

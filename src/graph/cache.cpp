@@ -7,7 +7,8 @@ void Cache::clear() {
 	level_to_nodes.clear();
 	disable.clear();
 	all_vec.clear();
-	trans_id.clear();
+	//trans_id.clear();
+	trans_id.resize(bc_map->num_node + 3);
 	dist_to_dest.clear();
 	sptTree.clear();
 
@@ -65,12 +66,19 @@ void Cache::kth(vector<Path*>& ans, int k) {
 
 void Cache::build_SPT() {
 
-	for(size_t i=0; i<all_vec.size(); i++) trans_id.emplace(all_vec[i], i);
+	for(size_t i=0; i<all_vec.size(); i++) {
+		//trans_id.emplace(all_vec[i], i);
+		trans_id[ all_vec[i] ] = i;
+	}
 	dist_to_dest.resize(all_vec.size());
 	sptTree.resize(all_vec.size());
 
-	std::fill(sptTree.begin(), sptTree.end(), -1);
-	std::fill(dist_to_dest.begin(), dist_to_dest.end(), INF);
+	for(size_t i=0; i<all_vec.size(); i++) {
+		sptTree[i] = -1;
+		dist_to_dest[i] = INF;
+	}
+	//std::fill(sptTree.begin(), sptTree.end(), -1);
+	//std::fill(dist_to_dest.begin(), dist_to_dest.end(), INF);
 
 	src_tree = 0;
 	dest_tree = all_vec.size() - 1;
@@ -122,18 +130,18 @@ void Cache::recover_path(PrefixNode* pfx, int dest, Path* path) {
 	int cur = pfx->to;
 	while(cur != dest) {
 		path->path.push_back( all_vec[cur] );
-		path->delay.push_back(  dist_to_dest[cur]-dist_to_dest[sptTree[cur]]);
+		path->delay.push_back( dist_to_dest[cur]-dist_to_dest[sptTree[cur]] );
 		cur = sptTree[cur];
 	}
 	path->path.push_back( all_vec[dest] );
 }
 
-const vector<Cache_Edge*> Cache::get_edges(int x) {
+const vector<Cache_Edge*>& Cache::get_edges(int x) {
 	int level = bc_map->level[x];
 	return nodes[ level_to_nodes[level] ]->get_valid_edge(x);
 }
 
-const vector<Cache_Edge*> Cache::get_edges_reverse(int x) {
+const vector<Cache_Edge*>& Cache::get_edges_reverse(int x) {
 	int level = bc_map->level[x] - 1;
 	level = level<0? 0:level;
 
