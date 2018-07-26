@@ -1,11 +1,13 @@
 #include "bc_map.h"
 
+
 BC_map::BC_map(Graph* graph, CPPR* cppr){
     this->graph = graph;
 	this->cppr = cppr;
 	cache = new Cache(this);
 	cache_node_collector.resize(MAX_CACHE);
 	std::fill(cache_node_collector.begin(), cache_node_collector.end(), nullptr);
+
 	query_cnt = 0;
 
 	//for(int i=0; i<NUM_THREAD; i++) {
@@ -88,7 +90,11 @@ void BC_map::build(){
 	//is_disable.resize(num_node);
 	//is_valid.resize(num_node);
 	//is_through.resize(num_node);
-	cache_nodes.resize(num_node + 2);
+	cache_nodes[CACHE_FIN].resize(num_node + 2);
+	cache_nodes[CACHE_FOUT].resize(num_node + 2);
+	for(int i=0; i<=num_node; i++) {
+		cache_nodes[CACHE_FIN][i] = cache_nodes[CACHE_FOUT][i] = nullptr;
+	}
 
     // dfs build map
     for(int i=0; i<(int)graph->nodes.size(); i++) if(i!=graph->clock_id) {
@@ -180,22 +186,19 @@ void BC_map::build_map(int root){
 void BC_map::erase_cache_node(CacheNode* node) {
 	//cout << "Del cache " << get_node_name(node->source) << " -> " << get_node_name( node->dest ) << '\n';
 
-	auto it = cache_nodes[node->source].find( node->dest );
-	ASSERT( it != cache_nodes[node->source].end() );
-
-	cache_nodes[node->source].erase(it);
-
+	ASSERT( cache_nodes[ node->cache_type ][ node->source] != nullptr );
+	cache_nodes[ node->cache_type ][ node->source] = nullptr;
 	//Logger::start();
 	//delete node;
 	//Logger::stop("Del");
 }
 
-CacheNode* BC_map::add_cache_node(int from, int to) {
+CacheNode* BC_map::add_cache_node(int source, CacheNode_Type type) {
 	CacheNode* node = nullptr;
 
 	int find = false;
 	for(size_t i=0; i<cache_node_collector.size(); i++) if(cache_node_collector[i] == nullptr) {
-		node = new CacheNode(this, from, to);
+		node = new CacheNode(this, source, type);
 		cache_node_collector[i] = node;
 		find = true;
 		break;
@@ -230,23 +233,27 @@ CacheNode* BC_map::add_cache_node(int from, int to) {
         // Logger::start();
 		node->clear();
         // Logger::stop("clear");
-		node->set_src_dest(from, to);
+		node->init(source, type);
 	}
 
-	cache_nodes[from].emplace(to, node);
+	//cout << "Add " << get_node_name(source);
+	//if(type ==  CACHE_FIN) cout << "	CACHE_FIN\n";
+	//else cout << "	CACHE_FOUT\n";
+
+	cache_nodes[type][source] = node;
 	return node;
 }
 
-CacheNode* BC_map::get_cache_node(int from, int to) {
+CacheNode* BC_map::get_cache_node(int source, CacheNode_Type type) {
 
-	if(from !=0 and from !=num_node) from = get_index(LATE, RISE,  get_graph_id(from));
-	if(to !=0 and to !=num_node) to = get_index(LATE, RISE,  get_graph_id(to));
+	ASSERT(source != 0);
+	ASSERT(source != num_node);
 
-	auto it = cache_nodes[from].find( to );
-	if(it == cache_nodes[from].end()) return add_cache_node(from, to);
+	source = get_index(LATE, RISE, get_graph_id(source));
+	if( cache_nodes[type][source]==nullptr ) return add_cache_node(source, type);
 	else {
         Logger::add_record("Save", 1);
-        return it->second;
+        return cache_nodes[type][source];
     }
 }
 
@@ -263,13 +270,6 @@ Logger::start();
 	});
 
 	vector<vector<int>> through_level;
-	vector<vector<int>> disable_level;
-
-	// put them to their corresponding level box
-
-	// pseudo source
-	through_level.push_back(vector<int>());
-	through_level.back().push_back(0);
 
 	for(size_t i=0; i<through.size(); ) {
 		through_level.push_back( vector<int>() );
@@ -285,30 +285,33 @@ Logger::start();
 				return;
 		}
 	}
-
-	// pseudo destination
-	through_level.push_back(vector<int>());
-	through_level.back().push_back(num_node);
-
-	//cout << "start put disable\n";
-	disable_level.resize(max_level+4);
-	for(auto& x: disable) disable_level[ level[x] ].push_back(x);
 Logger::stop("init through");
 
-	//cout << "start add cache node\n";
+//cout << "Start choose cache\n";
 Logger::start();
 	query_cnt++;
-	for(size_t i=0; i<through_level.size() - 1; i++) {
-		CacheNode* node = get_cache_node(through_level[i].front(), through_level[i+1].front() );
+	for(size_t i=0; i<through_level.size(); i++) {
+		CacheNode* node = get_cache_node(through_level[i].front(), CACHE_FIN);
 		node->last_used = query_cnt;
 		node->used_cnt++;
-		cache->add_cache_node(node);
+		if(i == 0) {
+			node->set_target_level(1); // to PIN or FF:CLK
+			cache->add_cache_node(node, 0, level[ through_level[i].front() ]);
+		}
+		else {
+			node->set_target_level( level[through_level[i-1].front()] );
+			cache->add_cache_node(node, level[ through_level[i-1].front() ], level[ through_level[i].front() ]);
+		}
+		
 	}
+
+	CacheNode* node = get_cache_node(through_level.back().front(), CACHE_FOUT);
+	node->last_used = query_cnt;
+	node->used_cnt++;
+	cache->add_cache_node(node, level[ through_level.back().front() ], max_level);
 Logger::stop("choose cache");
 
-	//cout << "start cal disable through\n";
-	// Except pseudo source and destination
-	for(size_t i=1; i<through_level.size()-1; i++) {
+	for(size_t i=0; i<through_level.size(); i++) {
 		bool used_transition[2] = {0, 0};
 		for(auto &x: through_level[i]) used_transition[ get_graph_id_type(x) ] = 1;
 		for(int j=0; j<2; j++) if(used_transition[j]==0) {
@@ -318,18 +321,18 @@ Logger::stop("choose cache");
 
 	cache->set_disable(disable);
 
+//cout << "Start update\n";
 Logger::start();
 	cache->update_cacheNode();
 Logger::stop("search space");
+	//cache->print();
 
-Logger::start();
+//Logger::start();
 	cache->kth(ans, k);
-Logger::stop("do kth");
-
-	//cache->output_shortest_path();
+//Logger::stop("do kth");
 
 	//cache->print();
-	//cout << "======================== fin =======================\n";
+	//cout << query_cnt << " ======================== fin =======================\n";
 }
 
 //void BC_map::search(vector<int>& through) {

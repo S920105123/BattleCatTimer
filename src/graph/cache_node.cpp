@@ -1,150 +1,91 @@
 #include "cache_node.h"
 
-CacheNode::CacheNode(BC_map* map, int src,int det) {
+CacheNode::CacheNode(BC_map* map, int src, CacheNode_Type type) {
+	//source = src;
+	//cache_type = type;
 	bc_map = map;
-	//vis.resize( bc_map->num_node + 4 );
-
-	vis.resize(map->num_node + 4);
 	is_valid.resize(map->num_node + 4);
-	valid_edges.resize(map->num_node + 4);
-	valid_edges_reverse.resize(map->num_node + 4);
+	vis.resize(map->num_node + 4);
 
-	set_src_dest(src, det);
-	clear();
+	init(src, type);
 }
 
 CacheNode::~CacheNode() {
-	for(auto &e : edge_collector) delete e;
+
 }
 
-void CacheNode::set_src_dest(int src, int det) {
+/*
+ * call init after called `clear` or created it.
+ *
+ * */
+void CacheNode::init(int src, CacheNode_Type type) {
+	source_level = bc_map->level[ src ];
+	cache_type = type;
 	source = src;
-	dest = det;
 
-	/* if src is ff:clk or PIN, then src = 0, and level[src] = 0 */
-	start_level = this->bc_map->level[ src ];
+	if(type == CACHE_FIN) {
+		searched_level = source_level;
 
-	/* if dest is ff:d or POUT, then dest = bc->num_node, and level[dest] = bc->max_level + 1 */
-	end_level = this->bc_map->level[ dest ];
+		endpoints.push_back(bc_map->get_index(LATE, RISE, bc_map->get_graph_id(src)));
+		endpoints.push_back(bc_map->get_index(LATE, FALL, bc_map->get_graph_id(src)));
 
-}
+		is_valid[ bc_map->get_index(LATE, RISE, bc_map->get_graph_id(src)) ] = true;
+		is_valid[ bc_map->get_index(LATE, FALL, bc_map->get_graph_id(src)) ] = true;
 
-void CacheNode::clear() {
-	// for(auto &e : edge_collector) delete e;
+		valid_points.push_back( bc_map->get_index(LATE, RISE, bc_map->get_graph_id(src)) );
+		valid_points.push_back( bc_map->get_index(LATE, FALL, bc_map->get_graph_id(src)) );
 
-	// #pragma omp parallel for
-	for(size_t i=0; i<topological_order.size(); i++) {
-		is_valid[topological_order[i]] = false;
-		valid_edges[topological_order[i]].clear();
-		valid_edges_reverse[topological_order[i]].clear();
+		if(bc_map->Gr[source].size() == 0) {
+			kth_src.push_back( bc_map->get_index(LATE, RISE, bc_map->get_graph_id(src)) );
+			kth_src.push_back( bc_map->get_index(LATE, FALL, bc_map->get_graph_id(src)) );
+		}
+
+		need_update = false;
 	}
+	else need_update = true;
 
-	// #pragma omp parallel for
-	for(size_t i=0; i<visited_points.size(); i++)
-		vis[visited_points[i]] = false;
-
-	// valid_edges.clear();
-	// valid_edges_reverse.clear();
-	kth_src.clear();
-	kth_dest.clear();
-	edge_collector.clear();
-	topological_order.clear();
-	visited_points.clear();
-
-	has_built = false;
-	used_cnt = 0;
 }
 
 void CacheNode::update() {
+	if(!need_update) return;
 
-	if(has_built == false) {
-		// search space
-		if(dest == bc_map->num_node) {
-			int g_id = bc_map->get_graph_id( source );
-			search_dest(bc_map->get_index(LATE, RISE, g_id));
-			search_dest(bc_map->get_index(LATE, FALL, g_id));
+	if(cache_type == CACHE_FIN) {
+		for(auto& x: endpoints) {
+			vis[x] = 0;
+			search_source(x);
 		}
-		else {
-			int g_id = bc_map->get_graph_id( dest);
-			search_source(bc_map->get_index(LATE, RISE, g_id));
-			search_source(bc_map->get_index(LATE, FALL, g_id));
-		}
-
-		if(source==0) {
-			topological_order.push_back(0);
-			connect_pseudo_edge_source();
-		}
-		if(dest==bc_map->num_node) {
-			topological_order.push_back(dest);
-			connect_pseudo_edge_dest();
-		}
-
-		std::sort(topological_order.begin(), topological_order.end(), [&](int v1, int v2){
-				return bc_map->level[v1] < bc_map->level[v2];
-		});
-		has_built = true;
+		endpoints.swap(next_endpoints);
+		next_endpoints.clear();
 	}
-}
+	else {
+		int g_id = bc_map->get_graph_id(source);
 
-void CacheNode::add_edge(int from, int to, float delay) {
-	valid_edges[from].emplace_back(new Cache_Edge(from, to, delay));
-	valid_edges_reverse[to].emplace_back(new Cache_Edge(to, from, delay));
-
-	edge_collector.push_back(valid_edges[from].back());
-	edge_collector.push_back(valid_edges_reverse[to].back());
-}
-
-void CacheNode::connect_pseudo_edge_source() {
-	for(auto &x: kth_src) {
-		int g_id = bc_map->get_graph_id(x);
-		Mode mode = bc_map->get_graph_id_mode(x);
-		Transition_Type type = bc_map->get_graph_id_type(x);
-
-		add_edge(source, x, -bc_map->graph->nodes[g_id].at[mode][type]);
+		search_dest(bc_map->get_index(LATE, RISE, g_id));
+		search_dest(bc_map->get_index(LATE, FALL, g_id));
 	}
+
+	need_update = false;
 }
 
-void CacheNode::connect_pseudo_edge_dest() {
-	for(auto &x: kth_dest) {
-		int g_id = bc_map->get_graph_id(x);
-		Mode mode = bc_map->get_graph_id_mode(x);
-		Transition_Type type = bc_map->get_graph_id_type(x);
-
-		add_edge(x, dest, bc_map->graph->nodes[g_id].rat[mode][type]);
-	}
-}
-
-bool CacheNode::search_source(int now) {
-	if(vis[now]) return is_valid[now];
-	vis[now] = true;
+void CacheNode::search_source(int now) {
+	if(vis[now]) return;
+	vis[now] = 1;
 	visited_points.push_back(now);
 
-	if(this->bc_map->Gr[now].size() == 0) {
+	if(bc_map->Gr[now].size() == 0) {
 		kth_src.push_back(now);
-		topological_order.push_back(now);
-
-		return is_valid[now] = true;
-	}
-	else if(bc_map->level[now] == start_level and bc_map->get_graph_id(now)==bc_map->get_graph_id(source)) {
-		topological_order.push_back(now);
-
-		return is_valid[now] = true;
 	}
 
-	bool ok = false;
-	for(size_t i=0; i<bc_map->Gr[now].size(); i++) {
-		const auto& e = bc_map->Gr[now][i];
-		if(bc_map->level[e->to]>= start_level and search_source(e->to)) {
-			ok = true;
-			add_edge(e->to, e->from, e->delay);
-		}
+	if(bc_map->level[now] <= searched_level) {
+		next_endpoints.push_back(now);
+		return;
 	}
 
-	if(ok) {
-		topological_order.push_back(now);
-		is_valid[now] = true;
+	for(const auto&e: bc_map->Gr[now]) {
+		is_valid[e->to] = true;
+		valid_points.push_back(e->to);
+		search_source(e->to);
 	}
-	return ok;
 }
 
 bool CacheNode::search_dest(int now) {
@@ -152,86 +93,89 @@ bool CacheNode::search_dest(int now) {
 	vis[now] = true;
 	visited_points.push_back(now);
 
-	if(dest==bc_map->num_node) {
-		if( bc_map->G[now].size() == 0 ) {
-			kth_dest.push_back(now);
-			topological_order.push_back(now);
+	if(bc_map->G[now].size() == 0) {
+		kth_dest.push_back(now);
 
-			return is_valid[now] = true;
-		}
-	}
-	else if( bc_map->level[now] == end_level and bc_map->get_graph_id(now) == bc_map->get_graph_id(dest)) {
-		topological_order.push_back(now);
-
+		valid_points.push_back(now);
 		return is_valid[now] = true;
 	}
 
 	bool ok = false;
-	for(const auto& e: bc_map->G[now]) if(bc_map->level[e->to] <= end_level){
+	for(const auto& e: bc_map->G[now]) {
 		if(search_dest(e->to)) {
-			add_edge(e->from, e->to, e->delay);
 			ok = true;
 		}
 	}
 
-	if(ok) {
-		topological_order.push_back(now);
-		is_valid[now] = true;
+	if(ok) valid_points.push_back(now);
+	return is_valid[now] = ok;
+}
+
+void CacheNode::clear() {
+	for(auto& x: valid_points) is_valid[x] = 0;
+	for(auto& x: visited_points) vis[x] = 0;
+
+	visited_points.clear();
+	valid_points.clear();
+
+	kth_src.clear();
+	kth_dest.clear();
+	need_update = false;
+
+	endpoints.clear();
+	next_endpoints.clear();
+	used_cnt = 0;
+}
+
+void CacheNode::set_target_level(int target_level) {
+	if(target_level < searched_level) {
+		searched_level  = target_level;
+		need_update = true;
 	}
-	return ok;
+}
+
+const vector<int>& CacheNode::get_kth_src() {
+	return kth_src;
+}
+
+const vector<int>& CacheNode::get_kth_dest() {
+	return kth_dest;
 }
 
 void CacheNode::print() {
-	cout << start_level << " -> " << end_level << std::flush << ' ';
+	int g_id = bc_map->get_graph_id(source);
+	cout << "Source: " << bc_map->graph->nodes[ g_id].name << '(';
+	cout << bc_map->level[source] << ") ";
 
-	if(source == 0) cout << "pseudo source ";
-	else cout << bc_map->graph->get_name( bc_map->get_graph_id(source) ) << ' ';
+	if(cache_type == CACHE_FIN) {
+		cout << "searched_level = " << searched_level << "\n";
+		cout << "	Type: CACHE_FIN\n";
 
-	cout << "-> ";
-	if(dest== bc_map->num_node) cout << "pseudo dest\n";
-	else cout <<  bc_map->graph->get_name( bc_map->get_graph_id(dest) ) << '\n';
-
-	if(source == 0) {
-		cout << "	all source: \n";
-		for(auto&x :kth_src) cout << "		" << this->bc_map->get_node_name(x) << '\n';
-	}
-	if(dest == bc_map->num_node) {
-		cout << "	all destination: \n";
-		for(auto&x :kth_dest) cout << "		" << this->bc_map->get_node_name(x) << '\n';
-	}
-
-	cout << "	valid edges: \n";
-	int cnt = 0;
-	for(auto& p: valid_edges) {
-		// for(auto &e: p.second) {
-		for(auto &e: p) {
-			int to = e->to;
-			int from = e->from;
-			cout << "		" << bc_map->get_node_name(from) << " -> " << bc_map->get_node_name(to) << '\n';
-			cnt ++;
+		if(kth_src.size()) {
+			cout << "	kth_src:\n";
+			for(auto& x: kth_src) cout << "		" << bc_map->get_node_name(x) << '\n';
 		}
+		cout << "	valid points(" << valid_points.size() << ")\n";
+		for(auto &x: valid_points) {
+			cout << "		" << bc_map->get_node_name(x) << ' ';
+			cout << "(" << bc_map->level[x] << ")\n";
+		} cout << '\n';
+		cout << "	endpoints(" << endpoints.size() << ")\n";
+		//for(auto &x: endpoints) {
+			//cout << "		" << bc_map->get_node_name(x) << ' ';
+			//cout << "(" << bc_map->level[x] << ")\n";
+		//}
 	}
-	cout << "	total : " << cnt << '\n';
-
-	cout << "	valid reverse edges: \n";
-	cnt = 0;
-	for(auto& p: valid_edges_reverse) {
-		// for(auto &e: p.second) {
-		for(auto &e: p) {
-			int from = e->from;
-			int to = e->to;
-			cout << "		" << bc_map->get_node_name(from) << " -> " << bc_map->get_node_name(to) << '\n';
-			cnt++;
+	else { // CACHE_FOUT
+		cout << "\n	Type: CACHE_FOUT\n";
+		cout << "	valid points(" << valid_points.size() << ")\n";
+		for(auto &x: valid_points) {
+			cout << "		" << bc_map->get_node_name(x) << ' ';
+			cout << "(" << bc_map->level[x] << ")\n";
 		}
-	}
-	cout << "	total : " << cnt << '\n';
 
-	cout << "	valid nodes(" << topological_order.size() << ")" << ": \n";
-	cout << "		";
-	for(auto& x: topological_order) {
-		cout << bc_map->get_node_name(x) << "(" << bc_map->level[x] << "), ";
+		cout << "	kth_dest:\n";
+		for(auto& x: kth_dest) cout << "		" << bc_map->get_node_name(x) << '\n';
 	}
-	cout << "\n";
-
-	cout << "\n";
 }
+

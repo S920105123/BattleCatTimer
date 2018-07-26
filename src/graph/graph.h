@@ -167,6 +167,7 @@ private:
 	friend class Kth;
 	friend class Path;
 	friend class CacheNode;
+	friend class Cache;
 };
 
 #endif

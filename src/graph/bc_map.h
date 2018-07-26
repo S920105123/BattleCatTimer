@@ -15,18 +15,19 @@ class CacheNode;
 class Cache;
 class CPPR;
 
+struct Edge{
+	int from, to;
+	float delay;
+	int id;
+	bool valid;
+	Edge():from(0), to(0), delay(0){}
+	Edge(int f,int t,float d):from(f),to(t),delay(d) {}
+};
 
 class BC_map {
 
-	struct Edge{
-		int from, to;
-		float delay;
-		int id;
-		Edge():from(0), to(0), delay(0){}
-		Edge(int f,int t,float d):from(f),to(t),delay(d) {}
-	};
-
 public:
+
     BC_map(Graph* graph, CPPR* cppr);
 	~BC_map();
 
@@ -42,7 +43,7 @@ public:
 						 int k,
 						 vector<Path*>& ans);
 
-	//std::atomic<float> threshold;
+	std::atomic<float> threshold;
 
 private:
     void add_edge(int from, int to, float delay);
@@ -63,8 +64,8 @@ private:
 
 	//vector<Path*> path_kth[NUM_THREAD];
 	//Kth* kths[NUM_THREAD];
-	CacheNode* get_cache_node(int from, int to);
-	CacheNode* add_cache_node(int from, int to);
+	CacheNode* get_cache_node(int source, CacheNode_Type type);
+	CacheNode* add_cache_node(int source, CacheNode_Type type);
 	void erase_cache_node(CacheNode*);
 
     Graph* graph;
@@ -81,7 +82,8 @@ private:
     vector<int> level, in_degree, vis;
 	int max_level;
 
-	vector<unordered_map<int,CacheNode*>> cache_nodes;
+	//vector<unordered_map<int,CacheNode*>> cache_nodes;
+	vector<CacheNode*> cache_nodes[2]; // two type
 	vector<CacheNode*> cache_node_collector;
 	int query_cnt;
 

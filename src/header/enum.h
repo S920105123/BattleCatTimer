@@ -50,4 +50,9 @@ enum {
 	LATE
 };
 
+typedef enum {
+	CACHE_FOUT = 0,
+	CACHE_FIN
+}CacheNode_Type;
+
 #endif /* end ENUM_H */

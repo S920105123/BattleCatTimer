@@ -26,6 +26,7 @@ public:
 // merge CacheNode and do kth
 class Cache {
 
+public:
 	struct PrefixNode {
 		PrefixNode* parent;
 		int from, to; 
@@ -47,39 +48,58 @@ class Cache {
 		};
 	};
 
-public:
+	struct Edge{
+		int from, to;
+		float delay;
+		Edge(int f,int t, float d):from(f), to(t), delay(d){
+
+		}
+	};
+
 	Cache(BC_map*);
 
 	void clear();
 	void set_disable(const vector<int>&);
-	void add_cache_node(CacheNode* node);             // the level of cacheNode is increased 
-	void update_cacheNode();                          // build all cacheNode
+	void add_cache_node(CacheNode* node, int ,int );             // the level of cacheNode is increased 
 	void kth(vector<Path*>& ans, int k);
+	void update_cacheNode();                          // build all cacheNode
 	void output_shortest_path();
+	bool is_valid_edge(int from, int to);
+	const vector<int>& get_kth_src();
+	const vector<int>& get_kth_dest();
 
 	void print();
 
 private:
-	void build_SPT();
-	void recover_path(PrefixNode* pfx, int dest, Path* path);
-	void super(PrefixNode* pfx);
-	void push_to_queue(PrefixNode* pfx, int where, float delta);
-
 	bool is_disable(int x);
-	const vector<Cache_Edge*> get_edges(int x);        // get edges from CacheNode
-	const vector<Cache_Edge*> get_edges_reverse(int x);
+
+	void build_graph(int x);
+	void add_edge(int, int, float);
+	void connect_pseudo_edge_source();
+	void connect_pseudo_edge_dest();
+
+	void build_SPT();
+	void super(PrefixNode* pfx);
+	void recover_path(PrefixNode* pfx, int dest, Path* path);
 
 	vector<CacheNode*> nodes;
 	vector<int> level_to_nodes;
-
+	vector<bool> marked_level;
+	vector<int> next_level;
 	unordered_map<int, bool> disable;
+	vector<bool> vis;
+	vector<int> visited_points;
 
-	unordered_map<int, int> trans_id; // bc_map id to shortest path tree id
-	vector<int> all_vec;              // all valid nodes
+	// kth
+	vector<vector<Edge>> G;
+	vector<vector<Edge>> Gr;
+	vector<int> trans_id;
+	vector<int> all_vec;			  // all valid nodes
 	vector<float> dist_to_dest;       // distance to destination
 	vector<int> sptTree;              // parent of each node in shortest path tree rooted as destination
-	int src_tree, dest_tree;          // source and destination of s-t shortest path
 
+	int src_tree, dest_tree;          // source and destination of s-t shortest path
+	int pseudo_src, pseudo_dest;
 	priority_queue<PrefixNode*, vector<PrefixNode*>, PrefixNode::Compare> kth_Q;
 	BC_map* bc_map;
 };
