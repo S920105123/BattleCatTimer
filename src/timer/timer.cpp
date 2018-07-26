@@ -52,31 +52,55 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
 	//FILE* fout = fopen(output_file.c_str(), "w");
     //output.open(output_file);
 
-	//#pragma omp parallel for schedule(dynamic) private(i)
-	for(int i=0; i<(int)_through.size(); i++){
-		ans[i] = graph->report_timing(_through[i], _disable[i], _nworst[i]);
-	}
-    Logger::add_timestamp("report_timing ok");
-
 	Writer writer(output_file);
-
-	for(int i=0; i<(int)ans.size(); i++){
-        //if(ans[i].size()==0) output << "i= " << i << " no path\n";
-        if(ans[i]->size()==0) {
-			char s[100];
-			sprintf(s, "i = %d no path\n", i);
-			writer.addstring(s);
+	//#pragma omp parallel for schedule(dynamic) private(i)
+	
+	std::atomic_int i, j;
+	i = 0;
+	j = 0;
+	#pragma omp parallel sections
+	{
+		#pragma omp section
+		{
+			for(i=0; i<(int)_through.size(); i++){
+				ans[i] = graph->report_timing(_through[i], _disable[i], _nworst[i]);
+			}
+			cout << "report ok\n";
 		}
-		for(auto p:*ans[i]){
-			//p->output(output, graph);
-			p->fast_output(writer, graph);
-//			delete p;
+
+		#pragma omp section
+		{
+			while(true) {
+				if(j==(int)_through.size()) break;
+				if(j<i) {
+					for(auto& p: *ans[j]) p->fast_output(writer, graph);
+					j++;
+				}
+			}
 		}
 	}
+    Logger::add_timestamp("report_timing write ok");
+
+
+	//for(int i=0; i<(int)ans.size(); i++){
+		
+		//char s[100];
+		//sprintf(s, "i = %d\n", i);
+		//writer.addstring(s);
+        //if(ans[i]->size()==0) {
+			//char s[100];
+			//sprintf(s, "i = %d no path\n", i);
+			//writer.addstring(s);
+		//}
+		//for(auto p:*ans[i]){
+			//p->fast_output(writer, graph);
+			//delete p;
+		//}
+	//}
 	writer.close();
 	//fclose(fout);
     //output.close();
-    Logger::add_timestamp("writing ok");
+    //Logger::add_timestamp("writing ok");
 
     //#pragma omp parallel for schedule(dynamic) private(i)
     //for(int i=0; i<(int)ans.size(); i++){
