@@ -76,14 +76,22 @@ bool Cache::is_valid_edge(int from, int to) {
 			return nodes[node_to]->is_valid_point(from) and nodes[node_to]->is_valid_point(to);
 		}
 		else if(marked_level[level_from]) {
-			ASSERT(node_from + 1 == node_to);
+			//ASSERT(node_from + 1 == node_to); 
 			ASSERT(nodes[node_from]->is_valid_point(from));
+			if(node_from + 1!=node_to) return false;
 
 			return nodes[node_to]->is_valid_point(from) and nodes[node_to]->is_valid_point(to);
 		}
 		else {
 			ASSERT(marked_level[level_to]);
-			ASSERT(node_to == node_from);
+			//ASSERT(node_to == node_from);
+			if(node_to != node_from) {
+				return false;
+				//cout << bc_map->get_node_name(from) << " " << bc_map->get_node_name(to) << '\n';
+				//cout << level_from << " " << level_to << '\n';
+				//print();
+				//exit(-1);
+			}
 			ASSERT(nodes[node_from]->is_valid_point(from));
 			ASSERT(node_from+1 < (int)nodes.size());
 			return nodes[node_from]->is_valid_point(to) and nodes[node_from+1]->is_valid_point(to);
@@ -190,7 +198,17 @@ void Cache::build_graph(int x) {
 	visited_points.push_back(x);
 
 	all_vec.push_back(x);
-	for(auto &e: bc_map->G[x]) {
+	//for(auto e: bc_map->G[x]) {
+		//if(bc_map->condensed_by[ e->to ] != -1) {
+			//Logger::add_record("wast time cache", 1);
+			//continue;
+		//}
+		//if(is_valid_edge(e->from, e->to)) {
+			//add_edge(e->from, e->to, e->delay);
+			//build_graph(e->to);
+		//}
+	//}
+	for(auto& e: bc_map->J[x]) {
 		if(is_valid_edge(e->from, e->to)) {
 			add_edge(e->from, e->to, e->delay);
 			build_graph(e->to);
@@ -329,6 +347,8 @@ void Cache::print() {
 			cout << "	" << bc_map->get_node_name(e.from) << "->" << bc_map->get_node_name(e.to) << " " << e.delay<<'\n';
 		}
 	}
+	cout << "src_tree = " << bc_map->get_node_name(all_vec[src_tree]) << '\n';
+	cout << "dest_tree= " << bc_map->get_node_name(all_vec[dest_tree]) << '\n';
 }
 
 void print_name( const string& name, Writer& buf) {
@@ -358,24 +378,66 @@ void Path::fast_output(Writer& buf, Graph* graph) {
 	const char type_sym[] = { '^', 'v' };
 	float at = 0;
 
-	float pre_delay = 0;
+	auto print_node_detail = [&](int x, float delay) {
+			int g_id = graph->bc_map->get_graph_id( x );
+			Transition_Type type = graph->bc_map->get_graph_id_type( x );
+			at += -delay;
+
+			if( delay ==  INF) buf.addchar('-');
+			else print_float(-delay, buf);
+			buf.addchar(' ');
+
+			print_float(at, buf); buf.addchar(' ');
+
+			buf.addchar(type_sym[type]); buf.addchar(' ');
+
+			print_name(graph->nodes[g_id].name, buf);  buf.addchar('\n');
+
+	};
+
+	auto bc_map = graph->bc_map;
 	for(size_t i=1; i<path.size()-1; i++) {
-		pre_delay = 0;
-
 		int x = path[i];
-		int g_id = graph->bc_map->get_graph_id( x );
-		Transition_Type type = graph->bc_map->get_graph_id_type( x );
-		at += -delay[i-1];
 
-		if( delay[i-1] ==  INF) buf.addchar('-');
-		else print_float(-delay[i-1], buf);
-		buf.addchar(' ');
+		if(i==1 or i) {
+			print_node_detail(x, delay[i-1]);
+			continue;
+		}
 
-		print_float(at, buf); buf.addchar(' ');
+		bool is_jump = true;
+		vector<pair<int,float>> nodes;
 
-		buf.addchar(type_sym[type]); buf.addchar(' ');
+		for(const auto& e: bc_map->Gr[x]) {
+			if( e->to == path[i-1]) {
+				is_jump = false;
+				break;
+			}
 
-		print_name(graph->nodes[g_id].name, buf);  buf.addchar('\n');
+			if( bc_map->condensed_by[e->to]==path[i-1]) {
+				auto cur_e = e;
+				int root = path[i-1];
+				while(true) {
+					nodes.emplace_back(cur_e->from, cur_e->delay);
+					if(cur_e->to == root) break;
+					cur_e = bc_map->Gr[cur_e->to].front();
+				}
+			}
+		}
+		if(!is_jump) print_node_detail(x, delay[i-1]);
+		else {
+			buf.addstring("----Recover--- from");
+			for(int j=nodes.size()-1; j>=0; j--) {
+				print_node_detail( nodes[j].first, nodes[j].second );
+			}
+			buf.addstring("----Recover--- ^\n\n");
+		}
+			//vector<pair<int,float>> nodes;
+			//int root = bc_map->Jr[x].front()->to;
+			////cout << "Recover " << bc_map->get_node_name(root) << " to " << bc_map->get_node_name(x) << " " << delay[i-1] << "\n";
+
+			//for(int j=nodes.size()-1; j>=0; j--) {
+				//print_node_detail( nodes[j].first, nodes[j].second );
+			//}
 	}
 	buf.addchar('\n');
 }

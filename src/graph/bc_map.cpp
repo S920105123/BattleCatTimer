@@ -1,6 +1,5 @@
 #include "bc_map.h"
 
-
 BC_map::BC_map(Graph* graph, CPPR* cppr){
     this->graph = graph;
 	this->cppr = cppr;
@@ -67,12 +66,22 @@ void BC_map::add_edge(int from, int to, float delay){
     G[from].emplace_back(e);
     Gr[to].emplace_back(re);
 	e->id = re ->id = num_edge++;
-    in_degree[to]++;
+	in_degree[to]++;
+}
+
+void BC_map::add_jump_edge(int from, int to, float delay) {
+	ASSERT(level_G[from] < level_G[to]);
+	J[from].push_back(new Edge(from, to, delay));
+	Jr[to].push_back(new Edge(to, from, delay));
+	in_degree[to]++;
+
+	Logger::add_record("Jump", 1);
 }
 
 void BC_map::build(){
-    // add node
-    // every graph node has 2 nodes in map
+
+// 1. Map pins in graph to bc_map node, every pin has four nodes in bc_map (E/L)*(R/F)
+// every graph node has 2 nodes in map
 	num_edge = 0;
     num_node = 1; // num id starts from 1
     for(size_t i=0; i<graph->nodes.size(); i++){
@@ -82,19 +91,27 @@ void BC_map::build(){
         to_map_id[LATE][RISE].emplace_back(num_node++);
         to_map_id[LATE][FALL].emplace_back(num_node++);
     }
+    LOG(NORMAL) << "BCmap nodes = " << num_node << "\n";
+
     G.resize(num_node + 2);
     Gr.resize(num_node + 2);
+    J.resize(num_node + 2);
+    Jr.resize(num_node + 2);
     in_degree.resize(num_node + 2);
     vis.resize(num_node + 2);
     level.resize(num_node + 2);
-	//is_disable.resize(num_node);
-	//is_valid.resize(num_node);
-	//is_through.resize(num_node);
+	level_G.resize(num_node + 2);
 	cache_nodes[CACHE_FIN].resize(num_node + 2);
 	cache_nodes[CACHE_FOUT].resize(num_node + 2);
+
+	condensed_by.resize( num_node + 2 );
+	std::fill(condensed_by.begin(), condensed_by.end(), -1);
+
 	for(int i=0; i<=num_node; i++) {
 		cache_nodes[CACHE_FIN][i] = cache_nodes[CACHE_FOUT][i] = nullptr;
 	}
+
+// 2. build graph G based on timing arc
 
     // dfs build map
     for(int i=0; i<(int)graph->nodes.size(); i++) if(i!=graph->clock_id) {
@@ -104,30 +121,74 @@ void BC_map::build(){
 			build_map(i);
     }
 
-    //bfs build level
+// 3. build level of G
     queue<int>* q = new queue<int>();
     for(int i=0; i<num_node; i++) if(in_degree[i]==0) {
     	q->push(i);
 	}
 
-    while(!q->empty()){
+    while(!q->empty()) {
         int x = q->front(); q->pop();
-        for(const auto& e:G[x]){
+        for(const auto& e:G[x]) {
             in_degree[e->to]--;
             if(in_degree[e->to]==0) q->push(e->to);
-            level[e->to] = max(level[e->to], level[x]+1);
+            level_G[e->to] = max(level_G[e->to], level_G[x]+1);
         }
     }
+
+//. 3. condense G get new graph J
+	Logger::start();
+	for(int i=0; i<=num_node; i++) topological_order.push_back(i);
+	std::sort(topological_order.begin(), topological_order.end(), [&](int v1,int v2) {
+			return level_G[v1] < level_G[v2];
+	});
+
+	std::fill(vis.begin(), vis.end(), 0);
+	std::fill(in_degree.begin(), in_degree.end(), 0);
+	for(int i=1; i<num_node; i++) if(!vis[topological_order[i]]) {
+		condense(topological_order[i]);
+	}
+	Logger::stop("condense");
+
+// 4. build level of graph J
+	//while(!q->empty()) q->pop();
+	////std::fill(level.begin(), level.end(), 0); 		// if level[i] == -1 we can know node i has been condensed.
+
+    //for(int i=0; i<num_node; i++) if(in_degree[i]==0 ) {
+        //q->push(i);
+		//level[i] = 0;
+	//}
+
+    //while(!q->empty()) {
+        //int x = q->front(); q->pop();
+        //for(const auto& e : J[x]) {
+            //in_degree[e->to]--;
+            //if(in_degree[e->to]==0) q->push(e->to);
+            //level[e->to] = max(level[e->to], level[x]+1);
+        //}
+    //}
+	//
+	level.swap(level_G);
+
 	// level starts from 1
 	max_level = 0;
-	for(int i=1; i<num_node; i++) {
+	for(int i=1; i<num_node; i++) if(level[i]!=-1){
 		level[i]++;
 		max_level = max(max_level, level[i]);
 	}
 	level[0] = 0, level[num_node] = max_level + 1;
 
 	delete q;
-    LOG(NORMAL) << "BCmap nodes = " << num_node << "\n";
+	//for(int i=0; i<=num_node; i++) {
+		//if(level[i]==-1 and condensed_by[i]==-1) {
+			//if(G[i].size() ==0 and Gr[i].size() ==0) continue;
+			//cout << get_node_name(i) << " " << level_G[i] << " => " << level[i] << ' ';
+			//if(condensed_by[i]==-1) cout << " No be condensed\n";
+			//else cout << get_node_name(condensed_by[i]) << '\n';
+			////ASSERT(condensed_by[i] != -1);
+		//}
+	//}
+	//check_condense();
 }
 
 void BC_map::build_map(int root){
@@ -179,18 +240,82 @@ void BC_map::build_map(int root){
     }
 }
 
+bool BC_map::is_jump_tail(int x) { // if there is one fanout of x which has mulitple fanfin, then it is jump tail. Or x doesn't have fanout.
+
+	if(G[x].size() == 0 or Gr[x].size() > 1) return true;
+	return false;
+}
+
+void BC_map::condense(int x, int root, float delay) {
+	if(is_jump_tail(x)) {
+		// create jump from root to x with delay
+		add_jump_edge(root, x, delay);
+		return;
+	}
+
+	ASSERT(condensed_by[x] == -1);
+	condensed_by[x] = root;
+	for(auto& e: G[x]) {
+		condense(e->to, root, delay+e->delay);
+	}
+}
+
+void BC_map::condense(int x) {
+	if(vis[x]) return;
+	vis[x] = 1;
+	if(condensed_by[x]!=-1) return;
+
+	for(auto& e: G[x]) {
+		//if(is_jump_tail(e->to)) continue;
+		condense(e->to, x, e->delay);
+	}
+}
+
+void BC_map::check_condense() {
+	for(int i=1; i<num_node; i++) {
+		if(Jr[i].size()) {
+			ASSERT(is_jump_tail(i));
+			ASSERT(Gr[i].size() == 1);
+			ASSERT(Jr[i].size() == 1);
+			ASSERT(condensed_by[i] == -1);
+
+			auto jump_e = Jr[i].front();
+			int root = jump_e->to;
+			ASSERT(jump_e->from == i);
+
+			//cout << "Jump " << get_node_name(jump_e->to) << " to " << get_node_name(jump_e->from) << '\n';
+			int cur = i, len = 1;
+			//cout << get_node_name(cur);
+			while(cur!=root) {
+				len++;
+				//cout << " -> ";
+				ASSERT(Gr[cur].size()==1);
+				cur = Gr[cur].front()->to;
+				//cout << get_node_name(cur) << "(" << get_node_name(condensed_by[cur]) ;
+				//cout << ")";
+				if(cur!=root) ASSERT(condensed_by[cur] == root);
+			}
+
+			Logger::add_record("jump_" + std::to_string(len), 1);
+			int find = 0;
+			for(auto& e: J[root]) {
+				if(e->from == root and e->to == i and e->delay == jump_e->delay) find++;
+			}
+			ASSERT(find == 1);
+			//cout << "\nFind = " << find ;
+			//cout << "\n\n";
+		}
+	}
+}
+
 /******************************************
 *           k shortest path               *
 ******************************************/
 
 void BC_map::erase_cache_node(CacheNode* node) {
-	//cout << "Del cache " << get_node_name(node->source) << " -> " << get_node_name( node->dest ) << '\n';
 
 	ASSERT( cache_nodes[ node->cache_type ][ node->source] != nullptr );
 	cache_nodes[ node->cache_type ][ node->source] = nullptr;
-	//Logger::start();
-	//delete node;
-	//Logger::stop("Del");
 }
 
 CacheNode* BC_map::add_cache_node(int source, CacheNode_Type type) {
@@ -230,15 +355,9 @@ CacheNode* BC_map::add_cache_node(int source, CacheNode_Type type) {
 			erase_cache_node(cache_node_collector[who]);
 			node = cache_node_collector[who];
 		}
-        // Logger::start();
 		node->clear();
-        // Logger::stop("clear");
 		node->init(source, type);
 	}
-
-	//cout << "Add " << get_node_name(source);
-	//if(type ==  CACHE_FIN) cout << "	CACHE_FIN\n";
-	//else cout << "	CACHE_FOUT\n";
 
 	cache_nodes[type][source] = node;
 	return node;
@@ -257,17 +376,75 @@ CacheNode* BC_map::get_cache_node(int source, CacheNode_Type type) {
     }
 }
 
-void BC_map::k_shortest_path(vector<int>& through, vector<int>& disable, int k, vector<Path*>& ans)
-{
+void BC_map::build_temp_edge(int x, int root, float delay) {
+	if(is_jump_tail(x)) {
+		J[root].push_back(new Edge(root, x, delay));
+		Jr[x].push_back(new Edge(x, root, delay));
+
+		J[root].back()->temp = true;
+		Jr[x].back()->temp = true;
+
+		//cout << "build " << get_node_name(root) << " to " << get_node_name(x) << " " << delay << '\n';
+		return;
+	}
+
+	for(auto& e: G[x]) {
+		build_temp_edge(e->to, root, e->delay + delay);
+	}
+}
+
+void BC_map::k_shortest_path(vector<int>& through, vector<int>& disable, int k, vector<Path*>& ans) {
 	if(through.size() == 0) {
 		return;
 	}
 Logger::start();
 	cache->clear();
-
 	std::sort(through.begin(), through.end(), [&](int v1, int v2) {
 			return level[v1] < level[v2];
 	});
+	//through.resize( std::unique(through.begin(), through.end()) - through.begin() );
+
+	for(auto &x: through) cout << get_node_name(x) << " is through\n";
+	for(int i=0; i<(int)through.size(); i++) if(condensed_by[ through[i] ] != -1) {
+		int x = through[i];
+		cout <<	get_node_name(x) << " condensed_by " << get_node_name(condensed_by[x]) << '\n';
+		cout << J[ condensed_by[x] ].size() << '\n';
+		//x = condensed_by[x];
+		//Logger::add_record("input condense", 1);
+		//
+		float delay = 0;
+		int cur = x;
+		while(cur != condensed_by[x]) {
+			delay += Gr[cur].front()->delay;
+			cur = Gr[cur].front()->to;
+		}
+		J[x].emplace_back(new Edge(condensed_by[x], x, delay));
+		Jr[x].emplace_back(new Edge(x, condensed_by[x], delay));
+
+		for(auto &e: G[x]) {
+			build_temp_edge(e->to, x, e->delay);
+		}
+
+		if(i>0 and condensed_by[x] !=-1 and condensed_by[x] == condensed_by[ through[i-1] ]) {
+			int cur = x;
+			float delay = 0;
+			
+			while(cur != through[i-1]) {
+				delay += Gr[cur].front()->delay;
+				cur = Gr[cur].front()->to;
+
+				ASSERT(Gr[cur].size() == 1);
+				if(level[cur] < level[ through[i-1] ]) {
+					return;	// no path
+				}
+			}
+
+			J[through[i-1]].emplace_back( new Edge(through[i-1], x, delay) );
+			Jr[x].emplace_back(new Edge(x, through[i-1], delay));
+		}
+	}
+
+	//return;
 
 	vector<vector<int>> through_level;
 
@@ -287,7 +464,6 @@ Logger::start();
 	}
 Logger::stop("init through");
 
-//cout << "Start choose cache\n";
 Logger::start();
 	query_cnt++;
 	for(size_t i=0; i<through_level.size(); i++) {
@@ -321,18 +497,15 @@ Logger::stop("choose cache");
 
 	cache->set_disable(disable);
 
-//cout << "Start update\n";
 Logger::start();
 	cache->update_cacheNode();
 Logger::stop("search space");
-	//cache->print();
 
-//Logger::start();
+Logger::start();
 	cache->kth(ans, k);
-//Logger::stop("do kth");
+Logger::stop("do kth");
 
-	//cache->print();
-	//cout << query_cnt << " ======================== fin =======================\n";
+cache->print();
 }
 
 //void BC_map::search(vector<int>& through) {

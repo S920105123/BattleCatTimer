@@ -35,7 +35,7 @@ void CacheNode::init(int src, CacheNode_Type type) {
 		valid_points.push_back( bc_map->get_index(LATE, RISE, bc_map->get_graph_id(src)) );
 		valid_points.push_back( bc_map->get_index(LATE, FALL, bc_map->get_graph_id(src)) );
 
-		if(bc_map->Gr[source].size() == 0) {
+		if(bc_map->Jr[source].size() == 0) {
 			kth_src.push_back( bc_map->get_index(LATE, RISE, bc_map->get_graph_id(src)) );
 			kth_src.push_back( bc_map->get_index(LATE, FALL, bc_map->get_graph_id(src)) );
 		}
@@ -72,7 +72,7 @@ void CacheNode::search_source(int now) {
 	vis[now] = 1;
 	visited_points.push_back(now);
 
-	if(bc_map->Gr[now].size() == 0) {
+	if(bc_map->Jr[now].size() == 0) {
 		kth_src.push_back(now);
 	}
 
@@ -81,7 +81,17 @@ void CacheNode::search_source(int now) {
 		return;
 	}
 
-	for(const auto&e: bc_map->Gr[now]) {
+	//for(const auto&e: bc_map->Gr[now]) {
+		//if(bc_map->condensed_by[e->to] != -1) {
+			//Logger::add_record("waste time", 1);
+			//continue;
+		//}
+
+		//is_valid[e->to] = true;
+		//valid_points.push_back(e->to);
+		//search_source(e->to);
+	//}
+	for(const auto& e: bc_map->Jr[now]) {
 		is_valid[e->to] = true;
 		valid_points.push_back(e->to);
 		search_source(e->to);
@@ -93,7 +103,7 @@ bool CacheNode::search_dest(int now) {
 	vis[now] = true;
 	visited_points.push_back(now);
 
-	if(bc_map->G[now].size() == 0) {
+	if(bc_map->J[now].size() == 0) {
 		kth_dest.push_back(now);
 
 		valid_points.push_back(now);
@@ -101,7 +111,16 @@ bool CacheNode::search_dest(int now) {
 	}
 
 	bool ok = false;
-	for(const auto& e: bc_map->G[now]) {
+	//for(const auto& e: bc_map->G[now]) {
+		//if(bc_map->condensed_by[e->to] != -1) {
+			//Logger::add_record("wast time\n", 1);
+			//continue;
+		//}
+		//if(search_dest(e->to)) {
+			//ok = true;
+		//}
+	//}
+	for(const auto& e: bc_map->J[now]) {
 		if(search_dest(e->to)) {
 			ok = true;
 		}
@@ -161,10 +180,10 @@ void CacheNode::print() {
 			cout << "(" << bc_map->level[x] << ")\n";
 		} cout << '\n';
 		cout << "	endpoints(" << endpoints.size() << ")\n";
-		//for(auto &x: endpoints) {
-			//cout << "		" << bc_map->get_node_name(x) << ' ';
-			//cout << "(" << bc_map->level[x] << ")\n";
-		//}
+		for(auto &x: endpoints) {
+			cout << "		" << bc_map->get_node_name(x) << ' ';
+			cout << "(" << bc_map->level[x] << ")\n";
+		}
 	}
 	else { // CACHE_FOUT
 		cout << "\n	Type: CACHE_FOUT\n";
