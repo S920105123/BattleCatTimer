@@ -20,9 +20,9 @@ struct Edge{
 	float delay;
 	int id;
 	Edge* jump;
-	bool temp;
-	Edge():from(0), to(0), delay(0), jump(nullptr), temp(0){}
-	Edge(int f,int t,float d):from(f),to(t),delay(d), jump(nullptr), temp(0){}
+	unordered_map<int,bool> nodes_jump_edge;
+	Edge():from(0), to(0), delay(0), jump(nullptr){}
+	Edge(int f,int t,float d):from(f),to(t),delay(d), jump(nullptr){}
 };
 
 class BC_map {
@@ -50,7 +50,6 @@ private:
     void add_edge(int from, int to, float delay);
 	void add_jump_edge(int from, int to, float delay);
     void build_map(int root);
-	void build_temp_edge(int x,int root,float delay);
 	void condense(int x, int root, float delay);
 	void condense(int x);
 	bool is_jump_tail(int x);
@@ -77,6 +76,7 @@ private:
 	vector<int> level;
 	vector<int> topological_order;
 	vector<int> condensed_by;
+	vector<int> nodes_jump_edge;
 	int max_level;
 
 	vector<CacheNode*> cache_nodes[2]; // two type

@@ -60,11 +60,11 @@ public:
 
 	void clear();
 	void set_disable(const vector<int>&);
+	void set_through(const vector<int>&);
 	void add_cache_node(CacheNode* node, int ,int );             // the level of cacheNode is increased 
 	void kth(vector<Path*>& ans, int k);
 	void update_cacheNode();                          // build all cacheNode
 	void output_shortest_path();
-	bool is_valid_edge(int from, int to);
 	const vector<int>& get_kth_src();
 	const vector<int>& get_kth_dest();
 
@@ -72,6 +72,8 @@ public:
 
 private:
 	bool is_disable(int x);
+	bool is_valid_edge(int from, int to);
+	bool check_through(int from, int to, unordered_map<int,bool>& pass_nodes);
 
 	void build_graph(int x);
 	void add_edge(int, int, float);
@@ -85,6 +87,7 @@ private:
 	vector<CacheNode*> nodes;
 	vector<int> level_to_nodes;
 	vector<bool> marked_level;
+	vector<vector<int>> through; // through[ level ]
 	vector<int> next_level;
 	unordered_map<int, bool> disable;
 	vector<bool> vis;

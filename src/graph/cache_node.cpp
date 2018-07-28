@@ -175,15 +175,15 @@ void CacheNode::print() {
 			for(auto& x: kth_src) cout << "		" << bc_map->get_node_name(x) << '\n';
 		}
 		cout << "	valid points(" << valid_points.size() << ")\n";
-		for(auto &x: valid_points) {
-			cout << "		" << bc_map->get_node_name(x) << ' ';
-			cout << "(" << bc_map->level[x] << ")\n";
-		} cout << '\n';
-		cout << "	endpoints(" << endpoints.size() << ")\n";
-		for(auto &x: endpoints) {
-			cout << "		" << bc_map->get_node_name(x) << ' ';
-			cout << "(" << bc_map->level[x] << ")\n";
-		}
+		//for(auto &x: valid_points) {
+			//cout << "		" << bc_map->get_node_name(x) << ' ';
+			//cout << "(" << bc_map->level[x] << ")\n";
+		//} cout << '\n';
+		//cout << "	endpoints(" << endpoints.size() << ")\n";
+		//for(auto &x: endpoints) {
+			//cout << "		" << bc_map->get_node_name(x) << ' ';
+			//cout << "(" << bc_map->level[x] << ")\n";
+		//}
 	}
 	else { // CACHE_FOUT
 		cout << "\n	Type: CACHE_FOUT\n";

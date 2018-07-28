@@ -75,6 +75,10 @@ void BC_map::add_jump_edge(int from, int to, float delay) {
 	Jr[to].push_back(new Edge(to, from, delay));
 	in_degree[to]++;
 
+	for(auto& x: nodes_jump_edge) {
+		J[from].back()->nodes_jump_edge[x] = 1;
+		Jr[to].back()->nodes_jump_edge[x] = 1;
+	}
 	Logger::add_record("Jump", 1);
 }
 
@@ -255,9 +259,11 @@ void BC_map::condense(int x, int root, float delay) {
 
 	ASSERT(condensed_by[x] == -1);
 	condensed_by[x] = root;
+	nodes_jump_edge.push_back(x);
 	for(auto& e: G[x]) {
 		condense(e->to, root, delay+e->delay);
 	}
+	nodes_jump_edge.pop_back();
 }
 
 void BC_map::condense(int x) {
@@ -269,6 +275,7 @@ void BC_map::condense(int x) {
 		//if(is_jump_tail(e->to)) continue;
 		condense(e->to, x, e->delay);
 	}
+	ASSERT(nodes_jump_edge.size() == 0);
 }
 
 void BC_map::check_condense() {
@@ -376,75 +383,21 @@ CacheNode* BC_map::get_cache_node(int source, CacheNode_Type type) {
     }
 }
 
-void BC_map::build_temp_edge(int x, int root, float delay) {
-	if(is_jump_tail(x)) {
-		J[root].push_back(new Edge(root, x, delay));
-		Jr[x].push_back(new Edge(x, root, delay));
-
-		J[root].back()->temp = true;
-		Jr[x].back()->temp = true;
-
-		//cout << "build " << get_node_name(root) << " to " << get_node_name(x) << " " << delay << '\n';
-		return;
-	}
-
-	for(auto& e: G[x]) {
-		build_temp_edge(e->to, root, e->delay + delay);
-	}
-}
-
 void BC_map::k_shortest_path(vector<int>& through, vector<int>& disable, int k, vector<Path*>& ans) {
 	if(through.size() == 0) {
 		return;
 	}
 Logger::start();
 	cache->clear();
+	cache->set_through(through);
+
+	for(auto& x: through) if(condensed_by[x] != -1) {
+		x = condensed_by[x];
+	}
 	std::sort(through.begin(), through.end(), [&](int v1, int v2) {
 			return level[v1] < level[v2];
 	});
-	//through.resize( std::unique(through.begin(), through.end()) - through.begin() );
-
-	for(auto &x: through) cout << get_node_name(x) << " is through\n";
-	for(int i=0; i<(int)through.size(); i++) if(condensed_by[ through[i] ] != -1) {
-		int x = through[i];
-		cout <<	get_node_name(x) << " condensed_by " << get_node_name(condensed_by[x]) << '\n';
-		cout << J[ condensed_by[x] ].size() << '\n';
-		//x = condensed_by[x];
-		//Logger::add_record("input condense", 1);
-		//
-		float delay = 0;
-		int cur = x;
-		while(cur != condensed_by[x]) {
-			delay += Gr[cur].front()->delay;
-			cur = Gr[cur].front()->to;
-		}
-		J[x].emplace_back(new Edge(condensed_by[x], x, delay));
-		Jr[x].emplace_back(new Edge(x, condensed_by[x], delay));
-
-		for(auto &e: G[x]) {
-			build_temp_edge(e->to, x, e->delay);
-		}
-
-		if(i>0 and condensed_by[x] !=-1 and condensed_by[x] == condensed_by[ through[i-1] ]) {
-			int cur = x;
-			float delay = 0;
-			
-			while(cur != through[i-1]) {
-				delay += Gr[cur].front()->delay;
-				cur = Gr[cur].front()->to;
-
-				ASSERT(Gr[cur].size() == 1);
-				if(level[cur] < level[ through[i-1] ]) {
-					return;	// no path
-				}
-			}
-
-			J[through[i-1]].emplace_back( new Edge(through[i-1], x, delay) );
-			Jr[x].emplace_back(new Edge(x, through[i-1], delay));
-		}
-	}
-
-	//return;
+	through.resize( std::unique(through.begin(), through.end()) - through.begin() );
 
 	vector<vector<int>> through_level;
 
@@ -501,11 +454,11 @@ Logger::start();
 	cache->update_cacheNode();
 Logger::stop("search space");
 
-Logger::start();
+//Logger::start();
 	cache->kth(ans, k);
-Logger::stop("do kth");
+//Logger::stop("do kth");
 
-cache->print();
+//cache->print();
 }
 
 //void BC_map::search(vector<int>& through) {

@@ -15,6 +15,8 @@ void Cache::clear() {
 	next_level.resize(bc_map->max_level+3);
 
 	disable.clear();
+	through.clear();
+	through.resize(bc_map->max_level+3);
 
 	for(auto &x: all_vec) {
 		G[x].clear();
@@ -44,6 +46,12 @@ void Cache::add_cache_node(CacheNode* node,int start_level, int end_level) {
 
 void Cache::set_disable(const vector<int>& dis) {
 	for(auto& x: dis) disable.emplace(x, true);
+}
+
+void Cache::set_through(const vector<int>& thr) {
+	for(auto& x: thr) {
+		through[ bc_map->level[x] ].push_back(x);
+	}
 }
 
 void Cache::update_cacheNode() {
@@ -143,7 +151,6 @@ void Cache::connect_pseudo_edge_dest() {
 void Cache::kth(vector<Path*>& ans, int k) {
 
 /* build valid graph */
-Logger::start();
 	pseudo_src = 0;
 	pseudo_dest = bc_map->num_node;
 
@@ -153,22 +160,16 @@ Logger::start();
 	all_vec.push_back(pseudo_dest);
 
 	for(auto &x: get_kth_src()) build_graph(x);
-Logger::stop("build graph");
 
-Logger::start();
 	std::sort(all_vec.begin(), all_vec.end(), [&](int v1, int v2){
 			return bc_map->level[v1] < bc_map->level[v2];
 	});
 
 	all_vec.resize( std::unique(all_vec.begin(), all_vec.end()) - all_vec.begin() );
-Logger::stop("sort vec");
 
-Logger::start();
 /* build spt */
 	build_SPT();
-Logger::stop("spt");
 
-Logger::start();
 /*do kth*/
 	if(dist_to_dest[src_tree] == INF) return;
 
@@ -189,7 +190,35 @@ Logger::start();
 		delete kth_Q.top();
 		kth_Q.pop();
 	}
-Logger::stop("kth");
+}
+
+bool Cache::check_through(int from, int to, unordered_map<int,bool>& pass_nodes) {
+	//return true;
+	int from_level = bc_map->level[from]; 
+	int to_level = bc_map->level[to];
+
+	Logger::start();
+	//cout << "Check Edge " << bc_map->get_node_name(from) << " " << bc_map->get_node_name(to) << '\n';
+	//return true;
+	for(int i=from_level; i<=to_level; i++) {
+		if(through[i].size() != 0) {
+			int find = false;
+			for(auto& x: through[i]) {
+				if(pass_nodes[x]==1) find = true;
+				if(x==from or x==to) find = true;
+			}
+			if(!find) {
+				//cout << "Not Ok edge: " << bc_map->get_node_name(from) << "( " << from_level <<  ")" << "-> " << bc_map->get_node_name(to);
+				//cout << "(" << to_level << ")" << '\n';
+
+				//cout << "	Not through level : " << i << '\n';
+				Logger::stop("check_through");
+				return false;
+			}
+		}
+	}
+				Logger::stop("check_through");
+	return true;
 }
 
 void Cache::build_graph(int x) {
@@ -209,7 +238,7 @@ void Cache::build_graph(int x) {
 		//}
 	//}
 	for(auto& e: bc_map->J[x]) {
-		if(is_valid_edge(e->from, e->to)) {
+		if(is_valid_edge(e->from, e->to) and check_through(e->from, e->to, e->nodes_jump_edge)) {
 			add_edge(e->from, e->to, e->delay);
 			build_graph(e->to);
 		}
@@ -349,6 +378,15 @@ void Cache::print() {
 	}
 	cout << "src_tree = " << bc_map->get_node_name(all_vec[src_tree]) << '\n';
 	cout << "dest_tree= " << bc_map->get_node_name(all_vec[dest_tree]) << '\n';
+	cout << "Through: \n";
+	for(int i=0; i<bc_map->max_level; i++) {
+
+		if(through[i].size()) {
+			cout << "	level: " << i << '\n';
+			for(auto& x: through[i]) cout << bc_map->get_node_name(x) << " ";
+			cout << '\n';
+		}
+	}
 }
 
 void print_name( const string& name, Writer& buf) {
@@ -399,7 +437,7 @@ void Path::fast_output(Writer& buf, Graph* graph) {
 	for(size_t i=1; i<path.size()-1; i++) {
 		int x = path[i];
 
-		if(i==1 or i) {
+		if(i==1) {
 			print_node_detail(x, delay[i-1]);
 			continue;
 		}
@@ -407,29 +445,64 @@ void Path::fast_output(Writer& buf, Graph* graph) {
 		bool is_jump = true;
 		vector<pair<int,float>> nodes;
 
-		for(const auto& e: bc_map->Gr[x]) {
-			if( e->to == path[i-1]) {
-				is_jump = false;
-				break;
-			}
+		//for(const auto& e: bc_map->Gr[x]) {
+			//if( e->to == path[i-1]) {
+				//is_jump = false;
+				//break;
+			//}
 
-			if( bc_map->condensed_by[e->to]==path[i-1]) {
-				auto cur_e = e;
-				int root = path[i-1];
-				while(true) {
-					nodes.emplace_back(cur_e->from, cur_e->delay);
-					if(cur_e->to == root) break;
-					cur_e = bc_map->Gr[cur_e->to].front();
+			//if( bc_map->condensed_by[e->to]==path[i-1]) {
+				//cout << "Recover " << bc_map->get_node_name(x) << " -> " << bc_map->get_node_name(path[i-1]) << "\n";
+				//auto cur_e = e;
+				//int root = path[i-1];
+				//while(true) {
+					//cout << " -> " << bc_map->get_node_name(cur_e->from) << '\n';
+					//nodes.emplace_back(cur_e->from, cur_e->delay);
+					//if(cur_e->to == root) break;
+					//cur_e = bc_map->Gr[cur_e->to].front();
+				//}
+				//cout << "\n";
+			//}
+		//}
+		//
+		for(const auto&e : bc_map->Jr[x]) {
+			if( e->to == path[i-1] and fabs(e->delay -delay[i-1])<0.001 ){
+				if(e->nodes_jump_edge.size() == 0 ) is_jump = false;
+				else {
+					//cout << "Recover " << bc_map->get_node_name(x) << " -> " << bc_map->get_node_name(path[i-1]) << "\n";
+					int cnt_2 = 0;
+					for(const auto& ge: bc_map->Gr[x]) {
+						if( e->nodes_jump_edge[ ge->to ] == 1 ) {
+							cnt_2++;
+							auto cur_e = ge;
+							int root = path[i-1];
+							while(true) {
+								//cout << " -> " << bc_map->get_node_name(cur_e->from) << '\n';
+								nodes.emplace_back(cur_e->from, cur_e->delay);
+								if(cur_e->to == root) break;
+								cur_e = bc_map->Gr[cur_e->to].front();
+							}
+
+						}
+					}
+					ASSERT(cnt_2 == 1);
 				}
+				break;
 			}
 		}
 		if(!is_jump) print_node_detail(x, delay[i-1]);
 		else {
-			buf.addstring("----Recover--- from");
+			//buf.addstring("----Recover--- from ");
+			//buf.addstring(bc_map->get_node_name(x).c_str());
+			//buf.addstring(" to ");
+			//buf.addstring(bc_map->get_node_name(path[i-1]).c_str());
+			//buf.addstring("\n");
+			//buf.addstring(std::to_string(nodes.size()).c_str());
+			//buf.addstring("\n");
 			for(int j=nodes.size()-1; j>=0; j--) {
 				print_node_detail( nodes[j].first, nodes[j].second );
 			}
-			buf.addstring("----Recover--- ^\n\n");
+			//buf.addstring("----Recover--- ^\n\n");
 		}
 			//vector<pair<int,float>> nodes;
 			//int root = bc_map->Jr[x].front()->to;
