@@ -19,10 +19,9 @@ struct Edge{
 	int from, to;
 	float delay;
 	int id;
-	Edge* jump;
 	unordered_map<int,bool> nodes_jump_edge;
-	Edge():from(0), to(0), delay(0), jump(nullptr){}
-	Edge(int f,int t,float d):from(f),to(t),delay(d), jump(nullptr){}
+	Edge():from(0), to(0), delay(0){}
+	Edge(int f,int t,float d):from(f),to(t),delay(d){}
 };
 
 class BC_map {
@@ -44,7 +43,7 @@ public:
 						 int k,
 						 vector<Path*>& ans);
 
-	std::atomic<float> threshold;
+	//std::atomic<float> threshold;
 
 private:
     void add_edge(int from, int to, float delay);
@@ -72,8 +71,7 @@ private:
 	vector<vector<Edge*>> Jr;
 
     vector<int> to_map_id[2][2];       // graph node id to bc map id
-    vector<int> level_G, in_degree, vis;
-	vector<int> level;
+    vector<int> level, in_degree, vis;
 	vector<int> topological_order;
 	vector<int> condensed_by;
 	vector<int> nodes_jump_edge;

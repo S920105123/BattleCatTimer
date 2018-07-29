@@ -64,6 +64,7 @@ public:
 	void add_cache_node(CacheNode* node, int ,int );             // the level of cacheNode is increased 
 	void kth(vector<Path*>& ans, int k);
 	void update_cacheNode();                          // build all cacheNode
+	void build_graph();
 	void output_shortest_path();
 	const vector<int>& get_kth_src();
 	const vector<int>& get_kth_dest();
@@ -88,7 +89,8 @@ private:
 	vector<int> level_to_nodes;
 	vector<bool> marked_level;
 	vector<vector<int>> through; // through[ level ]
-	vector<int> next_level;
+	//vector<int> next_level;
+	vector<int> next_object; 		// for check_through
 	unordered_map<int, bool> disable;
 	vector<bool> vis;
 	vector<int> visited_points;

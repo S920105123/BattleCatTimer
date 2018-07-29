@@ -72,7 +72,7 @@ const float UNDEFINED_SLACK[2] = { 987654.0 , 987654.0  };  // Early/late
 const Transition_Type TYPES[2] = { RISE, FALL };
 const Mode MODES[2] = { EARLY, LATE };
 
-const int NUM_THREAD = 8;
+const int NUM_THREAD = 4;
 const int MAX_CACHE = 20;
 
 const float INF = std::numeric_limits<float>::infinity();

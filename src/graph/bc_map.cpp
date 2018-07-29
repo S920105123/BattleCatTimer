@@ -15,13 +15,18 @@ BC_map::BC_map(Graph* graph, CPPR* cppr){
 }
 
 BC_map::~BC_map() {
-	//for(int i=0; i<NUM_THREAD; i++) {
-		//delete kths[i];
-	//}
 	for(size_t i=0; i<this->cache_node_collector.size(); i++) {
 		if(cache_node_collector[i] != nullptr ) delete cache_node_collector[i];
 	}
 
+	int i;
+	#pragma omp parallel for 
+	for(i=0; i<num_node; i++) {
+		for(auto& e: G[i]) delete e;
+		for(auto& e: Gr[i]) delete e;
+		for(auto& e: J[i]) delete e;
+		for(auto& e: Jr[i]) delete e;
+	}
 	delete cache;
 }
 
@@ -70,7 +75,7 @@ void BC_map::add_edge(int from, int to, float delay){
 }
 
 void BC_map::add_jump_edge(int from, int to, float delay) {
-	ASSERT(level_G[from] < level_G[to]);
+	ASSERT(level[from] < level[to]);
 	J[from].push_back(new Edge(from, to, delay));
 	Jr[to].push_back(new Edge(to, from, delay));
 	in_degree[to]++;
@@ -104,7 +109,6 @@ void BC_map::build(){
     in_degree.resize(num_node + 2);
     vis.resize(num_node + 2);
     level.resize(num_node + 2);
-	level_G.resize(num_node + 2);
 	cache_nodes[CACHE_FIN].resize(num_node + 2);
 	cache_nodes[CACHE_FOUT].resize(num_node + 2);
 
@@ -136,63 +140,31 @@ void BC_map::build(){
         for(const auto& e:G[x]) {
             in_degree[e->to]--;
             if(in_degree[e->to]==0) q->push(e->to);
-            level_G[e->to] = max(level_G[e->to], level_G[x]+1);
+            level[e->to] = max(level[e->to], level[x]+1);
         }
     }
-
-//. 3. condense G get new graph J
-	Logger::start();
-	for(int i=0; i<=num_node; i++) topological_order.push_back(i);
-	std::sort(topological_order.begin(), topological_order.end(), [&](int v1,int v2) {
-			return level_G[v1] < level_G[v2];
-	});
-
-	std::fill(vis.begin(), vis.end(), 0);
-	std::fill(in_degree.begin(), in_degree.end(), 0);
-	for(int i=1; i<num_node; i++) if(!vis[topological_order[i]]) {
-		condense(topological_order[i]);
-	}
-	Logger::stop("condense");
-
-// 4. build level of graph J
-	//while(!q->empty()) q->pop();
-	////std::fill(level.begin(), level.end(), 0); 		// if level[i] == -1 we can know node i has been condensed.
-
-    //for(int i=0; i<num_node; i++) if(in_degree[i]==0 ) {
-        //q->push(i);
-		//level[i] = 0;
-	//}
-
-    //while(!q->empty()) {
-        //int x = q->front(); q->pop();
-        //for(const auto& e : J[x]) {
-            //in_degree[e->to]--;
-            //if(in_degree[e->to]==0) q->push(e->to);
-            //level[e->to] = max(level[e->to], level[x]+1);
-        //}
-    //}
-	//
-	level.swap(level_G);
+	delete q;
 
 	// level starts from 1
 	max_level = 0;
-	for(int i=1; i<num_node; i++) if(level[i]!=-1){
+	for(int i=1; i<num_node; i++) {
 		level[i]++;
 		max_level = max(max_level, level[i]);
 	}
 	level[0] = 0, level[num_node] = max_level + 1;
 
-	delete q;
-	//for(int i=0; i<=num_node; i++) {
-		//if(level[i]==-1 and condensed_by[i]==-1) {
-			//if(G[i].size() ==0 and Gr[i].size() ==0) continue;
-			//cout << get_node_name(i) << " " << level_G[i] << " => " << level[i] << ' ';
-			//if(condensed_by[i]==-1) cout << " No be condensed\n";
-			//else cout << get_node_name(condensed_by[i]) << '\n';
-			////ASSERT(condensed_by[i] != -1);
-		//}
-	//}
-	//check_condense();
+//. 4. condense G get new graph J
+	Logger::start();
+	for(int i=0; i<=num_node; i++) topological_order.push_back(i);
+	std::sort(topological_order.begin(), topological_order.end(), [&](int v1,int v2) {
+			return level[v1] < level[v2];
+	});
+
+	std::fill(vis.begin(), vis.end(), 0);
+	for(int i=1; i<num_node; i++) if(!vis[topological_order[i]]) {
+		condense(topological_order[i]);
+	}
+	Logger::stop("condense");
 }
 
 void BC_map::build_map(int root){
@@ -452,13 +424,12 @@ Logger::stop("choose cache");
 
 Logger::start();
 	cache->update_cacheNode();
+	cache->build_graph();
 Logger::stop("search space");
 
-//Logger::start();
+Logger::start();
 	cache->kth(ans, k);
-//Logger::stop("do kth");
-
-//cache->print();
+Logger::stop("do kth");
 }
 
 //void BC_map::search(vector<int>& through) {
