@@ -19,7 +19,8 @@ struct Edge{
 	int from, to;
 	float delay;
 	int id;
-	unordered_map<int,bool> nodes_jump_edge;
+	int nodes_on_jump_id;
+	//unordered_map<int,bool> nodes_jump_edge;
 	Edge():from(0), to(0), delay(0){}
 	Edge(int f,int t,float d):from(f),to(t),delay(d){}
 };
@@ -69,6 +70,7 @@ private:
     vector<vector<Edge*>> Gr;
 	vector<vector<Edge*>> J;			// jump
 	vector<vector<Edge*>> Jr;
+	vector<unordered_map<int,bool>> nodes_on_jump;
 
     vector<int> to_map_id[2][2];       // graph node id to bc map id
     vector<int> level, in_degree, vis;

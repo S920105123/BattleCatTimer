@@ -80,10 +80,12 @@ void BC_map::add_jump_edge(int from, int to, float delay) {
 	Jr[to].push_back(new Edge(to, from, delay));
 	in_degree[to]++;
 
+	nodes_on_jump.emplace_back(unordered_map<int,bool>());
 	for(auto& x: nodes_jump_edge) {
-		J[from].back()->nodes_jump_edge[x] = 1;
-		Jr[to].back()->nodes_jump_edge[x] = 1;
+		nodes_on_jump.back()[x] = 1;
 	}
+	J[from].back()->nodes_on_jump_id = nodes_on_jump.size() - 1;
+	Jr[to].back()->nodes_on_jump_id = nodes_on_jump.size() - 1;
 	Logger::add_record("Jump", 1);
 }
 

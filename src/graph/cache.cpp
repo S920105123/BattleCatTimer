@@ -248,7 +248,7 @@ void Cache::build_graph(int x) {
 		//}
 	//}
 	for(auto& e: bc_map->J[x]) {
-		if(is_valid_edge(e->from, e->to) and check_through(e->from, e->to, e->nodes_jump_edge)) {
+		if(is_valid_edge(e->from, e->to) and check_through(e->from, e->to, bc_map->nodes_on_jump[e->nodes_on_jump_id])) {
 			add_edge(e->from, e->to, e->delay);
 			build_graph(e->to);
 		}
@@ -458,10 +458,10 @@ void Path::fast_output(Writer& buf, Graph* graph) {
 
 		for(const auto&e : bc_map->Jr[x]) {
 			if( e->to == path[i-1] and fabs(e->delay -delay[i-1])<0.001 ){
-				if(e->nodes_jump_edge.size() == 0 ) is_jump = false;
+				if( bc_map->nodes_on_jump[e->nodes_on_jump_id].size() == 0 ) is_jump = false;
 				else {
 					for(const auto& ge: bc_map->Gr[x]) {
-						if( e->nodes_jump_edge.find(ge->to) != e->nodes_jump_edge.end() ) {
+						if( bc_map->nodes_on_jump[e->nodes_on_jump_id].find(ge->to) != bc_map->nodes_on_jump[e->nodes_on_jump_id].end() ) {
 							auto cur_e = ge;
 							int root = path[i-1];
 							while(true) {
