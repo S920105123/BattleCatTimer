@@ -3,8 +3,6 @@
 
 Timer::~Timer(){
 
-    clear_Timer();
-
     Logger::create()->~Logger();
     output.close();
 }
@@ -19,6 +17,7 @@ void Timer::gen_test(const string& type, const string& tau, const string& output
 }
 
 void Timer::run(const string& tau, const string& timing, const string& ops, const string&output_file){
+	cout << "CacheSize = " << MAX_CACHE << '\n';
     Logger::add_timestamp("start");
 
     omp_set_num_threads(NUM_THREAD);
@@ -49,11 +48,8 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
 	Logger::add_timestamp("start report timing");
     vector<vector<Path*>*> ans;
     ans.resize((int)_through.size());
-	//FILE* fout = fopen(output_file.c_str(), "w");
-    //output.open(output_file);
 
 	Writer writer(output_file);
-	//#pragma omp parallel for schedule(dynamic) private(i)
 	
 	std::atomic_int i, j;
 	i = 0;
@@ -73,39 +69,22 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
 			while(true) {
 				if(j==(int)_through.size()) break;
 				if(j<i) {
-					for(auto& p: *ans[j]) p->fast_output(writer, graph);
+					for(auto& p: *ans[j]) {
+						p->fast_output(writer, graph);
+						delete p;
+					}
+					delete ans[j];
 					j++;
 				}
 			}
 		}
 	}
+	writer.close();
     Logger::add_timestamp("report_timing write ok");
 
-
-	//for(int i=0; i<(int)ans.size(); i++){
-		
-		//char s[100];
-		//sprintf(s, "i = %d\n", i);
-		//writer.addstring(s);
-        //if(ans[i]->size()==0) {
-			//char s[100];
-			//sprintf(s, "i = %d no path\n", i);
-			//writer.addstring(s);
-		//}
-		//for(auto p:*ans[i]){
-			//p->fast_output(writer, graph);
-			//delete p;
-		//}
-	//}
-	writer.close();
-	//fclose(fout);
-    //output.close();
-    //Logger::add_timestamp("writing ok");
-
-    //#pragma omp parallel for schedule(dynamic) private(i)
-    //for(int i=0; i<(int)ans.size(); i++){
- ////       delete ans[i];
-    //}
+	Logger::start();
+	clear_Timer();
+	Logger::stop("free timer");
     Logger::add_timestamp("free ok");
 }
 
@@ -115,8 +94,6 @@ void Timer::clear_Timer(){
     if (lib[0]) delete lib[0];
     if (lib[1]) delete lib[1];
     if (graph) delete graph;
-    //for (auto &ptr : _through) delete ptr;
-    //for (auto &ptr : _disable) delete ptr;
 }
 
 void Timer::init_timer(){

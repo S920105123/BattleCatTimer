@@ -27,8 +27,8 @@ public:
 	void set_src_dest(int, int);
 
 	const vector<int>& get_topological_order() { return topological_order; }
-	const vector<Cache_Edge*>& get_valid_edge(int x) { return valid_edges[x]; }
-	const vector<Cache_Edge*>& get_valid_edge_reverse(int x) { return valid_edges_reverse[x]; }
+	const vector<Cache_Edge>& get_valid_edge(int x) { return valid_edges[x]; }
+	const vector<Cache_Edge>& get_valid_edge_reverse(int x) { return valid_edges_reverse[x]; }
 	void clear();
 	void print();
 
@@ -47,16 +47,10 @@ private:
 	void connect_pseudo_edge_source();
 	void connect_pseudo_edge_dest();
 
-	// unordered_map<int, vector<Cache_Edge*>> valid_edges;
-	// unordered_map<int, vector<Cache_Edge*>> valid_edges_reverse;
-	vector<vector<Cache_Edge*>> valid_edges;
-	vector<vector<Cache_Edge*>> valid_edges_reverse;
-	vector<Cache_Edge*> edge_collector;
-	//unordered_map<int, bool> vis;
+	vector<vector<Cache_Edge>> valid_edges;
+	vector<vector<Cache_Edge>> valid_edges_reverse;
 	vector<bool> vis, is_valid;
 	vector<int> visited_points;
-	// BitSet vis;
-	// BitSet is_valid;
 
 	vector<int> kth_src, kth_dest;
 	vector<int> topological_order;

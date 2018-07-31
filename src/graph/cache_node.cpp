@@ -14,7 +14,6 @@ CacheNode::CacheNode(BC_map* map, int src,int det) {
 }
 
 CacheNode::~CacheNode() {
-	for(auto &e : edge_collector) delete e;
 }
 
 void CacheNode::set_src_dest(int src, int det) {
@@ -30,7 +29,6 @@ void CacheNode::set_src_dest(int src, int det) {
 }
 
 void CacheNode::clear() {
-	// for(auto &e : edge_collector) delete e;
 
 	// #pragma omp parallel for
 	for(size_t i=0; i<topological_order.size(); i++) {
@@ -43,11 +41,8 @@ void CacheNode::clear() {
 	for(size_t i=0; i<visited_points.size(); i++)
 		vis[visited_points[i]] = false;
 
-	// valid_edges.clear();
-	// valid_edges_reverse.clear();
 	kth_src.clear();
 	kth_dest.clear();
-	edge_collector.clear();
 	topological_order.clear();
 	visited_points.clear();
 
@@ -87,11 +82,13 @@ void CacheNode::update() {
 }
 
 void CacheNode::add_edge(int from, int to, float delay) {
-	valid_edges[from].emplace_back(new Cache_Edge(from, to, delay));
-	valid_edges_reverse[to].emplace_back(new Cache_Edge(to, from, delay));
+	//valid_edges[from].emplace_back(new Cache_Edge(from, to, delay));
+	//valid_edges_reverse[to].emplace_back(new Cache_Edge(to, from, delay));
+	valid_edges[from].emplace_back(from, to, delay);
+	valid_edges_reverse[to].emplace_back(to, from, delay);
 
-	edge_collector.push_back(valid_edges[from].back());
-	edge_collector.push_back(valid_edges_reverse[to].back());
+	//edge_collector.push_back(valid_edges[from].back());
+	//edge_collector.push_back(valid_edges_reverse[to].back());
 }
 
 void CacheNode::connect_pseudo_edge_source() {
@@ -205,8 +202,8 @@ void CacheNode::print() {
 	for(auto& p: valid_edges) {
 		// for(auto &e: p.second) {
 		for(auto &e: p) {
-			int to = e->to;
-			int from = e->from;
+			int to = e.to;
+			int from = e.from;
 			cout << "		" << bc_map->get_node_name(from) << " -> " << bc_map->get_node_name(to) << '\n';
 			cnt ++;
 		}
@@ -218,8 +215,8 @@ void CacheNode::print() {
 	for(auto& p: valid_edges_reverse) {
 		// for(auto &e: p.second) {
 		for(auto &e: p) {
-			int from = e->from;
-			int to = e->to;
+			int from = e.from;
+			int to = e.to;
 			cout << "		" << bc_map->get_node_name(from) << " -> " << bc_map->get_node_name(to) << '\n';
 			cnt++;
 		}

@@ -50,6 +50,7 @@ class Cache {
 public:
 	Cache(BC_map*);
 
+	void init_cache();								  // call this function after build bc_map
 	void clear();
 	void set_disable(const vector<int>&);
 	void add_cache_node(CacheNode* node);             // the level of cacheNode is increased 
@@ -61,21 +62,24 @@ public:
 
 private:
 	void build_SPT();
+	float dfs_build_SPT(int x);
+	int add_vec(int bc_id);	
 	void recover_path(PrefixNode* pfx, int dest, Path* path);
 	void super(PrefixNode* pfx);
 	void push_to_queue(PrefixNode* pfx, int where, float delta);
 
 	bool is_disable(int x);
-	const vector<Cache_Edge*>& get_edges(int x);        // get edges from CacheNode
-	const vector<Cache_Edge*>& get_edges_reverse(int x);
+	const vector<Cache_Edge>& get_edges(int x);        // get edges from CacheNode
+	const vector<Cache_Edge>& get_edges_reverse(int x);
 
 	vector<CacheNode*> nodes;
 	vector<int> level_to_nodes;
 
 	unordered_map<int, bool> disable;
 
-	//unordered_map<int, int> trans_id; // bc_map id to shortest path tree id
 	vector<int> trans_id;
+	vector<int> vis_timestamp;
+	int now_timestamp;
 	vector<int> all_vec;              // all valid nodes
 	vector<float> dist_to_dest;       // distance to destination
 	vector<int> sptTree;              // parent of each node in shortest path tree rooted as destination

@@ -335,10 +335,6 @@ Graph::~Graph(){
 		delete it_pair.second;
 	}
 
-	//for(int i=0; i<NUM_THREAD; i++){
-	//	delete kths[i];
-	//}
-
 	for (int i=0; i<(int)this->nodes.size(); i++) {
 		// Node_type type = this->nodes[i].type;
 		// if ((type == OUTPUT_PIN || type == PRIMARY_IN) && this->nodes[i].tree != NULL) {
@@ -440,7 +436,8 @@ void Graph::build(Verilog &vlog, Spef &spef, CellLib &early_lib, CellLib &late_l
 	}
 
 	/* Construct external timing arc through wire mapping */
-	RCTree *rc_tree =new RCTree(nullptr, &vlog, lib_arr);
+	//RCTree *rc_tree =new RCTree(nullptr, &vlog, lib_arr);
+	RCTree* rc_tree = NULL;
 	for (const auto &wire_pair : this->wire_mapping) {
 		// const string &wire_name = wire_pair.first;
 		Wire_mapping *mapping = wire_pair.second;

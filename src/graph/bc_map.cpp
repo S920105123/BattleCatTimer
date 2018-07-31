@@ -3,22 +3,23 @@
 BC_map::BC_map(Graph* graph, CPPR* cppr){
     this->graph = graph;
 	this->cppr = cppr;
+
 	cache = new Cache(this);
 	cache_node_collector.resize(MAX_CACHE);
 	std::fill(cache_node_collector.begin(), cache_node_collector.end(), nullptr);
 	query_cnt = 0;
-
-	//for(int i=0; i<NUM_THREAD; i++) {
-		//kths[i] = new Kth(this, cppr, graph);
-	//}
 }
 
 BC_map::~BC_map() {
-	//for(int i=0; i<NUM_THREAD; i++) {
-		//delete kths[i];
-	//}
 	for(size_t i=0; i<this->cache_node_collector.size(); i++) {
 		if(cache_node_collector[i] != nullptr ) delete cache_node_collector[i];
+	}
+
+	int i;
+	#pragma omp parallel for
+	for(i=0; i<num_node; i++) {
+		for(auto&e : G[i]) delete e;
+		for(auto&e: Gr[i]) delete e;
 	}
 
 	delete cache;
@@ -122,6 +123,8 @@ void BC_map::build(){
 
 	delete q;
     LOG(NORMAL) << "BCmap nodes = " << num_node << "\n";
+
+	cache->init_cache();
 }
 
 void BC_map::build_map(int root){
@@ -223,13 +226,19 @@ CacheNode* BC_map::add_cache_node(int from, int to) {
 			}
 
 			// The number of cache node needed in this query exceeds the MAX_CACHE.
-			ASSERT( who != -1 );
-			erase_cache_node(cache_node_collector[who]);
-			node = cache_node_collector[who];
+			//ASSERT( who != -1 );
+			if(who == -1) {
+				node = new CacheNode(this, from, to);
+				cache_node_collector.push_back(node);
+			}
+			else {
+				erase_cache_node(cache_node_collector[who]);
+				node = cache_node_collector[who];
+			}
 		}
-        // Logger::start();
+		//Logger::start();
 		node->clear();
-        // Logger::stop("clear");
+		//Logger::stop("clear");
 		node->set_src_dest(from, to);
 	}
 
