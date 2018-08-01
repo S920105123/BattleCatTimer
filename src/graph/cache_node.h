@@ -22,7 +22,7 @@ public:
 
 	const vector<int>& get_kth_src();
 	const vector<int>& get_kth_dest();
-	bool is_valid_point(int x) { return is_valid[x]; }
+	bool is_valid_point(int x);
 
 	void print();
 

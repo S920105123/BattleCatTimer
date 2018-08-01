@@ -58,7 +58,6 @@ void Cache::set_through(const vector<int>& thr) {
 }
 
 void Cache::update_cacheNode() {
-	//#pragma omp parallel for schedule(dynamic)
 	for(size_t i=0; i<nodes.size(); i++) nodes[i]->update();
 }
 

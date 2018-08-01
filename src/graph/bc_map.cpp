@@ -336,7 +336,9 @@ CacheNode* BC_map::add_cache_node(int source, CacheNode_Type type) {
 			erase_cache_node(cache_node_collector[who]);
 			node = cache_node_collector[who];
 		}
+		Logger::start();
 		node->clear();
+		Logger::stop("1.1 clear cache node");
 		node->init(source, type);
 	}
 
@@ -389,7 +391,7 @@ Logger::start();
 				return;
 		}
 	}
-Logger::stop("init through");
+Logger::stop("0. init through");
 
 Logger::start();
 	query_cnt++;
@@ -412,7 +414,7 @@ Logger::start();
 	node->last_used = query_cnt;
 	node->used_cnt++;
 	cache->add_cache_node(node, level[ through_level.back().front() ], max_level);
-Logger::stop("choose cache");
+Logger::stop("1. choose cache");
 
 	for(size_t i=0; i<through_level.size(); i++) {
 		bool used_transition[2] = {0, 0};
@@ -426,177 +428,13 @@ Logger::stop("choose cache");
 
 Logger::start();
 	cache->update_cacheNode();
+Logger::stop("2. search space");
+Logger::start();
 	cache->build_graph();
-Logger::stop("search space");
+Logger::stop("3. build valid graph");
 
 Logger::start();
 	cache->kth(ans, k);
-Logger::stop("do kth");
+Logger::stop("4. do kth");
 }
 
-//void BC_map::search(vector<int>& through) {
-
-	//kth_start.clear(); // FF:clk or Pin
-	//kth_dest.clear();  // FF:D or Pout
-	//std::fill(vis.begin(), vis.end(), 0);
-
-	//// clean the mark of the edges
-	//for(auto &e: valid_edge)  e->valid = false;
-	//valid_edge.clear();
-
-	//if(through.size()) {
-		//for(auto &x: through) {
-			//// start from the point has the lowest level
-			//if(level[x] == next_level[0]) {
-				//if(search_fout(x, 1)) {
-					//is_valid[x] = 1;
-					//vis[x] = 0;
-					//search_fin(x);
-				//}
-			//}
-			//else break;
-		//}
-	//}
-	//else {
-		//ASSERT(next_level.size() == 0);
-		//// take all of FF:clk and Pin as a start point
-		//for(int i=0; i<(int)G.size(); i++){
-			//// const auto& node = graph->nodes[ get_graph_id(i) ];
-			//// i is a FF:clk or Pin
-			//if(G[i].size() != 0 && Gr[i].size() == 0) {
-				//kth_start.push_back(i);
-				//if(search_fout(i, 0)) is_valid[i] = 1;
-			//}
-		//}
-	//}
-//}
-
-//void BC_map::search_fin(int x) {
-
-	//// any point found by the search_fin is valid
-	//is_valid[x] = true;
-	//if(Gr[x].size() == 0) {
-		//kth_start.push_back(x) ;
-		//return;
-	//}
-
-	//if(vis[x]) return;
-	//vis[x] = 1;
-
-	//for(auto& p_e: Gr[x]) {
-		//auto& e = *p_e;
-		//// cout << "search fin " << get_node_name(x) << " " << get_node_name(e.to) << "\n";
-		//if(is_disable[e.to] == false) search_fin(e.to);
-
-		//valid_edge.push_back( &e );
-		//valid_edge.push_back( e.rev_edge );
-		//e.valid = true;
-		//e.rev_edge->valid = true;
-		//// cout << get_node_name(e.from) << "(" << e.from << ") " << get_node_name(e.to) << "(" << e.to << ") is valid\n";
-		//// cout << "rev: " << get_node_name(e.rev_edge->from) << "(" << e.rev_edge->from << ") " << get_node_name(e.rev_edge->to) << "(" << e.rev_edge->to << ") is valid\n";
-	//}
-//}
-
-//bool BC_map::search_fout(int x,int next_level_id) {
-
-	//if(vis[x]) return is_valid[x];
-	//vis[x] = true;
-
-	//// no fout: FF:D or Pout
-	//if(G[x].size()==0) {
-		//if(next_level_id == (int)next_level.size()) {
-			//kth_dest.push_back( x );
-			//return is_valid[x] = true;
-		//}
-		//else return is_valid[x] = false;
-	//}
-	//else {
-		//for(auto& p_e: G[x]) {
-			//auto& e = *p_e;
-			//int to = e.to;
-			//if(is_disable[to] == true) continue;
-
-			//bool ok = false;
-			//if(next_level_id == (int) next_level.size()) {
-				//if(search_fout(to, next_level_id)) ok = true;
-			//}
-			//[> next_level_id < next_level.size() <]
-			//else if(level[to] == next_level[next_level_id] and is_through[to]) {
-				//if(search_fout(to, next_level_id+1)) ok = true;
-			//}
-			//else if(level[to] < next_level[next_level_id]) {
-				//if(search_fout(to, next_level_id)) ok = true;
-			//}
-			//else {
-				//// we don't look at the point which level is greater than the next_level
-			//}
-
-			//if(ok) {
-				//// cout << get_node_name(e.from) << "(" << e.from << ") " << get_node_name(e.to) << "(" << e.to << ") is valid\n";
-				//// cout << "rev: " << get_node_name(e.rev_edge->from) << "(" << e.rev_edge->from << ") " << get_node_name(e.rev_edge->to) << "(" << e.rev_edge->to << ") is valid\n";
-				//is_valid[x] = true;
-				//valid_edge.push_back( &e );
-				//valid_edge.push_back( e.rev_edge );
-				//e.valid = true;
-				//e.rev_edge->valid = true;
-			//}
-		//}
-		//return is_valid[x];
-	//}
-//}
-
-//void BC_map::do_kth(const vector<int>& condidate, size_t k, std::function<void(Kth*,int,int,vector<Path*>&)> fun, vector<Path*>& ans) {
-
-	//auto compare_path = [](const Path* a, const Path* b) {
-		//return a->dist < b->dist;
-	//};
-	//priority_queue<Path*, vector<Path*>, decltype(compare_path)> path_heap(compare_path);
-	//threshold = 0; // slack should less than threshold
-
-	//Logger::add_record("num_kth", condidate.size());
-
-	//// enumerate every condidat to do kth-sortest path with cppr
-    //#pragma omp parallel for
-	//for(size_t i=0; i<condidate.size(); i++)
-	//{
-		//int tid = omp_get_thread_num();
-		//int st = condidate[i];
-
-		//Kth* kth = kths[tid];
-		//kth->clear();
-		//path_kth[tid].clear();
-
-		//fun(kth, st, k, path_kth[tid]);
-
-		//// update path heap
-		//#pragma omp critical
-		//{
-			//// cout << "\ntid: " << tid << " launch kth: " << this->get_node_name(st) << '\n';
-			//// for(auto& p:path_kth[tid]) p->print();
-			//size_t index = 0;
-			//while(path_heap.size() < k and index<path_kth[tid].size()) {
-				//path_heap.push( path_kth[tid][index++] );
-			//}
-
-            //// cout << "Size " << path_heap.size()  << "\n" << std::flush;
-			//while(index<path_kth[tid].size() and path_heap.top()->dist > path_kth[tid][index]->dist ) {
-				//auto pt = path_heap.top();
-				////delete path_heap.top();
-				//path_heap.pop();
-				//delete pt;
-
-				//path_heap.push( path_kth[tid][index++] );
-			//}
-
-			//// update threshold
-			//if(path_heap.size() >=k ) threshold = path_heap.top()->dist;
-		//}
-	//}
-
-	//ans.clear();
-	//while(!path_heap.empty()) {
-		//ans.emplace_back( path_heap.top() );
-		//path_heap.pop();
-	//}
-	//std::reverse(ans.begin(), ans.end());
-//}

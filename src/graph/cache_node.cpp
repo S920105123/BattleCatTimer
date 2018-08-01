@@ -32,6 +32,9 @@ void CacheNode::init(int src, CacheNode_Type type) {
 		is_valid[ bc_map->get_index(LATE, RISE, bc_map->get_graph_id(src)) ] = true;
 		is_valid[ bc_map->get_index(LATE, FALL, bc_map->get_graph_id(src)) ] = true;
 
+		vis[ bc_map->get_index(LATE, RISE, bc_map->get_graph_id(src)) ] = true;
+		vis[ bc_map->get_index(LATE, FALL, bc_map->get_graph_id(src)) ] = true;
+
 		valid_points.push_back( bc_map->get_index(LATE, RISE, bc_map->get_graph_id(src)) );
 		valid_points.push_back( bc_map->get_index(LATE, FALL, bc_map->get_graph_id(src)) );
 
@@ -44,6 +47,11 @@ void CacheNode::init(int src, CacheNode_Type type) {
 	}
 	else need_update = true;
 
+}
+
+bool CacheNode::is_valid_point(int x) { 
+	if(cache_type == CACHE_FIN) return vis[x];
+	else return is_valid[x]; 
 }
 
 void CacheNode::update() {
@@ -81,19 +89,9 @@ void CacheNode::search_source(int now) {
 		return;
 	}
 
-	//for(const auto&e: bc_map->Gr[now]) {
-		//if(bc_map->condensed_by[e->to] != -1) {
-			//Logger::add_record("waste time", 1);
-			//continue;
-		//}
-
+	for(const auto& e: bc_map->Jr[now]) {
 		//is_valid[e->to] = true;
 		//valid_points.push_back(e->to);
-		//search_source(e->to);
-	//}
-	for(const auto& e: bc_map->Jr[now]) {
-		is_valid[e->to] = true;
-		valid_points.push_back(e->to);
 		search_source(e->to);
 	}
 }
@@ -148,6 +146,7 @@ void CacheNode::clear() {
 
 void CacheNode::set_target_level(int target_level) {
 	if(target_level < searched_level) {
+
 		searched_level  = target_level;
 		need_update = true;
 	}
