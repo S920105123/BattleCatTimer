@@ -6,7 +6,7 @@ int Logger::warning_num = 0;
 vector<pair<string,int>> Logger::timestamp;
 map<string, int> Logger::record;
 map<string, long long> Logger::time_record;
-long long Logger::start_time;
+stack<long long> Logger::start_time;
 
 Logger* Logger::create() {
 	if(logger_instance == NULL){
@@ -50,7 +50,7 @@ Logger::~Logger() {
 	std::cerr << "Log error : " << error_num << ", warning : " << warning_num << '\n';
 
 	for(const auto &p: time_record) {
-		std::cerr << p.first << " : " << p.second << " ms\n";
+		std::cerr << p.first << " : " << p.second/1000.0 << " ms\n";
 	}
 	flog.close();
 }
@@ -66,16 +66,20 @@ void Logger::add_record(const string& name, int val) {
 }
 
 void Logger::start() {
-    start_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+	long long now  = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::system_clock::now().time_since_epoch()
 	).count();
+
+	start_time.push(now);
 }
 
 void Logger::stop(const string& x){ // add time elapsed to record
-	long long now = std::chrono::duration_cast<std::chrono::milliseconds>(
+	long long now = std::chrono::duration_cast<std::chrono::microseconds>(
 		std::chrono::system_clock::now().time_since_epoch()
 	).count();
-	time_record[x] += now - start_time;
+
+	long long start = start_time.top(); start_time.pop();
+	time_record[x] += now - start;
 }
 
 Logger& Logger::Log(Log_type type, bool prefix) {

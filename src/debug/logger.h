@@ -39,7 +39,7 @@ private:
 	static vector<pair<string,int>> timestamp;
 	static map<string, int> record;
 	static map<string, long long> time_record;
-	static long long start_time;
+	static stack<long long> start_time;
 	bool on;
 	std::ofstream flog;
 	std::ostream *cur_stream;
