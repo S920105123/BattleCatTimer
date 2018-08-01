@@ -4,20 +4,12 @@ BC_map::BC_map(Graph* graph, CPPR* cppr){
     this->graph = graph;
 	this->cppr = cppr;
 	cache = new Cache(this);
-	cache_node_collector.resize(MAX_CACHE);
-	std::fill(cache_node_collector.begin(), cache_node_collector.end(), nullptr);
 
 	query_cnt = 0;
-
-	//for(int i=0; i<NUM_THREAD; i++) {
-		//kths[i] = new Kth(this, cppr, graph);
-	//}
 }
 
 BC_map::~BC_map() {
-	for(size_t i=0; i<this->cache_node_collector.size(); i++) {
-		if(cache_node_collector[i] != nullptr ) delete cache_node_collector[i];
-	}
+	for(size_t i=0; i<cache_node_collector.size(); i++) delete cache_node_collector[i];
 
 	int i;
 	#pragma omp parallel for 
@@ -121,6 +113,11 @@ void BC_map::build(){
 		cache_nodes[CACHE_FIN][i] = cache_nodes[CACHE_FOUT][i] = nullptr;
 	}
 
+	for(int i=0; i<MAX_CACHE; i++) {
+		cache_node_collector.push_back(new CacheNode(this, i));
+		free_cache_node.push( cache_node_collector.back() );
+	}
+
 // 2. build graph G based on timing arc
 
     // dfs build map
@@ -218,6 +215,9 @@ void BC_map::build_map(int root){
     }
 }
 
+// *****************************
+// *         condense          *
+// *****************************
 bool BC_map::is_jump_tail(int x) { // if there is one fanout of x which has mulitple fanfin, then it is jump tail. Or x doesn't have fanout.
 
 	if(G[x].size() == 0 or Gr[x].size() > 1) return true;
@@ -293,55 +293,45 @@ void BC_map::check_condense() {
 *           k shortest path               *
 ******************************************/
 
+// *****************************
+// *         cache node       *
+// *****************************
+
 void BC_map::erase_cache_node(CacheNode* node) {
 
 	ASSERT( cache_nodes[ node->cache_type ][ node->source] != nullptr );
+	node->last_used = -1;
 	cache_nodes[ node->cache_type ][ node->source] = nullptr;
 }
 
 CacheNode* BC_map::add_cache_node(int source, CacheNode_Type type) {
 	CacheNode* node = nullptr;
 
-	int find = false;
-	for(size_t i=0; i<cache_node_collector.size(); i++) if(cache_node_collector[i] == nullptr) {
-		node = new CacheNode(this, source, type);
-		cache_node_collector[i] = node;
-		find = true;
-		break;
+	if( free_cache_node.size() ) {
+		node = free_cache_node.front();
+		free_cache_node.pop();
+
 	}
-
-	if(!find) {
-
-		// delete those for no using in long time
-		for(size_t i=0; i<cache_node_collector.size(); i++) if(cache_node_collector[i] != nullptr) {
-			if( query_cnt - cache_node_collector[i]->last_used >= 10) {
-				erase_cache_node(cache_node_collector[i]);
-				node = cache_node_collector[i];
-				find = true;
-				break;
+	else {
+		int min_cnt_used = std::numeric_limits<int>::max(), who = -1;
+		for(size_t i=0; i<cache_node_collector.size(); i++) {
+			if(cache_node_collector[i]->last_used != query_cnt and cache_node_collector[i]->used_cnt < min_cnt_used) {
+				min_cnt_used = cache_node_collector[i]->used_cnt;
+				who = i;
 			}
 		}
 
-		if(!find) {
-			int min_cnt_used = std::numeric_limits<int>::max(), who = -1;
-			for(size_t i=0; i<cache_node_collector.size(); i++) if(cache_node_collector[i] != nullptr) {
-				if(cache_node_collector[i]->last_used != query_cnt and cache_node_collector[i]->used_cnt < min_cnt_used) {
-					min_cnt_used = cache_node_collector[i]->used_cnt;
-					who = i;
-				}
-			}
-
-			// The number of cache node needed in this query exceeds the MAX_CACHE.
-			ASSERT( who != -1 );
-			erase_cache_node(cache_node_collector[who]);
-			node = cache_node_collector[who];
-		}
-		Logger::start();
-		node->clear();
-		Logger::stop("1.1 clear cache node");
-		node->init(source, type);
+		Logger::add_record("get from othersQQ", 1);
+		ASSERT(who != -1);
+		node = cache_node_collector[who];
+		ASSERT(node->last_used != -1);
+		erase_cache_node(node);
 	}
+	Logger::start();
+	node->clear();
+	Logger::stop("1.1 clear cache node");
 
+	node->init(source, type);
 	cache_nodes[type][source] = node;
 	return node;
 }
@@ -395,6 +385,12 @@ Logger::stop("0. init through");
 
 Logger::start();
 	query_cnt++;
+	for(auto& node: cache_node_collector) {
+		if(node->last_used !=-1 and query_cnt - node->last_used >= 10) {
+			free_cache_node.push(node);
+			erase_cache_node(node);
+		}
+	}
 	for(size_t i=0; i<through_level.size(); i++) {
 		CacheNode* node = get_cache_node(through_level[i].front(), CACHE_FIN);
 		node->last_used = query_cnt;

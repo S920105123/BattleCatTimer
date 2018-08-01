@@ -12,7 +12,8 @@ class CacheNode {
 
 public:
 
-	CacheNode(BC_map* map, int src, CacheNode_Type type);
+	//CacheNode(BC_map* map, int src, CacheNode_Type type, int index);
+	CacheNode(BC_map* map, int index);
 	~CacheNode();
 
 	void set_target_level(int target_level);
@@ -43,6 +44,7 @@ public:
 
 	int last_used;
 	int used_cnt;
+	int index;
 private:
 	// use bc's reverse graph to search all ff:clk or PIO
 	void search_source(int);

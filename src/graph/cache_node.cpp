@@ -1,23 +1,19 @@
 #include "cache_node.h"
 
-CacheNode::CacheNode(BC_map* map, int src, CacheNode_Type type) {
-	//source = src;
-	//cache_type = type;
+CacheNode::CacheNode(BC_map* map, int index) {
 	bc_map = map;
+	this->index = index;
+
 	is_valid.resize(map->num_node + 4);
 	vis.resize(map->num_node + 4);
 
-	init(src, type);
+	last_used = -1;
 }
 
 CacheNode::~CacheNode() {
 
 }
 
-/*
- * call init after called `clear` or created it.
- *
- * */
 void CacheNode::init(int src, CacheNode_Type type) {
 	source_level = bc_map->level[ src ];
 	cache_type = type;

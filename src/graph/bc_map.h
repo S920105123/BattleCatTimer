@@ -79,6 +79,7 @@ private:
 	vector<int> nodes_jump_edge;
 	int max_level;
 
+	queue<CacheNode*> free_cache_node;
 	vector<CacheNode*> cache_nodes[2]; // two type
 	vector<CacheNode*> cache_node_collector;
 	int query_cnt;
