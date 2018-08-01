@@ -1,5 +1,7 @@
 #include "timer.h"
+#include "header.h"
 
+#include <mutex>
 
 Timer::~Timer(){
 
@@ -19,6 +21,7 @@ void Timer::gen_test(const string& type, const string& tau, const string& output
 void Timer::run(const string& tau, const string& timing, const string& ops, const string&output_file){
     Logger::add_timestamp("start");
 
+	cout << "MAX threads: " << omp_get_max_threads() << '\n';
     omp_set_num_threads(NUM_THREAD);
     /* important */
     omp_set_nested(4);
@@ -46,25 +49,52 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
 	Logger::add_timestamp("start report timing");
     vector<vector<Path*>*> ans;
     ans.resize((int)_through.size());
+	std::fill(ans.begin(), ans.end(), nullptr);
 
 	Writer writer(output_file);
-	std::atomic_int i, j;
+	int mid = _through.size()/2;
+	std::atomic_int i, j, k;
 	i = 0;
 	j = 0;
+	k = mid;
+	std::mutex mu;
 	#pragma omp parallel sections
 	{
 		#pragma omp section
 		{
-			for(i=0; i<(int)_through.size(); i++){
-				ans[i] = graph->report_timing(_through[i], _disable[i], _nworst[i]);
+			for(i=0; i<mid; i++){
+				ans[i] = graph->report_timing(_through[i], _disable[i], _nworst[i], 0);
 			}
+			cout << "report_timing 1 ok\n";
 		}
 
 		#pragma omp section
 		{
+			for(k=mid; k<(int)_through.size(); k++){
+				ans[k] = graph->report_timing(_through[k], _disable[k], _nworst[k], 1);
+			}
+			cout << "report_timing 2 ok\n";
+		}
+		#pragma omp section
+		{
 			while(true) {
 				if(j==(int)_through.size()) break;
+				if(j == mid) {
+					cout << "writer report 1 ok\n";
+				}
 				if(j<i) {
+					if(ans[j] == nullptr) {
+						j++;
+						continue;
+					}
+					for(auto& p: *ans[j]) {
+						p->fast_output(writer, graph);
+						delete p;
+					}
+					delete ans[j];
+					j++;
+				}
+				else if(j>=mid and j<k) {
 					for(auto& p: *ans[j]) {
 						p->fast_output(writer, graph);
 						delete p;
@@ -73,6 +103,7 @@ void Timer::run(const string& tau, const string& timing, const string& ops, cons
 					j++;
 				}
 			}
+			cout << "writting  ok\n";
 		}
 	}
 	writer.close();

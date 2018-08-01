@@ -924,7 +924,7 @@ void Graph::repower_gate(const string& inst_name, const string& cell_type){
 }
 
 vector<Path*>* Graph::report_timing(const vector<pair<Transition_Type,string>>&through,
-				   	      		   const vector<pair<Transition_Type,string>>&disable, int nworst)
+				   	      		   const vector<pair<Transition_Type,string>>&disable, int nworst, int tid)
 {
 	vector<int> _through, _disable;
 	// turn to bc_map id
@@ -945,7 +945,7 @@ vector<Path*>* Graph::report_timing(const vector<pair<Transition_Type,string>>&t
 	//}
 
 	vector<Path*>* ans = new vector<Path*>;
-	bc_map->k_shortest_path(_through, _disable, nworst, *ans);
+	bc_map->k_shortest_path(_through, _disable, nworst, *ans, tid);
 
 	return ans;
 }

@@ -3,7 +3,7 @@
 
 #include "header.h"
 
-#define WRITER_BUFFER_MAX_LEN 1000
+#define WRITER_BUFFER_MAX_LEN 100000
 class Writer{
 
 public:

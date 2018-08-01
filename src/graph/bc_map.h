@@ -42,7 +42,7 @@ public:
 	void k_shortest_path(vector<int>& _through,
 						 vector<int>& _disable,
 						 int k,
-						 vector<Path*>& ans);
+						 vector<Path*>& ans, int tid);
 
 	//std::atomic<float> threshold;
 
@@ -56,13 +56,12 @@ private:
 	void check_condense(); // for debugging
 
 
-	CacheNode* get_cache_node(int source, CacheNode_Type type);
-	CacheNode* add_cache_node(int source, CacheNode_Type type);
-	void erase_cache_node(CacheNode*);
+	CacheNode* get_cache_node(int source, CacheNode_Type type, int tid);
+	CacheNode* add_cache_node(int source, CacheNode_Type type, int tid);
+	void erase_cache_node(CacheNode*, int tid);
 
     Graph* graph;
 	CPPR* cppr;
-	Cache* cache;
 
     int num_node, num_edge;
 
@@ -79,10 +78,11 @@ private:
 	vector<int> nodes_jump_edge;
 	int max_level;
 
-	queue<CacheNode*> free_cache_node;
-	vector<CacheNode*> cache_nodes[2]; // two type
-	vector<CacheNode*> cache_node_collector;
-	int query_cnt;
+	Cache* cache[2];
+	queue<CacheNode*> free_cache_node[2];                 // two threads 
+	vector<CacheNode*> cache_nodes[2][2]; // two type  cache_nodes[tid][type][source]
+	vector<CacheNode*> cache_node_collector[2];
+	int query_cnt[2];
 
 
     friend class Kth; 

@@ -88,7 +88,8 @@ public:
 	float get_cppr_credit(const string& pin1, const string& pin2, Transition_Type type1, Transition_Type typ2, Mode mode);
 	vector<Path*>* report_timing(const vector<pair<Transition_Type,string>>&through,
 					   		    const vector<pair<Transition_Type,string>>&disable, 
-								int nworst);
+								int nworst,
+								int tid);
 
 	/* unimplemented */
 	void set_load(const string& pin_name, float cap);
